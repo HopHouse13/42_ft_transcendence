@@ -1,0 +1,55 @@
+import { Request, Response } from 'express';
+import { Board } from '../types/othello.types';
+import {
+  createInitialBoard,
+  validateMove,
+  applyMove,
+  buildGameState,
+  getValidMoves,
+} from '../game/othello.logic';
+
+// État en mémoire de la partie — voir la remarque sur l'absence de BDD pour l'instant.
+// currentPlayer commence toujours par 'black', règle standard d'Othello.
+let board: Board = createInitialBoard();
+let currentPlayer: 'black' | 'white' = 'black';
+
+// GET /api/game — renvoie l'état actuel de la partie
+export function getGameState(req: Request, res: Response) {
+  const state = buildGameState(board, currentPlayer);
+  res.json(state);
+}
+
+// POST /api/game/move — joue un coup
+// Corps de requête attendu : { "row": number, "col": number }
+export function playMove(req: Request, res: Response) {
+  const { row, col } = req.body;
+
+  // Vérification basique des entrées avant même de toucher à la logique de jeu
+  if (typeof row !== 'number' || typeof col !== 'number') {
+    return res.status(400).json({ error: 'row et col doivent être des nombres' });
+  }
+
+  const validation = validateMove(board, { row, col }, currentPlayer);
+
+  if (!validation.isValid) {
+    return res.status(400).json({ error: 'Coup invalide' });
+  }
+
+  board = applyMove(board, { row, col }, currentPlayer, validation.cellsToFlip);
+
+  // Passe au joueur suivant, seulement s'il a au moins un coup possible.
+  // Sinon on garde le même joueur (règle d'Othello : passer si bloqué).
+  const opponent = currentPlayer === 'black' ? 'white' : 'black';
+  currentPlayer = getValidMoves(board, opponent).length > 0 ? opponent : currentPlayer;
+
+  const state = buildGameState(board, currentPlayer);
+  res.json(state);
+}
+
+// POST /api/game/reset — recommence une nouvelle partie
+export function resetGame(req: Request, res: Response) {
+  board = createInitialBoard();
+  currentPlayer = 'black';
+  const state = buildGameState(board, currentPlayer);
+  res.json(state);
+}
