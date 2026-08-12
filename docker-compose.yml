@@ -1,0 +1,27 @@
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"       # HTTP
+      - "443:443"     # HTTPS (à configurer plus tard)
+    depends_on:
+      - backend
+    networks:
+      - ft_transcendence_network
+
+  backend:
+    build: ./backend
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./backend:/app        # ton code hôte monté en live dans le conteneur
+      - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
+    ports:
+      - "3000:3000"
+    networks:
+      - ft_transcendence_network
+
+# Réseau dédié pour que les conteneurs communiquent
+networks:
+  ft_transcendence_network:
+    driver: bridge
