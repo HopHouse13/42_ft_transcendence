@@ -18,6 +18,10 @@ services:
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
     ports:
       - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://othello_user:othello_pass@db:5432/othello_db
+    depends_on:
+      - db
     networks:
       - ft_transcendence_network
 
@@ -32,7 +36,25 @@ services:
       - "5173:5173"
     networks:
       - ft_transcendence_network
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=othello_user
+      - POSTGRES_PASSWORD=othello_pass
+      - POSTGRES_DB=othello_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - ft_transcendence_network
+
 # Réseau dédié pour que les conteneurs communiquent
 networks:
   ft_transcendence_network:
     driver: bridge
+
+volumes:
+  postgres_data:

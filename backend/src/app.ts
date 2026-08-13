@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import gameRoutes from './routes/game.routes';
+import { checkDatabaseConnection } from './db/pool';
 
 const app = express();
 const PORT = 3000;
@@ -17,6 +18,7 @@ app.use(express.json());
 // Toutes les routes définies dans game.routes.ts seront préfixées par /api
 app.use('/api', gameRoutes);
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
+  await checkDatabaseConnection();
 });
