@@ -21,6 +21,17 @@ services:
     networks:
       - ft_transcendence_network
 
+  frontend:
+    build: ./frontend
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    networks:
+      - ft_transcendence_network
 # Réseau dédié pour que les conteneurs communiquent
 networks:
   ft_transcendence_network:

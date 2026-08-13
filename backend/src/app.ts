@@ -1,8 +1,14 @@
 import express from 'express';
+import cors from 'cors';
 import gameRoutes from './routes/game.routes';
 
 const app = express();
 const PORT = 3000;
+
+
+// Autorise les requêtes venant du front-end (localhost:5173)
+// Sans ça, le navigateur bloque la réponse avant même qu'elle atteigne ton code React
+app.use(cors({ origin: 'http://localhost:5173' }));
 
 // Middleware obligatoire pour qu'Express parse le JSON envoyé dans le corps
 // des requêtes POST. Sans lui, req.body serait undefined dans le controller.
