@@ -2,8 +2,7 @@
 
 ***DESCRIPTION***
 
-![Architecture Conteneurs Othello].(./sujets/Architecture Conteneurs Othello.png)
-
+![Architecture Conteneurs Othello](sujets/Architecture%20Conteneurs%20Othello.png)
 
 ***INSTRUCTIONS***
 
