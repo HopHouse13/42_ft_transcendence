@@ -1,0 +1,432 @@
+/**
+ * Styles CSS pour le jeu Othello
+ * 
+ * Thème : Vert foncé avec des accents lumineux
+ * Structure : Flexbox pour une disposition responsive
+ */
+
+* {
+  box-sizing: border-box;
+}
+
+/* Styles globaux pour la page */
+body {
+  /* Police moderne et lisible */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+  /* Dégradé vert foncé pour le fond */
+  background: linear-gradient(135deg, #1a4d2e 0%, #2d5a3d 100%);
+  color: #e8e8e8;
+  min-height: 100vh;
+}
+
+/* Styles des titres - Couleur claire pour contraster avec le fond sombre */
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  color: #f0f0f0;
+}
+
+/* Tailles de police hiérarchisées pour les titres */
+h1 { font-size: 22px; }
+h2 { font-size: 20px; }
+h3 { font-size: 18px; }
+h4 { font-size: 16px; }
+h5 { font-size: 14px; }
+h6 { font-size: 12px; }
+
+/* Style pour le code (s'il y en a dans le contenu) */
+code {
+  font-size: 1.2em;
+}
+
+/* Style par défaut pour les listes */
+ul {
+  padding-inline-start: 20px;
+}
+
+/* ===== STRUCTURE PRINCIPALE ===== */
+
+/* Conteneur principal du jeu
+   - Utilise Flexbox pour organiser le plateau et l'historique côté à côté
+   - flex-wrap: wrap permet un affichage responsive sur petits écrans
+   - Hauteur calculée pour prendre toute la hauteur disponible */
+.game {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+  height: calc(100vh - 40px);
+  max-height: calc(100vh - 40px);
+}
+
+/* Conteneur du plateau de jeu
+   - Fond dégradé vert
+   - Ombre portée pour un effet 3D
+   - Flexible pour prendre l'espace disponible
+   - Défilement vertical si nécessaire */
+.game-board {
+  background: linear-gradient(145deg, #3a5a2f 0%, #25381c 100%);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.3);
+  flex: 1;
+  min-width: 320px;
+  max-width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Conteneur de l'historique des coups
+   - Fond semi-transparent avec flou (backdrop-filter)
+   - Largeur minimale pour éviter un contenu trop étroit
+   - Défilement vertical si l'historique est long */
+.game-info {
+  background: rgba(42, 60, 36, 0.7);
+  border-radius: 12px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  min-width: 200px;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== PLATEAU DE JEU ===== */
+
+/* Conteneur du plateau et du statut
+   - Organisé en colonne : statut en haut, plateau en dessous
+   - Centré horizontalement */
+.board-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+/* /* Grille du plateau de jeu 8x8
+   - aspect-ratio: 1/1 pour un carré parfait
+   - largeur maximale de 600px pour éviter un plateau trop grand
+   - Ombre intérieure pour un effet de profondeur
+   - flex-shrink: 0 pour empêcher la réduction */
+.board {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  aspect-ratio: 1/1;
+  width: 100%;
+  max-width: 900px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Nettoyage des floats pour les lignes du plateau */
+.board-row:after {
+  clear: both;
+  content: '';
+  display: table;
+}
+
+/* ===== CASES DU PLATEAU ===== */
+
+/* Style de base pour chaque case
+   - Fond dégradé vert foncé
+   - Bordues fines entre les cases (sauf sur les bords)
+   - Float: left pour créer la grille
+   - width: 12.5% = 1/8 pour 8 colonnes
+   - aspect-ratio: 1/1 pour des carrés parfaits
+   - Transition pour les effets de survol
+   - Ombre intérieure pour la profondeur */
+.square {
+  background: linear-gradient(145deg, #1a3e1c 0%, #2d5a2e 100%);
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0;
+  float: left;
+  width: 12.5%;
+  aspect-ratio: 1/1;
+  position: relative;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Supprime la bordure droite de la dernière case de chaque ligne */
+.board-row .square:last-child {
+  border-right: none;
+}
+
+/* Supprime la bordure inférieure de la dernière ligne */
+.board-row:last-child .square {
+  border-bottom: none;
+}
+
+/* Arrondie le coin superieur gauche du plateau */
+.board-row:first-child .square:first-child {
+  border-top-left-radius: 20%;
+}
+
+/* Arrondie le coin superieur droit du plateau */
+.board-row:first-child .square:last-child {
+  border-top-right-radius: 20%;
+}
+
+/* Arrondie le coin inferieur gauche du plateau */
+.board-row:last-child .square:first-child {
+  border-bottom-left-radius: 20%;
+}
+
+/* Arrondie le coins du plateau */
+.board-row:last-child .square:last-child {
+  border-bottom-right-radius: 20%;
+}
+
+/* Effet de survol sur les cases
+   - Éclaircit légèrement le fond
+   - Légère mise à l'échelle pour un effet de soulèvement
+   - Ombre plus marquée pour l'effet 3D */
+.square:hover {
+  background: linear-gradient(145deg, #2a5e2c 0%, #3d6a3e 100%);
+  transform: scale(1.02);
+  z-index: 1;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== COUPS VALIDES ===== */
+
+/* Surbrillance des cases où un coup est possible
+   - Fond plus clair pour indiquer qu'on peut jouer ici
+   - Bordure verte (#4ade80) pour une indication visuelle claire */
+.square.possible-move {
+  background: linear-gradient(145deg, #1a4d2e 0%, #2d6a3d 100%);
+  box-shadow: inset 0 0 0 2px #4ade80, inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Effet de survol renforcé pour les cases jouables */
+.square.possible-move:hover {
+  background: linear-gradient(145deg, #2a6e3e 0%, #3d8a4e 100%);
+  box-shadow: inset 0 0 0 3px #4ade80, inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+/* Indicateur visuel pour les coups valides
+   - Petit point lumineux au centre de la case
+   - Dégradé radial vert pour un effet lumineux
+   - Positionné au centre avec transform
+   - Animation de pulsation pour attirer l'attention */
+.possible-move-indicator {
+  position: absolute;
+  width: 24%;
+  height: 24%;
+  aspect-ratio: 1/1;
+  background: radial-gradient(circle, #4ade80 0%, #16a34a 100%);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px #4ade80, 0 0 20px rgba(74, 222, 128, 0.3);
+  animation: pulse 1.5s infinite;
+}
+
+/* Animation de pulsation pour l'indicateur
+   - Passe de 70% à 100% d'opacité
+   - Légère mise à l'échelle pour un effet de battement */
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* ===== PIONS ===== */
+
+/* Style de base pour tous les pions
+   - Position absolue au centre de la case
+   - Forme circulaire parfaite (aspect-ratio: 1/1 + border-radius: 50%)
+   - Largeur de 70% de la case
+   - Ombre complexe pour un effet 3D (extérieure + intérieures)
+   - Transition pour l'effet de survol */
+.pawn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.3),
+    inset 2px 2px 6px rgba(255, 255, 255, 0.2);
+  transition: transform 0.15s ease;
+}
+
+/* Effet de survol : légère mise à l'échelle */
+.pawn:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* Pions noirs (X)
+   - Dégradé du noir très foncé au noir moyen
+   - Bordure noire pour la définition */
+.pawn.black-pawn {
+  background: linear-gradient(145deg, #0a0a0a 0%, #2a2a2a 100%);
+  border: 1px solid #000000;
+}
+
+/* Pions blancs (O)
+   - Dégradé du blanc clair au gris clair
+   - Bordure grise pour la définition */
+.pawn.white-pawn {
+  background: linear-gradient(145deg, #f8f8f8 0%, #d8d8d8 100%);
+  border: 1px solid #b8b8b8;
+}
+
+/* ===== ÉLÉMENTS D'INTERFACE ===== */
+
+/* Barre de statut
+   - Affiche le score et le tour actuel
+   - Fond semi-transparent
+   - Texte centré et en gras
+   - Bordure subtile */
+.status {
+  margin: 0 auto;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  font-size: 14px;
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 600px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* Style de base pour tous les boutons
+   - Curseur pointer pour indiquer l'interactivité
+   - Pas de bordure par défaut
+   - Coins arrondis
+   - Padding confortable
+   - Texte en gras
+   - Transition fluide pour les effets de survol
+   - Police héritée pour la cohérence */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+/* Effet de survol : léger soulèvement */
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Effet quand le bouton est enfoncé */
+button:active {
+  transform: translateY(0);
+}
+
+/* Bouton Reverse (pour inverser l'historique)
+   - Petit bouton en haut de la liste d'historique
+   - Position sticky pour rester visible lors du défilement
+   - Bordure verte pour indiquer l'action
+   - Fond dégradé vert foncé */
+.toggle-button {
+  background: linear-gradient(145deg, #2d5a3d 0%, #1a3e1c 100%);
+  color: #e8e8e8;
+  border: 1px solid #4ade80;
+  padding: 6px 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  align-self: flex-start;
+}
+
+/* Effet de survol : éclaircit le fond et la bordure */
+.toggle-button:hover {
+  background: linear-gradient(145deg, #3d6a3d 0%, #2a4e2c 100%);
+  border-color: #6ee7b7;
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+}
+
+/* Bouton Pass Turn
+   - Permet de passer son tour quand aucun coup n'est possible
+   - Style similaire au toggle-button
+   - Centré horizontalement
+   - Plus large pour une meilleure visibilité */
+.pass-button {
+  background: linear-gradient(145deg, #2d5a3d 0%, #1a3e1c 100%);
+  color: #e8e8e8;
+  border: 1px solid #4ade80;
+  margin: 0 auto;
+  display: block;
+  padding: 10px 20px;
+  flex-shrink: 0;
+}
+
+/* Effet de survol : éclaircit le fond et la bordure */
+.pass-button:hover {
+  background: linear-gradient(145deg, #3d6a3d 0%, #2a4e2c 100%);
+  border-color: #6ee7b7;
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+}
+
+/* Indicateur du coup actuel
+   - Affiche le numéro du coup en cours
+   - Texte gris clair pour un affichage discret */
+.move-info {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  color: #a8a8a8;
+  font-size: 13px;
+}
+
+/* ===== HISTORIQUE DES COUPS ===== */
+
+/* Liste des coups (ol = ordered list)
+   - Pas de padding par défaut
+   - Hauteur limitée avec défilement */
+ol {
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+  max-height: calc(100% - 40px);
+  overflow-y: auto;
+}
+
+/* Espacement entre les éléments de la liste */
+ol li {
+  margin-bottom: 8px;
+}
+
+/* Boutons de la liste d'historique
+   - Fond semi-transparent
+   - Texte aligné à gauche
+   - Largeur à 100% du conteneur
+   - Bordure subtile */
+ol button {
+  background: rgba(42, 60, 36, 0.5);
+  color: #c8c8c8;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Effet de survol : éclaircit le fond et la bordure */
+ol button:hover {
+  background: rgba(66, 86, 54, 0.7);
+  color: #f0f0f0;
+  border-color: #4ade80;
+}
