@@ -316,7 +316,7 @@ function Board({ xIsNext, squares, onPlay }: BoardProps): React.ReactElement {
                 </button>
             )}
             {/* Plateau de jeu 8x8 */}
-            <div className="game-board">
+            <div className="board">
                 {initializeBoard()}
             </div>
         </div>

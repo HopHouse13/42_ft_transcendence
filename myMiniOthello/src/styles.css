@@ -56,6 +56,7 @@ ul {
   flex-direction: row;
   gap: 20px;
   flex-wrap: wrap;
+  width: 100%;
   height: calc(100vh - 40px);
   max-height: calc(100vh - 40px);
 }
@@ -70,7 +71,7 @@ ul {
   border-radius: 12px;
   padding: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.3);
-  flex: 1;
+  flex: 0.8;
   min-width: 320px;
   max-width: 100%;
   max-height: 100%;
@@ -88,6 +89,7 @@ ul {
   border-radius: 12px;
   padding: 15px;
   backdrop-filter: blur(10px);
+  flex: 0.2;
   min-width: 200px;
   max-height: 100%;
   overflow-y: auto;
@@ -108,15 +110,15 @@ ul {
   flex: 1;
 }
 
-/* /* Grille du plateau de jeu 8x8
+/* Grille du plateau de jeu 8x8
    - aspect-ratio: 1/1 pour un carré parfait
    - largeur maximale de 600px pour éviter un plateau trop grand
    - Ombre intérieure pour un effet de profondeur
    - flex-shrink: 0 pour empêcher la réduction */
 .board {
-  border-radius: 8px;
+  border-radius: 2.5%;
   overflow: hidden;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
   aspect-ratio: 1/1;
   width: 100%;
   max-width: 900px;
