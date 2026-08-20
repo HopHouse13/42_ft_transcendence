@@ -925,6 +925,161 @@ person.age;   // number
 person.email; // ❌ Erreur : La propriété 'email' n'existe pas
 ```
 
+### 8.9. Immediately Invoked Function Expressions (IIFE)
+
+**Définition** : Une **IIFE** (prononcé "iffy") est une **fonction anonyme qui s'exécute immédiatement après sa déclaration**. C'est un pattern JavaScript qui permet de créer un **scope isolé** pour des variables temporaires.
+
+**Syntaxe** :
+```typescript
+// Syntaxe de base
+(() => {
+    // Code ici
+})();
+
+// Avec retour de valeur
+const result = (() => {
+    const temp = 42;
+    return temp * 2;
+})(); // result = 84
+
+// Avec paramètres
+const multiply = ((x: number, y: number) => x * y)(5, 3); // multiply = 15
+```
+
+**Pourquoi utiliser une IIFE ?**
+
+| Avantages | Explication | Exemple |
+|-----------|-------------|---------|
+| **Scope isolé** | Les variables déclarées dans l'IIFE ne "fuitent" pas dans le scope parent | `const board` dans l'exemple ci-dessous |
+| **Initialisation complexe** | Permet de créer une valeur avec plusieurs étapes tout en gardant une expression unique | `INITIAL_BOARD` |
+| **Éviter la pollution globale** | Protège les variables temporaires | Variables intermédiaires |
+| **Expression unique** | Permet de déclarer et initialiser une constante en une seule expression | `const x = (() => { ... })()` |
+
+**Exemple dans le projet : `INITIAL_BOARD`**
+
+Dans `gameConstants.ts`, on utilise une IIFE pour initialiser le plateau initial :
+
+```typescript
+export const INITIAL_BOARD: BoardState = (() => {
+    const board: BoardState = Array(64).fill(null);
+    board[27] = 'X';
+    board[28] = 'O';
+    board[35] = 'O';
+    board[36] = 'X';
+    return board;
+})();
+```
+
+**Pourquoi une IIFE ici ?**
+
+1. **Isolation du scope** :
+   - La variable `board` n'existe que dans l'IIFE
+   - Elle n'est pas accessible depuis l'extérieur
+   - Pas de risque de conflit de noms
+
+2. **Initialisation multi-étapes** :
+   - On crée un tableau vide
+   - On place les 4 pions centraux
+   - On retourne le résultat final
+   - Tout cela en **une seule expression** pour l'initialisation de la constante
+
+3. **Équivalent sans IIFE (moins propre)** :
+   ```typescript
+   // ❌ Moins bon : nécessite une variable globale
+   const tempBoard: BoardState = Array(64).fill(null);
+   tempBoard[27] = 'X';
+   tempBoard[28] = 'O';
+   tempBoard[35] = 'O';
+   tempBoard[36] = 'X';
+   export const INITIAL_BOARD: BoardState = tempBoard;
+   
+   // ❌ Problème : tempBoard reste accessible et peut être modifiée par erreur
+   ```
+
+4. **Autre approche (fonction séparée)** :
+   ```typescript
+   // ✅ Alternative valable
+   function createInitialBoard(): BoardState {
+       const board = Array(64).fill(null);
+       board[27] = 'X';
+       board[28] = 'O';
+       board[35] = 'O';
+       board[36] = 'X';
+       return board;
+   }
+   export const INITIAL_BOARD: BoardState = createInitialBoard();
+   ```
+
+**Cas d'usage courants des IIFE** :
+
+1. **Création de valeurs complexes** :
+   ```typescript
+   const config = (() => {
+       const base = { host: 'localhost', port: 3000 };
+       if (process.env.NODE_ENV === 'production') {
+           base.host = 'api.example.com';
+           base.port = 443;
+       }
+       return base;
+   })();
+   ```
+
+2. **Encapsulation de logique** :
+   ```typescript
+   const result = (() => {
+       const data = fetchData();
+       const processed = processData(data);
+       return formatResult(processed);
+   })();
+   ```
+
+3. **Pattern Module** (historique, avant ES6 modules) :
+   ```typescript
+   const myModule = (() => {
+       let privateVar = 0;
+       return {
+           increment: () => privateVar++,
+           getValue: () => privateVar
+       };
+   })();
+   ```
+
+**Différence avec une fonction classique** :
+
+| | Fonction classique | IIFE |
+|---|-------------------|------|
+| **Déclaration** | `function f() {}` | `(function() {})()` |
+| **Appel** | `f()` | **Immédiat** à la déclaration |
+| **Réutilisation** | Oui, peut être appelée plusieurs fois | Non, s'exécute une seule fois |
+| **Scope** | Doit être nommée ou assignée | Anonyme, scope local |
+| **Cas d'usage** | Logique réutilisable | Initialisation unique |
+
+**Variantes de syntaxe** :
+
+```typescript
+// 1. Avec parenthèses autour de la fonction
+(() => {})();
+
+// 2. Avec parenthèses autour de l'appel
+(function() {})();
+
+// 3. Avec paramètres
+((a: number, b: number) => a + b)(5, 3);
+
+// 4. Avec nom (pour le débogage)
+(function namedIIFE() {})();
+
+// 5. Avec retour de valeur assignée
+const value = (() => 42)();
+```
+
+**Bonnes pratiques** :
+- ✅ **Utiliser pour l'initialisation complexe** de constantes
+- ✅ **Préférer les noms de fonctions** pour le débogage (ex: `function createInitialBoard() {}`)
+- ❌ **Éviter pour la logique principale** (préférer des fonctions nommées)
+- ❌ **Ne pas en abuser** (le code doit rester lisible)
+- ✅ **Documenter** si la logique est complexe
+
 ---
 
 ## 9. Keywords React
