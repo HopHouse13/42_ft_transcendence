@@ -33,6 +33,16 @@ CREATE TABLE friendships (
     UNIQUE(user_id, friend_id)
 );
 
+-- Tournois (doit être créée AVANT "games", qui la référence)
+CREATE TABLE tournaments (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            VARCHAR(100) NOT NULL,
+    status          VARCHAR(20) DEFAULT 'pending', -- pending/ongoing/finished
+    max_players     INT DEFAULT 8,
+    created_by      UUID REFERENCES users(id),
+    created_at      TIMESTAMP DEFAULT now()
+);
+
 -- Parties
 CREATE TABLE games (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -62,22 +72,13 @@ CREATE TABLE game_moves (
     created_at      TIMESTAMP DEFAULT now()
 );
 
--- Tournois
-CREATE TABLE tournaments (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name            VARCHAR(100) NOT NULL,
-    status          VARCHAR(20) DEFAULT 'pending', -- pending/ongoing/finished
-    max_players     INT DEFAULT 8,
-    created_by       UUID REFERENCES users(id),
-    created_at      TIMESTAMP DEFAULT now()
-);
-
+-- Participants aux tournois
 CREATE TABLE tournament_participants (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tournament_id   UUID REFERENCES tournaments(id),
     user_id         UUID REFERENCES users(id),
     alias           VARCHAR(50),           -- pseudo pour ce tournoi (souvent requis dans le sujet)
-    eliminated       BOOLEAN DEFAULT FALSE,
+    eliminated      BOOLEAN DEFAULT FALSE,
     joined_at       TIMESTAMP DEFAULT now(),
     UNIQUE(tournament_id, user_id)
 );

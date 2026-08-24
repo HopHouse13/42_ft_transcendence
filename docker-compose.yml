@@ -1,5 +1,4 @@
 services:
-
   proxy:
     build: ./proxy
     ports:
@@ -11,12 +10,14 @@ services:
   backend:
     build: ./back-end
     volumes:
-      - ./backend:/app        # ton code hôte monté en live dans le conteneur
+      - ./back-end:/app       # ton code hôte monté en live dans le conteneur
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
     ports:
       - "3000:3000"
+    env_file:
+      - ./back-end/.env
     environment:
-      - DATABASE_URL=postgres://othello_user:othello_pass@db:5432/othello_db
+      - DATABASE_URL=postgres://othello_user:othello_pass@database:5432/othello_db
     depends_on:
       - database
     networks:
@@ -25,7 +26,7 @@ services:
   frontend:
     build: ./front-end
     volumes:
-      - ./frontend:/app
+      - ./front-end:/app
       - /app/node_modules
     ports:
       - "5173:5173"
@@ -34,14 +35,15 @@ services:
 
   database:
     image: postgres:16-alpine
-    env_file: .env.example
+    env_file:
+      - .env
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data-base/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
     healthcheck:
