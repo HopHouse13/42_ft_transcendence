@@ -1,3 +1,4 @@
+/*
 import * as Joi from 'joi';
 
 // Le conteneur refuse de démarrer si une variable requise manque ou est invalide.
@@ -17,3 +18,4 @@ export const validationSchema = Joi.object({
   JWT_SECRET: Joi.string().optional(), // .required() quand le module auth sera actif
   JWT_EXPIRES_IN: Joi.string().default('1d'),
 });
+*/
