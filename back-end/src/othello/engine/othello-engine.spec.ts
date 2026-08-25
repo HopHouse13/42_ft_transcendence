@@ -87,15 +87,41 @@ describe('OthelloEngine', () => {
       expect(() => engine.playMove({ row: 2, col: 4 }, 'WHITE')).toThrow();
     });
   });
-
+  
   describe('isGameOver', () => {
-    it('la partie n\'est pas finie au début', () => {
-      const engine = new OthelloEngine();
-      expect(engine.isGameOver()).toBe(false);
-    });
-
-    it.todo('détecte la fin de partie quand aucun joueur ne peut jouer');
+  it('la partie n\'est pas finie au début', () => {
+    const engine = new OthelloEngine();
+    expect(engine.isGameOver()).toBe(false);
   });
+
+  it('détecte la fin de partie quand le plateau est plein', () => {
+    const engine = new OthelloEngine();
+    const board = engine.getBoard();
+
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        board.setCell(row, col, (row + col) % 2 === 0 ? 'BLACK' : 'WHITE');
+      }
+    }
+
+    expect(engine.isGameOver()).toBe(true);
+  });
+
+  it('détecte la fin de partie sur un plateau bloqué mais non plein', () => {
+    const engine = new OthelloEngine();
+    const board = engine.getBoard();
+
+    // tout le plateau en BLACK, sauf une seule case vide
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        board.setCell(row, col, 'BLACK');
+      }
+    }
+    board.setCell(0, 0, 'EMPTY');
+
+    expect(engine.isGameOver()).toBe(true);
+  });
+});
 
   describe('returnResult', () => {
     it('compte correctement les pions en tout début de partie', () => {
