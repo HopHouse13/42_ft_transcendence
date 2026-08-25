@@ -55,6 +55,16 @@ export class OthelloBoard {
 
     return( this._cells[row * 8 + col] );
   }
+
+  getCellSafe(row: number, col: number): Cell | null {
+
+    if (!this._isValidPosition(row, col)) {
+
+      return( null );
+    }
+
+    return( this._cells[row * 8 + col]);
+  }
   
   setCell(row: number, col: number, value: Cell): void  {
 

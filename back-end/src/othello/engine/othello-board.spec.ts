@@ -48,6 +48,12 @@ describe('OthelloBoard', () => {
       const board = new OthelloBoard();
       expect(() => board.setCell(8, 8, 'BLACK')).toThrow();
     });
+      
+    it('getCellSafe renvoie null hors limites au lieu de lever une erreur', () => {
+     const board = new OthelloBoard();
+     expect(board.getCellSafe(-1, 0)).toBeNull();
+     expect(board.getCellSafe(0, 0)).toBe('EMPTY');
+   });
   });
 
   describe('clone', () => {
