@@ -102,7 +102,29 @@ export class OthelloEngine  {
   // renvoie la liste des cases qui seraient retournées
   private _capturedCells(move: Move, player: Player): Move[]  {
 
-    throw new Error('Not implemented');
+    const opponent = this._opponent(player);
+    const allCaptured: Move[] = []
+    
+    for(const[dRow, dCol] of DIRECTIONS)    {
+
+      const capturedInThisDirection: Move[] = [];
+      let row = move.row + dRow;
+      let col = move.col + dCol;
+
+      while(this._board.getCell(row, col) === opponent) {
+
+        capturedInThisDirection.push( {row, col} );
+        row += dRow ;
+        col += dCol ;
+      }
+
+      if ( capturedInThisDirection.length > 0 && this._board.getCell(row, col) === player)   {
+
+        allCaptured.push(...capturedInThisDirection);
+      }
+    }
+
+    return( allCaptured );
   }
 
   private _opponent(player: Player): Player   {
