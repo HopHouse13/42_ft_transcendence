@@ -1,0 +1,55 @@
+// bloc generator -> ce que prisma va générer avec la cmd: npx prisma generate
+generator client {
+	// client prisma en js -> il sera importé dans les fichiers src pour pouvoir generer du sql
+	provider = "prisma-client-js"
+}
+
+// bloc datasource -> dit a prisma quel moteur de db et où se trouve la db
+datasource db {
+	// défini le moteur de la db -> en fonction du moteur db, prisma modifi le formation de ses requêtes sql
+	provider = "postgresql"
+	// chemin d'acces a la db
+	url = env("DATABASE_URL")
+}
+
+// Un utilisateur -> un compte
+// UUID -> (Universally Unique Identifier) base hexadecimale, ID unique (géré par Prisma) type utlisé pour annonymiser la clé primaire
+// un Champ -> nom, type, attribus(optionnel)
+// @<mot clé> -> attributs, qui donne des propriétés au champ (@@<mot clé> -> pour tous les champ du modèle) lagage propre a Prisma
+// @map("<nom du champ dans la db>") -> Map un nom de champ du schéma Prisma au nom du champ de la base de données
+// @@map("<nom du model dans la db>") -> Map le nom du model au nom du model au niveau del a db
+// les @map servent pour que les conventions de nommage soient respectées
+// Prisma -> camelCase ; db -> snake_case
+// "?" devant le type indique que le champ peut etre null (par defaut les champs sont obligés d'être remplis sinon error)
+model User {
+	// clé primaire
+	id				String @id @default(uuid()) @db.Uuid
+
+	// unique, max 50 char
+	username		String @unique @db.VarChar(50)
+	// unique, max 255 char
+	email			String @unique @db.VarChar(255)
+
+	// stock un mdp hashé
+	passwordHash	String @map("password_hash") @db.VarChar(255)
+
+	// stock une url vers une image (avatar)
+	avatarUrl		String? @map("avatar_url") @db.VarChar(255)
+
+	// type DateTime -> type specifique a Prisma et est compris par postgresql
+	// @default -> dit si tu ne recois rien dans ce champ met ce qui a dans les ()
+	// now() -> donne l'horodatage de maintenant (fonction specifique a Prisma)
+	createdAt		DateTime @default(now()) @map("created_at")
+	// @updatedAt = Prisma met à jour automatiquement l'horodatage à chaque modif
+	updatedAt		DateTime @updatedAt @map("updated_at")
+
+	// map User (nom du model) a users (nom dans la db)
+	@@map("users")
+}
+
+// Tips
+// cmd : npx prisma format -> format automatiquement le fichier schema.prisma
+// cmd : npx prisma validate -> verifie si le schéma est bien valide
+// cmd : npx prisma migrate dev -> fait une version de migration de la db en mode dev
+// cmd : npx prisma migrate reset -> reset la db public
+// cmd : npx prisma studio -> affiche clairement dans le navigateur tes tables de données
