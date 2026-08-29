@@ -12,6 +12,7 @@ RUN npm install
 # Le CLI Nest est utile en dev (nest g module/controller/service...)
 # depuis l'intérieur du conteneur.
 RUN npm i -g @nestjs/cli
+RUN npm install class-validator class-transformer
 
 # Pas de COPY . . ici : en dev, le volume monté par docker-compose
 # (./back-end:/app) fournit déjà tout le code source en live.
