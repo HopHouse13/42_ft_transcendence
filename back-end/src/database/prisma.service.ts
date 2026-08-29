@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 
-@Injectable()
+@Injectable() // rend la class apte a recevoir des injections dans son constructeur
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
 	// connexion forcée au démarrage
 	async	onModuleInit() {
