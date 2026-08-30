@@ -45,13 +45,13 @@ export class UsersService
 
 	/////
 
-	async update( id: string, dto: UpdateUserDto ) // 2 params -> id pour identifier quel user va etre update et dto deja instancié par Nest
+	async update( id_user: string, dto: UpdateUserDto ) // 2 params -> id pour identifier quel user va etre update et dto deja instancié par Nest
 	{
 		const	updateUser = await this.prisma.user.update(
 		{
 			where: // filtre pour selectionner le user avec le bon id pour pouvoir modifier ses champs
 			{
-				id
+				id: id_user
 			},
 			data: // data signifi que les clés:valeurs a l'interieurs seront pris en compte pour modifier la db de ce user
 			{
@@ -65,6 +65,25 @@ export class UsersService
 
 	/////
 
+	async	remove( id: string ) // reçoit l'id du user à supprimer (transmis par le controller)
+	{
+		const	deleteUser = await this.prisma.user.delete(
+		{
+			where:
+			{
+				id // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+			},
+			select: // ne retourne que les champs listés à true par mesure de sécurité
+			{
+				id:			true,
+				username:	true,
+				avatarUrl:	true,
+				createdAt:	true,
+			},
+		});
+
+		return ( { message: `User ${id} has indeed been deleted` , user: deleteUser } ); // message de confirmation + infos filtrées du user supprimé
+	}
 }
 
 

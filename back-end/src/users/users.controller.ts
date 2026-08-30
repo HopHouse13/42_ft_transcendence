@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param } from "@nestjs/common"; // import des décorateurs utiles à UsersController
+import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common"; // import des décorateurs utiles à UsersController
 import { UsersService } from "./users.service"; // import de la definition de la classe UserService de users.service
 import { CreateUserDto } from "./dto/create-user.dto"; // import de la classe CreateUserDto
 import { UpdateUserDto } from "./dto/update-user.dto"; // import de la classe UpdateUserDto
@@ -24,9 +24,19 @@ export class UsersController
 		return ( this.usersService.create( dto ) ); // appel de create de usersService avec comme param dto ( instance de type CreateUserDto oú est stocké les data du body de la requete )
 	}
 
+	/////
+
 	@Patch( ':id' ) // méthode HTTP PATCH avec un arg (id) a récupérer avec @param
 	update( @Param( 'id' ) id: string, @Body() dto: UpdateUserDto ) // prends 2 params: id -> param recupéré sur url et DTO qui est instancié avec toutes la data du body de la requete
 	{
 		return ( this.usersService.update(id, dto) ); // retourne le resultat de update de usersService -> l'objet complet user qui a été modifié
+	}
+
+	/////
+
+	@Delete( ':id' ) // associe la méthode HTTP DELETE sur /users/:id à la méthode remove()
+	remove( @Param( 'id' ) id: string ) // récupère l'id du user dans l'url
+	{
+		return ( this.usersService.remove( id ) );
 	}
 }
