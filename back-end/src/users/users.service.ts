@@ -23,9 +23,36 @@ export class UsersService
 				username:	true,
 				avatarUrl:	true,
 				createdAt:	true,
-			},
+			}
 		});
+		if ( !users )
+			return ( {message: 'No existing users' });
 		return ( users ); // users est un tableau d'objets, un objet = un user
+	}
+
+	/////
+
+	async findOne( id: string )
+	{
+		const	user = await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				id
+			},
+			select:
+			{
+				id:			true,
+				username:	true,
+				avatarUrl:	true,
+				createdAt:	true,
+			}
+		}
+		);
+
+		if ( !user )
+			return ( {message: `User ${id} does not exist`});
+		return ( user );
 	}
 
 	/////
@@ -85,5 +112,4 @@ export class UsersService
 		return ( { message: `User ${id} has indeed been deleted` , user: deleteUser } ); // message de confirmation + infos filtrées du user supprimé
 	}
 }
-
 
