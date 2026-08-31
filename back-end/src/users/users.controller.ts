@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common"; // import des décorateurs utiles à UsersController
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from "@nestjs/common"; // import des décorateurs utiles à UsersController
 import { UsersService } from "./users.service"; // import de la definition de la classe UserService de users.service
 import { CreateUserDto } from "./dto/create-user.dto"; // import de la classe CreateUserDto
 import { UpdateUserDto } from "./dto/update-user.dto"; // import de la classe UpdateUserDto
@@ -18,6 +18,14 @@ export class UsersController
 
 	/////
 
+	@Get( ':id' ) // associe GET /users/:id à findOne()
+	findOne( @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id ciblé depuis l'URL
+	{
+		return ( this.usersService.findOne( id ) ); // relaie id au service, qui renvoie le user filtré ou lève un 404 si introuvable
+	}
+
+	/////
+
 	@Post() // associe la méthode HTTP POST à /users pour la méthode create()
 	create( @Body() dto : CreateUserDto ) // @Body() extrait le corps JSON de la requête et instancie dto avec cette data
 	{
@@ -27,7 +35,7 @@ export class UsersController
 	/////
 
 	@Patch( ':id' ) // méthode HTTP PATCH avec un arg (id) a récupérer avec @param
-	update( @Param( 'id' ) id: string, @Body() dto: UpdateUserDto ) // prends 2 params: id -> param recupéré sur url et DTO qui est instancié avec toutes la data du body de la requete
+	update( @Param( 'id', ParseUUIDPipe ) id: string, @Body() dto: UpdateUserDto ) // prends 2 params: id -> param recupéré sur url et DTO qui est instancié avec toutes la data du body de la requete
 	{
 		return ( this.usersService.update(id, dto) ); // retourne le resultat de update de usersService -> l'objet complet user qui a été modifié
 	}
@@ -35,7 +43,7 @@ export class UsersController
 	/////
 
 	@Delete( ':id' ) // associe la méthode HTTP DELETE sur /users/:id à la méthode remove()
-	remove( @Param( 'id' ) id: string ) // récupère l'id du user dans l'url
+	remove( @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id du user dans l'url
 	{
 		return ( this.usersService.remove( id ) );
 	}

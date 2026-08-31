@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common'; // décorateur qui rend cette classe injectable
+import { Injectable, NotFoundException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
 import { PrismaService } from '../database/prisma.service'; // la class PrismaService qui encapsule PrismaClient
+import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -25,9 +26,7 @@ export class UsersService
 				createdAt:	true,
 			}
 		});
-		if ( !users )
-			return ( {message: 'No existing users' });
-		return ( users ); // users est un tableau d'objets, un objet = un user
+		return ( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
 	}
 
 	/////
@@ -51,7 +50,7 @@ export class UsersService
 		);
 
 		if ( !user )
-			return ( {message: `User ${id} does not exist`});
+			throw new NotFoundException( `User ${id} non-existent` ); // expection Nest levée si le user n'exsite pas (catch par Nest via Expection Filter)
 		return ( user );
 	}
 
@@ -74,20 +73,26 @@ export class UsersService
 
 	async update( id_user: string, dto: UpdateUserDto ) // 2 params -> id pour identifier quel user va etre update et dto deja instancié par Nest
 	{
-		const	updateUser = await this.prisma.user.update(
+		try
 		{
-			where: // filtre pour selectionner le user avec le bon id pour pouvoir modifier ses champs
+			const	updateUser = await this.prisma.user.update(
 			{
-				id: id_user
-			},
-			data: // data signifi que les clés:valeurs a l'interieurs seront pris en compte pour modifier la db de ce user
-			{
-				username: dto.username,
-				email: dto.email
-			}
-		});
-
-		return ( updateUser ); // updateUser est un objet complet de type User du user qui a été update
+				where: // filtre pour selectionner le user avec le bon id pour pouvoir modifier ses champs
+				{
+					id: id_user
+				},
+				data: // data signifi que les clés:valeurs a l'interieurs seront pris en compte pour modifier la db de ce user
+				{
+					username: dto.username,
+					email: dto.email
+				}
+			});
+			return ( updateUser ); // updateUser est un objet complet de type User du user qui a été update
+		}
+		catch ( err )
+		{
+			if ( error instanceof )
+		}
 	}
 
 	/////
