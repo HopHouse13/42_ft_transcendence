@@ -1,17 +1,3 @@
-/*
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class OthelloService {
-  // TODO: gestion des parties en cours (in-memory ou via DB)
-  // TODO: brancher le moteur de jeu (dossier engine/)
-
-  ping() {
-    return { module: 'othello', status: 'ready' };
-  }
-}
-*/
-
 /* ========================================================================== */
 /*                                                                            */
 /*                                                                            */
@@ -32,57 +18,68 @@ import type { MoveResult, Move, GameResult } from './interfaces/move-result.inte
 
 /* ========================================================================== */
 
+/**
+ * Represente une partie
+ * engine -> une instace de la class OthelloEngine
+ * player -> interface PlayerInfo [ userId, color, connected
+ * status -> enum GameStatus Waiting || in_progress || finshed
+ * createdAt -> date de la creatation de la partie
+ */
 interface GameEntry {
 
-  engine: OthelloEngine;
-  players: PlayerInfo[];
-  status: GameStatus;
-  createdAt: Date;
+    engine:     OthelloEngine;
+    players:    PlayerInfo[];
+    status:     GameStatus;
+    createdAt:  Date;
 }
 
 /* ========================================================================== */
 
 @Injectable()
-export class OthelloService {
+export class    OthelloService {
 
-  private readonly games = new Map<string, GameEntry>();
-
-  createGame(hostUserId: string): GameState {
-  
-    const gameId = randomUUID();
-    const engine = new OthelloEngine();
-
-    const entry: GameEntry = {
+/**
+ * map qui utilise gameID comme clée et lie a l'interface GameEntry
+ */
+    private readonly games = new Map<string, GameEntry>();
     
-      engine,
-      players: [{ userId: hostUserId, color: 'BLACK', connected: true }],
-      status: GameStatus.WAITING,
-      createdAt: new Date(),
-    };
+/**
+ * Fonction createGame and joinGame
+ * createGame init interface GameEntry and add in map games ( a first players is a BLACK and hostPlayers )
+ * joinGame add a new player for a game ( all time a sceond player is a 'WHITE' )
+ */
 
-    this.games.set(gameId, entry);
+    createGame(hostUserId: string): GameState {
+  
+        const gameId = randomUUID(); const gameEntry = this._initGameEntry(hostUserId);
+        this.games.set( gameId, gameEntry );
 
-    return( this.buildGameState(gameId, entry) );
-  }
+        return( this.buildGameState(gameId, gameEntry) );
+    }
+
 
   joinGame(gameId: string, userId: string): GameState {
 
-    const entry = this.getEntry(gameId);
-
-    if (entry.players.length >= 2) {
+    const gameEntry = this._getGameEntry(gameId);
+    if (gameEntry.players.length >= 2)  {
     
       throw new Error(`La partie ${gameId} est déjà complète`);
     }
 
-    entry.players.push({ userId, color: 'WHITE', connected: true });
-    entry.status = GameStatus.IN_PROGRESS;
+    gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
+    gameEntry.status = GameStatus.IN_PROGRESS;
 
-    return( this.buildGameState(gameId, entry) );
+    return( this.buildGameState(gameId, gameEntry) );
   }
-
+    
+/**
+ *
+ *
+ */
+    
   playMove(gameId: string, userId: string, move: Move): MoveResult {
     
-    const entry = this.getEntry(gameId);
+    const entry = this._getGameEntry(gameId);
     const playerInfo = entry.players.find((p) => p.userId === userId);
 
     if (!playerInfo) {
@@ -124,67 +121,111 @@ export class OthelloService {
 
     return( result );
   }
-
-  getState(gameId: string): GameState {
-
-    const entry = this.getEntry(gameId);
-    return( this.buildGameState(gameId, entry) );
-  }
-
-  markDisconnected(gameId: string, userId: string): void {
-
-    const entry = this.games.get(gameId);
-    if (!entry) return;
-
-    const player = entry.players.find((p) => p.userId === userId);
-    if (player) player.connected = false;
-  }
-
-//  
-  private getEntry(gameId: string): GameEntry {
-
-    const entry = this.games.get(gameId);
-    if (!entry) throw new NotFoundException(`Partie ${gameId} introuvable`);
     
-    return( entry );
+/**
+ * Methode getState
+ * retourne l interface GameState qui corespons a l'id de la partie ( gameId )
+ */
+    getState(gameId: string): GameState   {
+        
+        const gameEntry = this._getGameEntry(gameId);
+        return( this.buildGameState(gameId, gameEntry) );
+    }
+    
+/**
+ * Methode marckDisconnected: change la valeur de player.conected en false
+ *  si il ne trouve pas d interface GameEntry corespondant a gameID s'arrete
+ *  si il trouve dans playerInfo un userID change la valeur de connected en false
+ */
+    markDisconnected(gameId: string, userId: string):   void    {
+
+        const gameEntry = this.games.get(gameId);
+        if (!gameEntry)
+          return;
+
+        const player = gameEntry.players.find((p) => p.userId === userId);
+        if ( player )
+            player.connected = false;
+    }
+
+// ~~ private Method: _initGameEntry | _getGameEntry | buildGameState | serializeBoard | toGameResult ~~ //
+
+/**
+ * Private Methode _initGameEntry and _getGameEntry for use a interface GameEntry
+ *
+ * _initGameEntry -> set a new engine, first player(host player) in black, set Status and set a Date
+ * _getGameEntry  -> return all interface or up Exeption if bad gameId or GameEntry no existe
+ */
+    private _initGameEntry( hostUserId: string ): GameEntry   {
+        
+        const newEntry: GameEntry = {
+          
+            engine:      new OthelloEngine(),
+            players:     [{ userId: hostUserId, color: 'BLACK', connected: true }],
+            status:      GameStatus.WAITING,
+            createdAt:   new Date(),
+        };
+
+        return( newEntry );
+    }
+    
+    private _getGameEntry(gameId: string): GameEntry {
+
+        const gameEntry = this.games.get(gameId);
+        if (!gameEntry) {
+            
+            throw new NotFoundException(`Partie ${gameId} introuvable`);
+        }
+    
+        return( gameEntry );
   }
 
-  private buildGameState(gameId: string, entry: GameEntry): GameState {
-
-    const currentPlayer = entry.engine.getCurrentPlayer();
-
-    return {
-      gameId,
-      cells: this.serializeBoard(entry.engine),
-      status: entry.status,
-      players: entry.players,
-      currentPlayer,
-      validMoves: entry.engine.allValidMove(currentPlayer),
-      result: entry.status === GameStatus.FINISHED
-        ? this.toGameResult(entry.engine.returnResult())
-        : undefined,
-      createdAt: entry.createdAt,
-    };
-  }
-
+//                   ~~ ~~                     //
+/**
+ * Private Methode buildGameState: retourne un interface GameState construite a partir de games( Map<gameId, GameEntry> )
+ *
+ */
+    private buildGameState(gameId: string, gameEntry: GameEntry): GameState   {
+        
+        const currentPlayer = gameEntry.engine.getCurrentPlayer();
+        
+        return {
+    
+            gameId,
+            cells: this.serializeBoard(gameEntry.engine),
+            status: gameEntry.status,
+            players: gameEntry.players,
+            currentPlayer,
+            validMoves: gameEntry.engine.allValidMove(currentPlayer),
+            result: ( gameEntry.status === GameStatus.FINISHED )? this.toGameResult(gameEntry.engine.returnResult()) : undefined,
+            createdAt: gameEntry.createdAt,
+        };
+        
+    }
+/**
+ * Private Methode serializeBoard: fait une copy du plateaux du moteur de jeux dans un tableaux unidirectionel EngineCell[]
+ *
+ */
   private serializeBoard(engine: OthelloEngine): EngineCell[] {
 
-    const board = engine.getBoard();
-    const cells: EngineCell[] = [];
-
-    for (let row = 0; row < 8; row++) {
-    
+    const board = engine.getBoard();  const cells: EngineCell[] = [];
+    for (let row = 0; row < 8; row++)
+    {
       for (let col = 0; col < 8; col++) {
       
         cells.push(board.getCell(row, col));
       }
     }
-
+      
     return( cells );
   }
 
+/**
+ * Private Methode toGameResult: retourne une interface GameResult
+ */
   private toGameResult(r: EngineGameResult): GameResult {
 
     return( { winner: r.winner, blackCount: r.blackCount, whiteCount: r.whiteCount } );
   }
+
 }
