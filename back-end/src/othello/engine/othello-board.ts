@@ -29,20 +29,23 @@ export class OthelloBoard {
 
 /*                    Constructeur et copy de la class OthelloBoard                */
 
-  constructor(cells?: Cell[])   {
-    
-    if (cells)
-      this._cells = cells;
-    
-    else 
-      this._cells = Array(64).fill('EMPTY'); this._setupInitialPosition();
+    constructor(cells?: Cell[])   {
+        
+        if (cells) {
+            
+            this._cells = cells;
+            
+        } else {
+            
+            this._cells = Array(64).fill('EMPTY');
+            this._setupInitialPosition();
+        }
+    }
 
-  }
+    clone(): OthelloBoard   {
 
-  clone(): OthelloBoard   {
-
-    return ( new OthelloBoard([...this._cells]) );
-  }
+        return ( new OthelloBoard([...this._cells]) );
+    }
 
 /*                    Methode GET et SET de du champs Cell                    */
 
