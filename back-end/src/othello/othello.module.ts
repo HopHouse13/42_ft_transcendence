@@ -5,7 +5,10 @@ import { OthelloService } from './othello.service';
 import { OthelloGateway } from './othello.gateway';
 
 @Module({
-  controllers: [OthelloController],
-  providers: [OthelloGateway, OthelloService],
+ 
+  controllers:  [OthelloController],
+  providers:    [OthelloGateway, OthelloService],
+  exports:      [OthelloService],
+
 })
 export class OthelloModule {}

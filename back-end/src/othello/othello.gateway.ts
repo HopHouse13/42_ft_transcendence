@@ -3,11 +3,12 @@
 /*                                                                            */
 /* ========================================================================== */
 
-import { WebSocketServer }  from 'websockets';
-import { SubscribeMessage } from 'websockets';
-import { MessageBody } from 'websockets';
-import { ConnectedSocket } from 'websockets';
-import { OnGatewayDisconnect } from 'websockets';
+import { WebSocketGateway }  from '@nestjs/websockets';
+import { WebSocketServer }  from '@nestjs/websockets';
+import { SubscribeMessage } from '@nestjs/websockets';
+import { MessageBody } from '@nestjs/websockets';
+import { ConnectedSocket } from '@nestjs/websockets';
+import { OnGatewayDisconnect } from '@nestjs/websockets';
 
 import { Server, Socket } from 'socket.io';
 
@@ -35,8 +36,7 @@ interface PlayMovePayload   {
 
 /* ========================================================================== */
 
-//@WebsocketGateway({ cors: {origin: '*' } })
-
+@WebSocketGateway({ cors: { origin: '*' } })
 export class OthelloGateway implements OnGatewayDisconnect   {
 
   @WebSocketServer()

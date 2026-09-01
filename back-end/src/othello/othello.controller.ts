@@ -3,6 +3,7 @@ import { OthelloService } from './othello.service';
 
 @Controller('othello')
 export class OthelloController {
+
   constructor(private readonly othelloService: OthelloService) {}
 
   // TODO: POST /othello/games (créer une partie)
