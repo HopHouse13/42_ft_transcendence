@@ -4,6 +4,7 @@
 /* ========================================================================== */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 import { OthelloEngine } from './engine/othello-engine';
@@ -63,7 +64,7 @@ export class    OthelloService {
     const gameEntry = this._getGameEntry(gameId);
     if (gameEntry.players.length >= 2)  {
     
-      throw new Error(`La partie ${gameId} est déjà complète`);
+      throw new BadRequestException(`La partie ${gameId} est déjà complète`);
     }
 
     gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
@@ -77,49 +78,36 @@ export class    OthelloService {
  *
  */
     
-  playMove(gameId: string, userId: string, move: Move): MoveResult {
+    playMove(gameId: string, userId: string, move: Move): MoveResult {
     
-    const entry = this._getGameEntry(gameId);
-    const playerInfo = entry.players.find((p) => p.userId === userId);
-
-    if (!playerInfo) {
-      
-      return( { valid: false, reason: `Joueur ${userId} ne fait pas partie de cette partie` } );
-    }
-
-    const engineMove: EngineMove = { row: move.row, col: move.col };
-
-    if (!entry.engine.isValidMove(engineMove, playerInfo.color)) {
-      
-      return( { valid: false, reason: `Coup invalide: (${move.row}, ${move.col})` } );
-    }
-
-    try {
-      
-      entry.engine.playMove(engineMove, playerInfo.color);
+        const entry = this._getGameEntry(gameId);
+        const engineMove: EngineMove = { row: move.row, col: move.col };
     
-    } catch (err) {
+        const playerInfo = entry.players.find((p) => p.userId === userId);
+        if (!playerInfo) {
+      
+            throw new BadRequestException( `Joueur ${userId} ne fait pas partie de cette partie` );
+        }
+        
+        try {
+      
+            entry.engine.playMove(engineMove, playerInfo.color);
     
-      return( { valid: false, reason: (err as Error).message } );
-    }
+        } catch (err) {
+    
+            throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
+        }
+    
+        const result = this._setMoveResult(entry);
+    
+        const gameOver = entry.engine.isGameOver();
+        if (gameOver) {
 
-    const gameOver = entry.engine.isGameOver();
-    entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+            result.result = this.toGameResult(entry.engine.returnResult());
+        }
+        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
 
-    const result: MoveResult = {
-
-      valid: true,
-      board: this.serializeBoard(entry.engine),
-      nextPlayer: entry.engine.getCurrentPlayer(),
-      status: entry.status,
-    };
-
-    if (gameOver) {
-
-      result.result = this.toGameResult(entry.engine.returnResult());
-    }
-
-    return( result );
+        return( result );
   }
     
 /**
@@ -178,8 +166,20 @@ export class    OthelloService {
         }
     
         return( gameEntry );
-  }
+    }
 
+    private _setMoveResult(gameEntry: GameEntry):  MoveResult {
+        
+        const moveResult: MoveResult = {
+
+            valid: true,
+            board: this.serializeBoard(gameEntry.engine),
+            nextPlayer: gameEntry.engine.getCurrentPlayer(),
+            status: gameEntry.status,
+        };
+        
+        return( moveResult );
+    }
 //                   ~~ ~~                     //
 /**
  * Private Methode buildGameState: retourne un interface GameState construite a partir de games( Map<gameId, GameEntry> )
