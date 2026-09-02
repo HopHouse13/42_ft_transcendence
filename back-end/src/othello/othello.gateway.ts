@@ -51,7 +51,7 @@ export class OthelloGateway implements OnGatewayDisconnect   {
   @SubscribeMessage('createGame')
   handleCreateGame( @MessageBody() payload: CreateGamePayload, @ConnectedSocket() client: Socket )   {
 
-    const state =this.othelloService.createGame(payload.userId);
+    const state = this.othelloService.createGame(payload.userId);
     client.join(state.gameId);
     this.connections.set(client.id, { gameId: state.gameId, userId: payload.userId });
   
