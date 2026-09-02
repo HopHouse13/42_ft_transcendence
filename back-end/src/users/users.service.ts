@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
 import { PrismaService } from '../database/prisma.service'; // la class PrismaService qui encapsule PrismaClient
 import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,6 +22,7 @@ export class UsersService
 			{
 				id:			true,
 				username:	true,
+				email:		true,
 				avatarUrl:	true,
 				createdAt:	true,
 			}
@@ -43,14 +44,15 @@ export class UsersService
 			{
 				id:			true,
 				username:	true,
+				email:		true,
 				avatarUrl:	true,
 				createdAt:	true,
 			}
 		}
 		);
 
-		if ( !user )
-			throw new NotFoundException( `User ${id} non-existent` ); // expection Nest levée si le user n'exsite pas (catch par Nest via Expection Filter)
+		if ( !user ) // findUnique renvoit null si il n'a pas trouvé de user
+			throw (new NotFoundException( `User ${id} non-existent` )); // expection Nest levée si le user n'exsite pas (catch par Nest via Expection Filter)
 		return ( user );
 	}
 
@@ -58,15 +60,30 @@ export class UsersService
 
 	async create( dto: CreateUserDto ) // renvoie un nouveau user avec ses données verifiées
 	{
-		const	newUser = await this.prisma.user.create(
+		try
 		{
-			data: // rempli uniquement les champs cités dans data
+			const	newUser = await this.prisma.user.create(
 			{
-				username:	dto.username,
-				email:		dto.email
+				data: // rempli uniquement les champs cités dans data
+				{
+					username:	dto.username,
+					email:		dto.email
+				}
+			});
+			return ( newUser ); // newUser est un objet de type User
+		}
+		catch ( err )
+		{
+			if ( err instanceof Prisma.PrismaClientKnownRequestError )
+			{
+				switch ( err.code )
+				{
+					case ( 'P2002' ): // si doublon
+						throw (new ConflictException( `Data already used` ));
+				}
 			}
-		});
-		return ( newUser ); // newUser est un objet de type User
+			throw ( err );
+		}
 	}
 
 	/////
@@ -91,7 +108,17 @@ export class UsersService
 		}
 		catch ( err )
 		{
-			if ( error instanceof )
+			if ( err instanceof Prisma.PrismaClientKnownRequestError )
+			{
+				switch ( err.code )
+				{
+					case ( 'P2025' ): // si le user n'existe pas
+						throw (new NotFoundException( `user ${id_user} non-existent` ));				
+					case ( 'P2002' ): // erreur d'unicité de la donnée
+						throw (new ConflictException( `Data already used` ));
+				}
+			}
+			throw ( err );
 		}
 	}
 
@@ -99,22 +126,37 @@ export class UsersService
 
 	async	remove( id: string ) // reçoit l'id du user à supprimer (transmis par le controller)
 	{
-		const	deleteUser = await this.prisma.user.delete(
+		try
 		{
-			where:
+			const	deleteUser = await this.prisma.user.delete(
 			{
-				id // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
-			},
-			select: // ne retourne que les champs listés à true par mesure de sécurité
-			{
-				id:			true,
-				username:	true,
-				avatarUrl:	true,
-				createdAt:	true,
-			},
-		});
+				where:
+				{
+					id // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+				},
+				select: // ne retourne que les champs listés à true par mesure de sécurité
+				{
+					id:			true,
+					username:	true,
+					avatarUrl:	true,
+					createdAt:	true,
+				},
+			});
 
-		return ( { message: `User ${id} has indeed been deleted` , user: deleteUser } ); // message de confirmation + infos filtrées du user supprimé
+			return ( { message: `User ${id} has indeed been deleted` , user: deleteUser } ); // message de confirmation + infos filtrées du user supprimé
+		}
+		catch ( err )
+		{
+			if ( err instanceof Prisma.PrismaClientKnownRequestError )
+			{
+				switch ( err.code )
+				{
+					case ( 'P2025' ):
+						throw (new NotFoundException( `user ${id} non-existent` ));
+				}
+			}
+			throw ( err );
+		}
 	}
 }
 

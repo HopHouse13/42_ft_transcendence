@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe } from "@nestjs/common"; // import des décorateurs utiles à UsersController
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, /*ValidationPipe, UsePipes*/ } from "@nestjs/common"; // import des décorateurs utiles à UsersController
 import { UsersService } from "./users.service"; // import de la definition de la classe UserService de users.service
 import { CreateUserDto } from "./dto/create-user.dto"; // import de la classe CreateUserDto
 import { UpdateUserDto } from "./dto/update-user.dto"; // import de la classe UpdateUserDto
 
+// @UsePipes( new ValidationPipe() ) // instancie ValidationPipe pour qu'il check les regles du DTO lors d'une requete (actuellement instancié dans le main)
 @Controller( 'users' ) // décorateur : toutes les routes de cette classe sont préfixées par /users
 export class UsersController
 {
@@ -21,7 +22,7 @@ export class UsersController
 	@Get( ':id' ) // associe GET /users/:id à findOne()
 	findOne( @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id ciblé depuis l'URL
 	{
-		return ( this.usersService.findOne( id ) ); // relaie id au service, qui renvoie le user filtré ou lève un 404 si introuvable
+		return ( this.usersService.findOne( id ) ); // relaie id au service, qui renvoie le user ou lève un 404 si introuvable
 	}
 
 	/////
@@ -48,3 +49,7 @@ export class UsersController
 		return ( this.usersService.remove( id ) );
 	}
 }
+
+
+// ParseUUIDPipe -> pipe specialisé (pas besoin de DTO). Son code est ecrit en dur. Pas besoin de l'instancier
+// DTO -> donne un modele d'objet js que ValidationPipe utilise pour instancier et verifier les donnée de l'objet a partir de la donnée brute du body d'une requete

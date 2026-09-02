@@ -53,7 +53,7 @@ model User {
 
 /// Processus de modification db via Prisma ///
 
-// npx prisma format -> nettoie/réaligne le fichier schema.prisma
+// (optionnel) npx prisma format -> nettoie/réaligne le fichier schema.prisma
 
 // npx prisma validate -> vérifie que le schema.prisma est valide
 
