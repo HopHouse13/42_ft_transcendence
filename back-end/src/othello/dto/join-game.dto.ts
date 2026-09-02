@@ -1,4 +1,4 @@
-import { IsUUID } from 'class-validator';
+import { IsUUID, IsString, IsNotEmpty } from 'class-validator';
 
 export class JoingameDto {
 
@@ -7,13 +7,13 @@ export class JoingameDto {
  * ou un event WebSocket ('joinGame').
  *
  * */
-  @IsUUID()
-  gameid: string;
+  @IsUUID() @IsString() @IsNotEmpty() 
+  gameId: string;
 
 /*
  * Id du joueur qui rejoint.
  *
  * */
-  @IsUUID()
-  playerID: string;
+  @IsUUID() @IsString() @IsNotEmpty()
+  userId: string;
 }
