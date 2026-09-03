@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common';
+
 import { OthelloService } from './othello.service';
 import { GameStatus } from './enums/game-status.enum';
 
@@ -70,27 +72,25 @@ describe('OthelloService', () => {
       service.playMove(gameId, 'alice', { row: 2, col: 3 });
 
       // c'est au tour de bob, alice ne peut pas rejouer
-      const result = service.playMove(gameId, 'alice', { row: 2, col: 2 });
-
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBeDefined();
+        expect(() =>
+                service.playMove(gameId, 'alice', { row: 2, col: 2 })
+            ).toThrow(BadRequestException);
     });
 
     it('refuse un coup sur une case déjà occupée', () => {
-      const gameId = setupGame();
+        const gameId = setupGame();
 
-      const result = service.playMove(gameId, 'bob', { row: 3, col: 3 });
+        service.playMove(gameId, 'alice', { row: 3, col: 3 });
 
-      expect(result.valid).toBe(false);
-    });
-
+        // Bob essaie de jouer sur (3, 3), qui est déjà occupée
+        expect(() => service.playMove(gameId, 'bob', { row: 3, col: 3 }) ).toThrow(BadRequestException);
+        });
+      
     it("refuse un coup joué par un userId qui ne fait pas partie de la partie", () => {
       const gameId = setupGame();
 
-      const result = service.playMove(gameId, 'mallory', { row: 0, col: 0 });
-
-      expect(result.valid).toBe(false);
-      expect(result.reason).toContain('mallory');
+        // Mallory n'est pas dans la partie
+    expect(() => service.playMove(gameId, 'mallory', { row: 0, col: 0 }) ).toThrow(new BadRequestException(`Joueur mallory ne fait pas partie de cette partie`));
     });
   });
 
