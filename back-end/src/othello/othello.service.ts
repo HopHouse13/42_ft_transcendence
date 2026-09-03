@@ -7,6 +7,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
+//import { PrismaService } from '../database/prisma.service';
 import { OthelloEngine } from './engine/othello-engine';
 import type { Player } from './engine/othello-engine';
 import type { Move as EngineMove } from './engine/othello-engine';
@@ -55,6 +56,8 @@ export class    OthelloService {
         const gameId = randomUUID(); const gameEntry = this._initGameEntry(hostUserId);
         this.games.set( gameId, gameEntry );
 
+        //await this.prisma.game.create({ data: { id: gameId, status: 'WAITING', playerBlack: hostUserId} });
+        
         return( this.buildGameState(gameId, gameEntry) );
     }
 
@@ -70,6 +73,8 @@ export class    OthelloService {
     gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
     gameEntry.status = GameStatus.IN_PROGRESS;
 
+      //await this.prisma.game.update({ where: { id: gameId }, data: { playerWhite: userId, status: 'IN_PROGRESS' } });
+      
     return( this.buildGameState(gameId, gameEntry) );
   }
     
@@ -97,6 +102,8 @@ export class    OthelloService {
     
             throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
         }
+        
+        //await this.prisma.move.create({ data: { gameId, player: playerInfo.color, row: move.row, col: move.col} });
     
         const result = this._setMoveResult(entry);
     
@@ -104,6 +111,7 @@ export class    OthelloService {
         if (gameOver) {
 
             result.result = this.toGameResult(entry.engine.returnResult());
+            //await this.prisma.game.update({ where: { id: gameId }, data: { status: 'FINISHED', winner: (engineResult.winner === 'BLACK' || engineResult.winner === 'WHITE') ? engineResult.winner : null, blackCount: engineResult.blackCount, whiteCount: engineResult.whiteCount } });
         }
         entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
 
@@ -116,7 +124,8 @@ export class    OthelloService {
  */
     getState(gameId: string): GameState   {
         
-        const gameEntry = this._getGameEntry(gameId);
+        const gameEntry = this._getGameEntry(gameId); // const gameEntry = await this._getOrRestoreGameEntry(gameId);
+        
         return( this.buildGameState(gameId, gameEntry) );
     }
     
@@ -138,6 +147,50 @@ export class    OthelloService {
 
 // ~~ private Method: _initGameEntry | _getGameEntry | buildGameState | serializeBoard | toGameResult ~~ //
 
+/*
+    private async _getOrRestoreGameEntry(gameId: string): Promise<GameEntry>    {
+
+            const cached = this.games.get(gameId);
+            if (cached) {
+         
+                return( cached );
+            }
+        
+            const dbGame = await this.prisma.game.findUnique({ where: { id: gameId }, include: { moves: { orderBy: { createdAt: 'asc' }}} });
+
+            if (!dbGame) {
+                
+                throw new NotFoundException(`Partie ${gameId} introuvable`);
+            }
+
+            const engine = new OthelloEngine();
+            for (const m of dbGame.moves) {
+                
+                engine.playMove({ row: m.row, col: m.col }, m.player as Player);
+            }
+
+            const players: PlayerInfo[] = [ { userId: dbGame.playerBlack, color: 'BLACK', connected: false } ];
+            
+            if (dbGame.playerWhite) {
+            
+                players.push({ userId: dbGame.playerWhite, color: 'WHITE', connected: false });
+            }
+
+            const restored: GameEntry = {
+            
+            engine,
+            players,
+            status: dbGame.status as GameStatus,
+            createdAt: dbGame.createdAt,
+            
+            };
+
+            this.games.set(gameId, restored);
+            
+            return( restored) ;
+        }
+ */
+    
 /**
  * Private Methode _initGameEntry and _getGameEntry for use a interface GameEntry
  *
