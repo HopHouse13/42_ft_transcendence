@@ -12,6 +12,8 @@ datasource db {
 	url = env( "DATABASE_URL" )
 }
 
+/// USER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 enum AuthMode {
 	LOCAL
 	GOOGLE
@@ -29,6 +31,7 @@ enum AuthMode {
 // Prisma -> camelCase ; db -> snake_case
 // "?" devant le type indique que le champ peut etre null (par defaut les champs sont obligés d'être remplis sinon error)
 // limite a 255 char -> convention historique
+
 model User {
 	id				String @id @default( uuid() ) @db.Uuid // clé primaire
 	username		String  @db.VarChar( 50 ) @unique // unique, max 50 char
@@ -45,11 +48,75 @@ model User {
 	passwordHash	String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
 	providerId		String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
 
-	// map User (nom du model) a users (nom dans la db)
+	gamesAsBlack	Game[] @relation( "black" )
+	gamesAswhite	Game[] @relation( "white" )
+	gamesWon		Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
+
 	@@map( "users" )
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
+/// GAME ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum PlayerColor {
+	BLACK
+	WHITE
+
+	@@map( "player_color" )
+}
+
+enum GameStatus {
+	// WAITING // A voir si utile pour le lobby
+	IN_PROGRESS
+	FINISHED
+	ABANDONED
+
+	@@map( "game_status" )
+}
+
+model Game {
+	id				String @id @default( uuid() ) @db.Uuid
+	
+	status			GameStatus @default( IN_PROGRESS ) // ou WAITING
+	
+	blackPlayerId	String @db.Uuid @map( "black_player_id" )
+	whitePlayerId	String @db.Uuid @map( "white_player_id" )
+
+	winnerId		String? @db.Uuid @map( "winner_id" )
+	blackScore		Int? @map( "black_score" )
+	whiteScore		Int? @map( "white_score" )
+
+	currentPlayer	PlayerColor @default( BLACK ) @map( "current_player" )
+
+	createdAt		DateTime @default( now() ) @map( "created_at" )
+	updatedAt		DateTime @updatedAt @map( "updated_at" )
+
+	moves			Move[] // ca represente l'ensemble les moves avec l'id de cette game dans la table Move
+
+	blackPlayer		User @relation( "black", fields: [ blackPlayerId ], references: [ id ] ) // créer une contriante entre Game et User
+	whitePlayer		User @relation( "white", fields: [ whitePlayerId ], references: [ id ] )
+	winner			User? @relation( "winner", fields: [ winnerId ], references: [ id ] ) // Si null -> draw
+	
+	@@map( "games" )
+}
+
+model Move {
+	gameId			String @db.Uuid @map( "game_id" )
+	moveNumber		Int @map( "move_number" )
+
+	Color			PlayerColor @map( "color_player" )
+	position		Int? // peut etre null si pass
+
+	boardAfter		String @db.Char( 64 ) @map( "board_after" )
+
+	createdAt		DateTime @default( now() ) @map( "created_at" )
+
+	game			Game @relation( fields: [ gameId ], references: [ id ] ) // créer une contrainte entre la table Game et la table Move. Elle sont liées par gameId de Game et gameId de Move
+
+	@@id([ gameId, moveNumber ], name: "movesInGame" ) // genere une clé primaire composite a partir des champs renseignés
+	@@map( "moves" )
+}
+
+/// CMDs PRISMA /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Processus de modification db via Prisma ///
 

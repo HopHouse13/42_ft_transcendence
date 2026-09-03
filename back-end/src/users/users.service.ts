@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
-import { PrismaService } from '../database/prisma.service'; // la class PrismaService qui encapsule PrismaClient
+import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
 import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
