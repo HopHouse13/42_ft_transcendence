@@ -13,7 +13,7 @@ export class OthelloController {
   // TODO: POST /othello/games/:id/moves (jouer un coup)
     
     @Post('create')
-    async creatGame():  Promise<GameState> {
+    async creatGame() {
         
         const userId = 'HostUser' ;
         return( this.othelloService.createGame(userId) );
