@@ -1,0 +1,145 @@
+// bloc generator -> ce que prisma va générer avec la cmd: npx prisma generate
+generator client {
+	// client prisma en js -> il sera importé dans les fichiers src pour pouvoir generer du sql
+	provider = "prisma-client-js"
+}
+
+// bloc datasource -> dit a prisma quel moteur de db et où se trouve la db
+datasource db {
+	// défini le moteur de la db -> en fonction du moteur db, prisma modifi le formation de ses requêtes sql
+	provider = "postgresql"
+	// chemin d'acces a la db
+	url = env( "DATABASE_URL" )
+}
+
+/// USER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum AuthMode {
+	LOCAL
+	GOOGLE
+
+	@@map( "auth_mode" )
+}
+
+// Un utilisateur -> un compte
+// UUID -> (Universally Unique Identifier) base hexadecimale, ID unique (géré par Prisma) type utlisé pour annonymiser la clé primaire
+// un Champ -> nom, type, attribus(optionnel)
+// @<mot clé> -> attributs, qui donne des propriétés au champ (@@<mot clé> -> pour tous les champ du modèle) lagage propre a Prisma
+// @map("<nom du champ dans la db>") -> Map un nom de champ du schéma Prisma au nom du champ de la base de données
+// @@map("<nom du model dans la db>") -> Map le nom du model au nom du model au niveau del a db
+// les @map servent pour que les conventions de nommage soient respectées
+// Prisma -> camelCase ; db -> snake_case
+// "?" devant le type indique que le champ peut etre null (par defaut les champs sont obligés d'être remplis sinon error)
+// limite a 255 char -> convention historique
+
+model User {
+	id				String @id @default( uuid() ) @db.Uuid // clé primaire
+	username		String  @db.VarChar( 50 ) @unique // unique, max 50 char
+	email			String  @db.VarChar( 255 )@unique // unique, max 255 char
+
+	avatarUrl		String @db.VarChar( 255 ) @default( "/uploads/avatars/default.png" ) @map( "avatar_url" ) // stock une url vers l'avatar fournit par google ou le user ou avatar par defaut
+
+	// type DateTime -> type specifique a Prisma et est compris par postgresql
+	// now() -> donne l'horodatage de maintenant (fonction specifique a Prisma)
+	createdAt		DateTime @default( now() ) @map( "created_at" )
+	updatedAt		DateTime @updatedAt @map( "updated_at" ) // @updatedAt = Prisma met à jour automatiquement l'horodatage à chaque modif
+
+	authMode		AuthMode @default( LOCAL ) @map( "auth_mode" ) // Definie le mode d'authentification, LOCAL par defaut
+	passwordHash	String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
+	providerId		String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
+
+	gamesAsBlack	Game[] @relation( "black" )
+	gamesAswhite	Game[] @relation( "white" )
+	gamesWon		Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
+
+	@@map( "users" )
+}
+
+/// GAME ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum PlayerColor {
+	BLACK
+	WHITE
+
+	@@map( "player_color" )
+}
+
+enum GameStatus {
+	// WAITING // A voir si utile pour le lobby
+	IN_PROGRESS
+	FINISHED
+	ABANDONED
+
+	@@map( "game_status" )
+}
+
+model Game {
+	id				String @id @default( uuid() ) @db.Uuid
+	
+	status			GameStatus @default( IN_PROGRESS ) // ou WAITING
+	
+	blackPlayerId	String @db.Uuid @map( "black_player_id" )
+	whitePlayerId	String @db.Uuid @map( "white_player_id" )
+
+	winnerId		String? @db.Uuid @map( "winner_id" )
+	blackScore		Int? @map( "black_score" )
+	whiteScore		Int? @map( "white_score" )
+
+	currentPlayer	PlayerColor @default( BLACK ) @map( "current_player" )
+
+	createdAt		DateTime @default( now() ) @map( "created_at" )
+	updatedAt		DateTime @updatedAt @map( "updated_at" )
+
+	moves			Move[] // ca represente l'ensemble les moves avec l'id de cette game dans la table Move
+
+	blackPlayer		User @relation( "black", fields: [ blackPlayerId ], references: [ id ] ) // créer une contriante entre Game et User
+	whitePlayer		User @relation( "white", fields: [ whitePlayerId ], references: [ id ] )
+	winner			User? @relation( "winner", fields: [ winnerId ], references: [ id ] ) // Si null -> draw
+	
+	@@map( "games" )
+}
+
+model Move {
+	gameId			String @db.Uuid @map( "game_id" )
+	moveNumber		Int @map( "move_number" )
+
+	Color			PlayerColor @map( "color_player" )
+	position		Int? // peut etre null si pass
+
+	boardAfter		String @db.Char( 64 ) @map( "board_after" )
+
+	createdAt		DateTime @default( now() ) @map( "created_at" )
+
+	game			Game @relation( fields: [ gameId ], references: [ id ] ) // créer une contrainte entre la table Game et la table Move. Elle sont liées par gameId de Game et gameId de Move
+
+	@@id([ gameId, moveNumber ], name: "movesInGame" ) // genere une clé primaire composite a partir des champs renseignés
+	@@map( "moves" )
+}
+
+/// CMDs PRISMA /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// Processus de modification db via Prisma ///
+
+// (optionnel) npx prisma format -> nettoie/réaligne le fichier schema.prisma
+
+// npx prisma validate -> vérifie que le schema.prisma est valide
+
+// npx prisma migrate dev --name <name_version>
+//	-> DEV uniquement : compare schema.prisma à l'historique des migrations
+//	-> génère le SQL pour modifier la DB
+//	-> crée prisma/migrations/<timestamp>_<name_version>/migration.sql
+//	-> régénère automatiquement le Prisma Client (types + méthodes correspondant à ton schéma)
+//	-> peut demander un reset si conflit/divergence risquée
+
+// npx prisma migrate deploy
+//	-> PROD uniquement : applique les migrations déjà écrites (aucun nouveau SQL généré)
+//	-> jamais de reset, jamais de perte de données silencieuse
+
+// npx prisma generate
+//	-> régénère le Prisma Client depuis schema.prisma
+//	-> déjà fait automatiquement par migrate dev, à relancer seul seulement si besoin ponctuel
+
+// npx prisma migrate reset
+//	-> DEV uniquement : vide complètement la DB + rejoue toutes les migrations depuis zéro
+
+// npx prisma studio -> ouvre une interface web pour voir/éditer les données de la DB
