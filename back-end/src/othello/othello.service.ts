@@ -7,7 +7,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { BadRequestException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
-//import { PrismaService } from '../database/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
+
 import { OthelloEngine } from './engine/othello-engine';
 import type { Player } from './engine/othello-engine';
 import type { Move as EngineMove } from './engine/othello-engine';
@@ -45,24 +46,24 @@ export class    OthelloService {
  */
     private readonly games = new Map<string, GameEntry>();
     
+    constructor(private readonly prisma: PrismaService) {}   // <-- CETTE LIGNE MANQUE
 /**
  * Fonction createGame and joinGame
  * createGame init interface GameEntry and add in map games ( a first players is a BLACK and hostPlayers )
  * joinGame add a new player for a game ( all time a sceond player is a 'WHITE' )
  */
-
-    createGame(hostUserId: string): GameState {
+    async createGame(hostUserId: string): Promise<GameState> {
   
         const gameId = randomUUID(); const gameEntry = this._initGameEntry(hostUserId);
         this.games.set( gameId, gameEntry );
 
-        //await this.prisma.game.create({ data: { id: gameId, status: 'WAITING', playerBlack: hostUserId} });
+        await this.prisma.game.create({ data: { id: gameId, status:'IN_PROGRESS',  blackPlayerId : hostUserId, whitePlayerId : hostUserId} });
         
         return( this.buildGameState(gameId, gameEntry) );
     }
 
 
-  joinGame(gameId: string, userId: string): GameState {
+  async joinGame(gameId: string, userId: string): Promise<GameState> {
 
     const gameEntry = this._getGameEntry(gameId);
     if (gameEntry.players.length >= 2)  {
@@ -73,7 +74,7 @@ export class    OthelloService {
     gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
     gameEntry.status = GameStatus.IN_PROGRESS;
 
-      //await this.prisma.game.update({ where: { id: gameId }, data: { playerWhite: userId, status: 'IN_PROGRESS' } });
+      await this.prisma.game.update({ where: { id: gameId }, data: { whitePlayerId: userId, status: 'IN_PROGRESS' } });
       
     return( this.buildGameState(gameId, gameEntry) );
   }
@@ -103,7 +104,7 @@ export class    OthelloService {
             throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
         }
         
-        //await this.prisma.move.create({ data: { gameId, player: playerInfo.color, row: move.row, col: move.col} });
+        //-- >> await this.prisma.move.create({ data: { gameId, player: playerInfo.color, row: move.row, col: move.col} });
     
         const result = this._setMoveResult(entry);
     
@@ -111,7 +112,7 @@ export class    OthelloService {
         if (gameOver) {
 
             result.result = this.toGameResult(entry.engine.returnResult());
-            //await this.prisma.game.update({ where: { id: gameId }, data: { status: 'FINISHED', winner: (engineResult.winner === 'BLACK' || engineResult.winner === 'WHITE') ? engineResult.winner : null, blackCount: engineResult.blackCount, whiteCount: engineResult.whiteCount } });
+            //-- >> await this.prisma.game.update({ where: { id: gameId }, data: { status: 'FINISHED', winner: (engineResult.winner === 'BLACK' || engineResult.winner === 'WHITE') ? engineResult.winner : null, blackCount: engineResult.blackCount, whiteCount: engineResult.whiteCount } });
         }
         entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
 
@@ -282,3 +283,47 @@ export class    OthelloService {
   }
 
 }
+/* model
+ Game {
+ id                String @id @default( uuid() ) @db.Uuid
+ 
+ status            GameStatus @default( IN_PROGRESS ) // ou WAITING
+ 
+ blackPlayerId    String @db.Uuid @map( "black_player_id" )
+ whitePlayerId    String @db.Uuid @map( "white_player_id" )
+
+ winnerId        String? @db.Uuid @map( "winner_id" )
+ blackScore        Int? @map( "black_score" )
+ whiteScore        Int? @map( "white_score" )
+
+ currentPlayer    PlayerColor @default( BLACK ) @map( "current_player" )
+
+ createdAt        DateTime @default( now() ) @map( "created_at" )
+ updatedAt        DateTime @updatedAt @map( "updated_at" )
+
+ moves            Move[] // ca represente l'ensemble les moves avec l'id de cette game dans la table Move
+
+ blackPlayer        User @relation( "black", fields: [ blackPlayerId ], references: [ id ] ) // créer une contriante entre Game et User
+ whitePlayer        User @relation( "white", fields: [ whitePlayerId ], references: [ id ] )
+ winner            User? @relation( "winner", fields: [ winnerId ], references: [ id ] ) // Si null -> draw
+ 
+ @@map( "games" )
+}
+
+model Move {
+ gameId            String @db.Uuid @map( "game_id" )
+ moveNumber        Int @map( "move_number" )
+
+ Color            PlayerColor @map( "color_player" )
+ position        Int? // peut etre null si pass
+
+ boardAfter        String @db.Char( 64 ) @map( "board_after" )
+
+ createdAt        DateTime @default( now() ) @map( "created_at" )
+
+ game            Game @relation( fields: [ gameId ], references: [ id ] ) // créer une contrainte entre la table Game et la table Move. Elle sont liées par gameId de Game et gameId de Move
+
+ @@id([ gameId, moveNumber ], name: "movesInGame" ) // genere une clé primaire composite a partir des champs renseignés
+ @@map( "moves" )
+}
+*/
