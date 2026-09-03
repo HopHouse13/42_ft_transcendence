@@ -13,6 +13,8 @@ RUN npm install
 # depuis l'intérieur du conteneur.
 RUN npm i -g @nestjs/cli
 RUN npm install class-validator class-transformer
+RUN npm install ws
+RUN npx prisma generate
 
 # Pas de COPY . . ici : en dev, le volume monté par docker-compose
 # (./back-end:/app) fournit déjà tout le code source en live.
