@@ -14,7 +14,12 @@ RUN npm install
 RUN npm i -g @nestjs/cli
 RUN npm install class-validator class-transformer
 RUN npm install ws
+
+COPY prisma ./prisma
 RUN npx prisma generate
+
+COPY deploy_db.sh /deploy_db.sh
+RUN chmod +x /deploy_db.sh
 
 # Pas de COPY . . ici : en dev, le volume monté par docker-compose
 # (./back-end:/app) fournit déjà tout le code source en live.
@@ -24,4 +29,5 @@ RUN npx prisma generate
 
 EXPOSE 3000
 
+ENTRYPOINT ["/deploy_db.sh"]
 CMD ["npm", "run", "start:dev"]

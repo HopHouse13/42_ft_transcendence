@@ -19,7 +19,8 @@ services:
     environment:
       - DATABASE_URL=postgres://othello_user:othello_pass@database:5432/othello_db
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     networks:
       - ft_transcendence_network
 
