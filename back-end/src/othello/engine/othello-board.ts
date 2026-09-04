@@ -19,7 +19,7 @@
  *                                    sont comprise dans le plateaux 
  * */
 
-export type Cell = 'EMPTY' | 'BLACK' | 'WHITE' ;
+import { Cell } from '../types/cell.type' ;
 
 export class OthelloBoard {
 

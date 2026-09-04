@@ -10,14 +10,18 @@ import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 
 import { OthelloEngine } from './engine/othello-engine';
-import type { Player } from './engine/othello-engine';
-import type { Move as EngineMove } from './engine/othello-engine';
-import type { GameResult as EngineGameResult } from './engine/othello-engine';
-import type { Cell as EngineCell } from './engine/othello-board';
+
+import type { Player } from './types/player.type';
+import type { Move, Move as EngineMove } from './types/move.type';
+import type { GameResult as EngineGameResult } from './interfaces/game-result.interface';
+import type { Cell as EngineCell } from './types/cell.type';
+//import type { Cell as EngineCell } from './engine/othello-board';
 
 import { GameStatus } from './enums/game-status.enum';
-import type { GameState, PlayerInfo } from './interfaces/game-state.interface';
-import type { MoveResult, Move, GameResult } from './interfaces/move-result.interface';
+import type { GameState } from './interfaces/game-state.interface';
+import type { PlayerInfo } from './interfaces/player-info.interface';
+import type { MoveResult } from './interfaces/move-result.interface';
+import type { GameResult } from './interfaces/game-result.interface';
 
 /* ========================================================================== */
 

@@ -13,7 +13,7 @@ import { OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 import { OthelloService } from './othello.service';
-import type { Move } from './interfaces/move-result.interface';
+import type { Move } from './types/move.type';
 
 /* ========================================================================== */
 

@@ -1,7 +1,10 @@
 import { Controller, Param, Body, Get, Post, Patch } from '@nestjs/common';
 import { OthelloService } from './othello.service';
 
-import type { MoveResult, Move, GameResult } from './interfaces/move-result.interface';
+import type { Move } from './types/move.type' ;
+import type { MoveResult } from './interfaces/move-result.interface';
+import type { GameResult } from './interfaces/game-result.interface';
+
 
 @Controller('othello')
 export class OthelloController {
