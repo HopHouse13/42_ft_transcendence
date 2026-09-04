@@ -12,17 +12,17 @@ export class OthelloController {
   // TODO: GET /othello/games/:id (état d'une partie)
   // TODO: POST /othello/games/:id/moves (jouer un coup)
     
-    @Post('create')
-    async creatGame() {
+    @Post('create/:userId')
+    async creatGame( @Param('userId') userId: string ) {
         
-        const userId = 'HostUser' ;
+        //const userId = 'HostUser' ;
         return( this.othelloService.createGame(userId) );
     }
     
-    @Post('join/:gameId')
-    async joinGame( @Param('gameId') gameId: string ) {
+    @Post('join/:gameId/:userId')
+    async joinGame( @Param('gameId') gameId: string,@Param('userId') userId: string ) {
         
-        const userId = 'VisitorUser'
+        //const userId = 'VisitorUser'
         return( this.othelloService.joinGame(gameId, userId) );
         
     }
