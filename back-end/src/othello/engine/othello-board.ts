@@ -19,7 +19,7 @@
  *                                    sont comprise dans le plateaux 
  * */
 
-import { Cell } from './../interfaces/engine.interface'
+import { Cell } from '../types/cell.type' ;
 
 export class OthelloBoard {
 

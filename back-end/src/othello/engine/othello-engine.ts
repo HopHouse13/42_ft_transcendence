@@ -4,7 +4,13 @@
 /* ========================================================================== */
 
 import { OthelloBoard} from './othello-board'
-import { Cell, Player, Move, GameResult, DIRECTIONS } from '../interfaces/engine.interface'
+
+import { DIRECTIONS } from './constants/engine.constants'
+
+import { Cell } from '../types/cell.type'
+import { Player } from '../types/player.type'
+import { Move } from '../types/move.type'
+import { GameResult } from '../interfaces/game-result.interface'
 
 /* *               Definition of class OthelloEngine
  *

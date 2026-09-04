@@ -1,14 +1,18 @@
-import { Cell } from './cell.interface';
-import { PlayerColor } from '../enums/player-color.enum';
+/* ========================================================================== */
+/*                                                                            */
+/*                                                                            */
+/* ========================================================================== */
+
+import { Cell } from '../types/cell.type';
+import { Move } from '../types/move.type';
+import { Player as PlayerColor } from '../types/player.type';
+
 import { GameStatus } from '../enums/game-status.enum';
-import { Move, GameResult } from './move-result.interface';
+import { GameResult } from './game-result.interface';
+import { PlayerInfo } from './player-info.interface';
 
-export interface PlayerInfo {
 
-  userId:     string;
-  color:      PlayerColor;
-  connected:  boolean;
-}
+/* ========================================================================== */
 
 export interface GameState {
 

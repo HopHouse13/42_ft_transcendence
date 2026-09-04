@@ -3,22 +3,7 @@
 /*                                                                            */
 /* ========================================================================== */
 
-/*
- *
- *
- *
- * */
-
-export type Cell = 'EMPTY' | 'BLACK' | 'WHITE' ;
-
-export type Player = 'BLACK' | 'WHITE'
-
-export type Move =  {
-
-  row: number;
-  col: number;
-
-};
+import { Player } from '../types/player.type'
 
 export type GameResult =  {
 
@@ -27,12 +12,3 @@ export type GameResult =  {
   whiteCount:  number ;
 
 };
-
-export const DIRECTIONS: [number, number][] = [
-
-  [-1, -1], [-1, 0], [-1, 1],
-  [ 0, -1],          [ 0, 1],
-  [ 1, -1], [ 1, 0], [ 1, 1],
-];
-
-/* ========================================================================== */

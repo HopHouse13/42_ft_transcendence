@@ -1,19 +1,18 @@
-import { Cell } from './cell.interface';
-import { PlayerColor } from '../enums/player-color.enum';
+/* ========================================================================== */
+/*                                                                            */
+/*                                                                            */
+/* ========================================================================== */
+
+import { Cell } from '../types/cell.type';
+import { Move } from '../types/move.type'
+import { Player as PlayerColor } from '../types/player.type';
+
 import { GameStatus } from '../enums/game-status.enum';
 
-export interface Move {
+import type { GameResult } from './game-result.interface';
 
-  row: number;
-  col: number;
-}
 
-export interface GameResult {
-
-  winner: PlayerColor | 'DRAW';
-  blackCount: number;
-  whiteCount: number;
-}
+/* ========================================================================== */
 
 export interface MoveResult {
 
