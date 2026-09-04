@@ -3,42 +3,13 @@
 /*                                                                            */
 /* ========================================================================== */
 
-/*
- *
+import { OthelloBoard} from './othello-board'
+import { Cell, Player, Move, GameResult, DIRECTIONS } from '../interfaces/engine.interface'
+
+/* *               Definition of class OthelloEngine
  *
  *
  * */
-
-import { OthelloBoard, Cell} from './othello-board'
-
-/*               Definition of type use in OthelloEngine             */
-
-export type Player = 'BLACK' | 'WHITE'
-
-export type Move =  { 
-
-  row: number; 
-  col: number; 
-
-};
-
-export type GameResult =  {
-
-  winner:      Player | 'DRAW' ;
-  blackCount:  number ;
-  whiteCount:  number ;
-
-};
-
-const DIRECTIONS: [number, number][] = [
-
-  [-1, -1], [-1, 0], [-1, 1],
-  [ 0, -1],          [ 0, 1],
-  [ 1, -1], [ 1, 0], [ 1, 1],
-];
-
-/*               Definition of class OthelloEngine             */
-
 export class OthelloEngine  {
 
 /*            definition of champs          */

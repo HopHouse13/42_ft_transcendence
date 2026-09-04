@@ -9,10 +9,12 @@ import { randomUUID } from 'crypto';
 
 //import { PrismaService } from '../database/prisma.service';
 import { OthelloEngine } from './engine/othello-engine';
-import type { Player } from './engine/othello-engine';
-import type { Move as EngineMove } from './engine/othello-engine';
-import type { GameResult as EngineGameResult } from './engine/othello-engine';
-import type { Cell as EngineCell } from './engine/othello-board';
+
+import type { Player } from './interfaces/engine.interface';
+import type { Move as EngineMove } from './interfaces/engine.interface';
+import type { GameResult as EngineGameResult } from './interfaces/engine.interface';
+import type { Cell as EngineCell } from './interfaces/engine.interface';
+//import type { Cell as EngineCell } from './engine/othello-board';
 
 import { GameStatus } from './enums/game-status.enum';
 import type { GameState, PlayerInfo } from './interfaces/game-state.interface';
