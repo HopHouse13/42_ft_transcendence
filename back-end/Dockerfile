@@ -13,7 +13,8 @@ RUN npm install
 # depuis l'intérieur du conteneur.
 RUN npm i -g @nestjs/cli
 RUN npm install class-validator class-transformer
-RUN npm install ws
+RUN npm install @nestjs/websockets @nestjs/platform-socket.io socket.io
+#RUN npm install ws
 
 COPY prisma ./prisma
 RUN npx prisma generate
