@@ -17,11 +17,11 @@ datasource db {
 enum AuthMode {
 	LOCAL
 	GOOGLE
+	AUTH42
 
 	@@map( "auth_mode" )
 }
 
-// Un utilisateur -> un compte
 // UUID -> (Universally Unique Identifier) base hexadecimale, ID unique (géré par Prisma) type utlisé pour annonymiser la clé primaire
 // un Champ -> nom, type, attribus(optionnel)
 // @<mot clé> -> attributs, qui donne des propriétés au champ (@@<mot clé> -> pour tous les champ du modèle) lagage propre a Prisma
@@ -37,16 +37,16 @@ model User {
 	username		String  @db.VarChar( 50 ) @unique // unique, max 50 char
 	email			String  @db.VarChar( 255 )@unique // unique, max 255 char
 
+	authMode		AuthMode @default( LOCAL ) @map( "auth_mode" ) // Definie le mode d'authentification, LOCAL par defaut
+	passwordHash	String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
+	providerId		String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
+	
 	avatarUrl		String @db.VarChar( 255 ) @default( "/uploads/avatars/default.png" ) @map( "avatar_url" ) // stock une url vers l'avatar fournit par google ou le user ou avatar par defaut
 
 	// type DateTime -> type specifique a Prisma et est compris par postgresql
 	// now() -> donne l'horodatage de maintenant (fonction specifique a Prisma)
 	createdAt		DateTime @default( now() ) @map( "created_at" )
 	updatedAt		DateTime @updatedAt @map( "updated_at" ) // @updatedAt = Prisma met à jour automatiquement l'horodatage à chaque modif
-
-	authMode		AuthMode @default( LOCAL ) @map( "auth_mode" ) // Definie le mode d'authentification, LOCAL par defaut
-	passwordHash	String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
-	providerId		String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
 
 	gamesAsBlack	Game[] @relation( "black" )
 	gamesAswhite	Game[] @relation( "white" )
@@ -65,8 +65,8 @@ enum PlayerColor {
 }
 
 enum GameStatus {
-	// WAITING // A voir si utile pour le lobby
-	IN_PROGRESS
+	INGAME
+	BREAK
 	FINISHED
 	ABANDONED
 
@@ -76,7 +76,7 @@ enum GameStatus {
 model Game {
 	id				String @id @default( uuid() ) @db.Uuid
 	
-	status			GameStatus @default( IN_PROGRESS ) // ou WAITING
+	status			GameStatus @default( INGAME )
 	
 	blackPlayerId	String @db.Uuid @map( "black_player_id" )
 	whitePlayerId	String @db.Uuid @map( "white_player_id" )

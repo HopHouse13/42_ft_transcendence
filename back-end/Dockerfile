@@ -7,6 +7,9 @@ WORKDIR /app
 # et ne refait pas npm install à chaque build.
 COPY package*.json ./
 
+# Le package argon2 (gestionnaire des hashage de password) a un module qui a besoin de python, make et du compilateur c++ pour etre installé
+RUN apk add --no-cache python3 make g++
+
 RUN npm install
 
 # Le CLI Nest est utile en dev (nest g module/controller/service...)
@@ -18,6 +21,7 @@ RUN npm install ws
 COPY prisma ./prisma
 RUN npx prisma generate
 
+# copie/donne les droits d'exec a un script avec la CMD pour deloyer la DB avec le derniere version du schema prisma
 COPY deploy_db.sh /deploy_db.sh
 RUN chmod +x /deploy_db.sh
 

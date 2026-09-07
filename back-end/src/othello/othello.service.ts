@@ -25,7 +25,7 @@ import type { MoveResult, Move, GameResult } from './interfaces/move-result.inte
  * Represente une partie
  * engine -> une instace de la class OthelloEngine
  * player -> interface PlayerInfo [ userId, color, connected
- * status -> enum GameStatus Waiting || in_progress || finshed
+ * status -> enum GameStatus Waiting || ingame || finshed
  * createdAt -> date de la creatation de la partie
  */
 interface GameEntry {
@@ -57,7 +57,7 @@ export class    OthelloService {
         const gameId = randomUUID(); const gameEntry = this._initGameEntry(hostUserId);
         this.games.set( gameId, gameEntry );
 
-        await this.prisma.game.create({ data: { id: gameId, status:'IN_PROGRESS',  blackPlayerId : hostUserId, whitePlayerId : hostUserId} });
+        await this.prisma.game.create({ data: { id: gameId, status:'INGAME',  blackPlayerId : hostUserId, whitePlayerId : hostUserId} });
         
         return( this.buildGameState(gameId, gameEntry) );
     }
@@ -72,9 +72,9 @@ export class    OthelloService {
     }
 
     gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
-    gameEntry.status = GameStatus.IN_PROGRESS;
+    gameEntry.status = GameStatus.INGAME;
 
-      await this.prisma.game.update({ where: { id: gameId }, data: { whitePlayerId: userId, status: 'IN_PROGRESS' } });
+      await this.prisma.game.update({ where: { id: gameId }, data: { whitePlayerId: userId, status: 'INGAME' } });
       
     return( this.buildGameState(gameId, gameEntry) );
   }
@@ -114,7 +114,7 @@ export class    OthelloService {
             result.result = this.toGameResult(entry.engine.returnResult());
             //-- >> await this.prisma.game.update({ where: { id: gameId }, data: { status: 'FINISHED', winner: (engineResult.winner === 'BLACK' || engineResult.winner === 'WHITE') ? engineResult.winner : null, blackCount: engineResult.blackCount, whiteCount: engineResult.whiteCount } });
         }
-        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.INGAME;
 
         return( result );
   }
@@ -287,7 +287,7 @@ export class    OthelloService {
  Game {
  id                String @id @default( uuid() ) @db.Uuid
  
- status            GameStatus @default( IN_PROGRESS ) // ou WAITING
+ status            GameStatus @default( INGAME ) // ou WAITING
  
  blackPlayerId    String @db.Uuid @map( "black_player_id" )
  whitePlayerId    String @db.Uuid @map( "white_player_id" )

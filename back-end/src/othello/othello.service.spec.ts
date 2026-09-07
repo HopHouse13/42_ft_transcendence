@@ -30,7 +30,7 @@ describe('OthelloService', () => {
       const created = service.createGame('alice');
       const state = service.joinGame(created.gameId, 'bob');
 
-      expect(state.status).toBe(GameStatus.IN_PROGRESS);
+      expect(state.status).toBe(GameStatus.INGAME);
       expect(state.players).toHaveLength(2);
       expect(state.players[1].color).toBe('WHITE');
     });

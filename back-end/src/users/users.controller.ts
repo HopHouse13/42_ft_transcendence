@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, /*ValidationPipe, UsePipes*/ } from "@nestjs/common"; // import des décorateurs utiles à UsersController
 import { UsersService } from "./users.service"; // import de la definition de la classe UserService de users.service
-import { CreateUserDto } from "./dto/create-user.dto"; // import de la classe CreateUserDto
 import { UpdateUserDto } from "./dto/update-user.dto"; // import de la classe UpdateUserDto
 
 // @UsePipes( new ValidationPipe() ) // instancie ValidationPipe pour qu'il check les regles du DTO lors d'une requete (actuellement instancié dans le main)
@@ -23,14 +22,6 @@ export class UsersController
 	findOne( @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id ciblé depuis l'URL
 	{
 		return ( this.usersService.findOne( id ) ); // relaie id au service, qui renvoie le user ou lève un 404 si introuvable
-	}
-
-	/////
-
-	@Post() // associe la méthode HTTP POST à /users pour la méthode create()
-	create( @Body() dto : CreateUserDto ) // @Body() extrait le corps JSON de la requête et instancie dto avec cette data
-	{
-		return ( this.usersService.create( dto ) ); // appel de create de usersService avec comme param dto ( instance de type CreateUserDto oú est stocké les data du body de la requete )
 	}
 
 	/////

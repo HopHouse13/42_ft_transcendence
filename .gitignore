@@ -53,4 +53,3 @@ Thumbs.db
 
 # Environnement : .env est privé et local, .env.example reste commité (template)
 .env
-

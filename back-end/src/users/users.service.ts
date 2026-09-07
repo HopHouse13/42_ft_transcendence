@@ -1,8 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
 import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
 import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserData } from './interfaces/user-data.interface';
+import { AuthData } from './interfaces/auth-data.interface';
+import { AuthUser } from './interfaces/auth-user.interface';
 
 @Injectable() // cette classe peut être injectée
 export class UsersService
@@ -58,16 +60,29 @@ export class UsersService
 
 	/////
 
-	async create( dto: CreateUserDto ) // renvoie un nouveau user avec ses données verifiées
+	// usage interne uniquement (appelé que par AuthService)
+	// les données sont déjà validées par AuthService
+	async create( userData: UserData, authData: AuthData ) // renvoie un nouveau user avec ses données verifiées
 	{
+		let	passwordHash: string | undefined;
+		let	providerId: string | undefined;
+
+		if ( authData.authMode ===  'LOCAL' ) // selon le mode d'auth, les deux variable prennent la valeur correspondante de authData
+			passwordHash = authData.passwordHash;
+		else
+			providerId = authData.providerId;
+
 		try
 		{
 			const	newUser = await this.prisma.user.create(
 			{
 				data: // rempli uniquement les champs cités dans data
 				{
-					username:	dto.username,
-					email:		dto.email
+					username:		userData.username.toLowerCase(), // stock toujours les ussrname en minuscule pour eviter 2 comptes distint comme "Bob" et "bob"
+					email:			userData.email,
+					authMode:		authData.authMode,
+					passwordHash:	passwordHash, // peut être undefined car champ optionnel dans le schema prisma
+					providerId:		providerId  // peut être undefined car champ optionnel dans le schema prisma
 				}
 			});
 			return ( newUser ); // newUser est un objet de type User
@@ -88,7 +103,7 @@ export class UsersService
 
 	/////
 
-	async update( id_user: string, dto: UpdateUserDto ) // 2 params -> id pour identifier quel user va etre update et dto deja instancié par Nest
+	async update( userId: string, dto: UpdateUserDto ) // 2 params -> id pour identifier quel user va etre update et dto deja instancié par Nest
 	{
 		try
 		{
@@ -96,11 +111,11 @@ export class UsersService
 			{
 				where: // filtre pour selectionner le user avec le bon id pour pouvoir modifier ses champs
 				{
-					id: id_user
+					id: userId
 				},
 				data: // data signifi que les clés:valeurs a l'interieurs seront pris en compte pour modifier la db de ce user
 				{
-					username: dto.username,
+					username: dto.username?.toLowerCase(),
 					email: dto.email
 				}
 			});
@@ -113,7 +128,7 @@ export class UsersService
 				switch ( err.code )
 				{
 					case ( 'P2025' ): // si le user n'existe pas
-						throw (new NotFoundException( `user ${id_user} non-existent` ));				
+						throw (new NotFoundException( `user ${userId} non-existent` ));
 					case ( 'P2002' ): // erreur d'unicité de la donnée
 						throw (new ConflictException( `Data already used` ));
 				}
@@ -158,5 +173,30 @@ export class UsersService
 			throw ( err );
 		}
 	}
+
+	///
+
+	// trouve un user à partir de son username, renvoie les données nécessaires à la validation de l'authenticité
+	// renvoie null si non trouvé. validationUser() géra le cas
+	async findForAuth( username: string ): Promise< AuthUser | null >
+	{
+		const	authUser =  await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				username: username.toLowerCase()
+			},
+			select:
+			{
+				id:				true,
+				authMode:		true,
+				passwordHash:	true
+			}
+
+		});
+
+		return ( authUser );
+	}
+
 }
 
