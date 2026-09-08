@@ -126,6 +126,15 @@ export class GameRoomService    {
     
 /* -------------------------------------------------------------------------- */
     
+    /* -------------------------------------------------------------------------- */
+    /*                 ~~ Methode private sur le model CRUD ~~                    */
+    /*                                                                            */
+    /*  Create  -> cree un GameRoom et renvoie sont Id                            */
+    /*  Read    -> renvoie le GameRoom en fonction de Id passer en param          */
+    /*  Update  -> rejoute un joueur a une RoomId donée                           */
+    /*  Delete  -> suprime du champ rooms(Map< >) un Id passer en param           */
+    /* -------------------------------------------------------------------------- */
+    
     private _createRoom(userId: string, user: PlayerRoom): string  {
         
         const gameRoom: GameRoom = {
