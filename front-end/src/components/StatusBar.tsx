@@ -1,5 +1,5 @@
 import React from "react";
-import { BoardState } from "../types/gameTypes";
+import type { BoardState } from "../types/gameTypes";
 import { getStatusText } from "../logic/gameLogic";
 
 interface StatusBarProps {

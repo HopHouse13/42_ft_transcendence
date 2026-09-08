@@ -1,5 +1,5 @@
 import React from "react";
-import { BoardProps, Player, BoardState, Position } from "../types/gameTypes";
+import type { BoardProps, Player, BoardState, Position } from "../types/gameTypes";
 import Square from "./Square";
 import StatusBar from "./StatusBar";
 import { hasValidMoves, getAllValidMoves, isValidMove, flipPawns, getIndex } from "../logic/gameLogic";
@@ -68,7 +68,7 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 	 *
 	 * @returns JSX.Element - La grille complète du plateau.
 	 */
-	const renderBoard = (): JSX.Element => {
+	const renderBoard = (): React.ReactElement => {
 		return (
 			<>
 				{Array(8).fill(null).map((_, row: number) => (

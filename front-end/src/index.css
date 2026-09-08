@@ -1,5 +1,7 @@
 @import "tailwindcss";
+@plugins "daisyui";
 
+/* 
 @config {
 
 	plugins: {
@@ -7,4 +9,4 @@
 			themes: ["light", "dark"]
 		}
 	}; 
-}
+} */

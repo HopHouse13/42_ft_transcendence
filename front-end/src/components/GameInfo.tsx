@@ -1,5 +1,5 @@
 import React from "react";
-import { BoardState } from "../types/gameTypes";
+import type { BoardState } from "../types/gameTypes";
 import { getMoveDescription } from "../logic/gameLogic";
 
 /**

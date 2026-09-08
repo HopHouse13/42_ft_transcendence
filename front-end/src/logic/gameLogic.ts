@@ -1,4 +1,4 @@
-import { BoardState, Position, Direction, Player, Pawn } from "../types/gameTypes";
+import type { BoardState, Position, Direction, Player, Pawn } from "../types/gameTypes";
 import { BOARD_SIZE, DIRECTIONS, TOTAL_CELLS } from "../constants/gameConstants";
 
 /**

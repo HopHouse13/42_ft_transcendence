@@ -1,5 +1,5 @@
 import React from "react";
-import { SquareProps, } from "../types/gameTypes";
+import type { SquareProps } from "../types/gameTypes";
 
 export default function Square({value, onSquareClick, isPossibleMove}: SquareProps): React.ReactElement {
 	const hasPawn = (value !== null) ;

@@ -1,4 +1,4 @@
-import { BoardState, Direction } from "../types/gameTypes";
+import type { BoardState, Direction } from "../types/gameTypes";
 
 // CONFIGURATION DU PLATEAU
 
@@ -26,6 +26,7 @@ export const INITIAL_BOARD: BoardState = (() => {
 	board[centralRow1 + center]			= 'X';
 	board[centralRow2 + (center - 1)]	= 'X';
 	board[centralRow2 + center]			= 'O';
+	
 	return board;
 })();
 
