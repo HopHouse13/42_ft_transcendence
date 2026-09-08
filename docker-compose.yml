@@ -4,6 +4,9 @@ services:
     ports:
       - "8080:80"       # HTTP (redirects to 443)
       - "8443:443"     # HTTPS
+    depends_on:
+      - backend
+      - frontend
     networks:
       - ft_transcendence_network
 
