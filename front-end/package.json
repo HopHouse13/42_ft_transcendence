@@ -16,6 +16,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@swc/cli": "^0.8.1",
+    "@swc/core": "^1.16.2",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
