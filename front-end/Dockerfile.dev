@@ -1,0 +1,16 @@
+# Dockerfile de DÉVELOPPEMENT — hot-reload avec Vite
+# À ne pas utiliser en prod : ici Node tourne en continu, pas de build optimisé.
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# Le code source sera monté en volume par docker-compose,
+# donc pas besoin de le copier ici (voir docker-compose.dev.yml)
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
