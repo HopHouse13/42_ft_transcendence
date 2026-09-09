@@ -20,7 +20,12 @@ import type { PlayerRoom } from './game-room.service';
 export class GameRoomController     {
     
     constructor(private readonly gameRoomService: GameRoomService) {}
-    
+    /*
+     const response = await fetch(`${API_URL}/game-room/${endpoint}`, {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ player }),
+     */
     @Post('entry')
     newPlayerEntry( @Body('player') player: PlayerRoom )  {
         

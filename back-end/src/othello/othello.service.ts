@@ -130,17 +130,21 @@ export class    OthelloService {
   }
     
     async remove(gameId: string): Promise<Game> {
+        
         try {
             const deleted = await this.prisma.$transaction(async (tx) => {
+            
                 await tx.move.deleteMany({ where: { gameId } });
                 return tx.game.delete({ where: { id: gameId } });
             });
-
+            
             this.games.delete(gameId); // nettoyage du cache
-
-            return deleted;
+            return( deleted );
+            
         } catch (error) {
+            
             if (error.code === 'P2025') {
+            
                 throw new NotFoundException(`Partie ${gameId} introuvable`);
             }
             throw error;
