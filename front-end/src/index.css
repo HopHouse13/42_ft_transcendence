@@ -1,17 +1,12 @@
-* {
-  box-sizing: border-box;
-}
+@import "tailwindcss";
+@plugins "daisyui";
 
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #111;
-  color: #eee;
-}
+/* 
+@config {
 
-.app {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2rem;
-}
+	plugins: {
+		daisyui: {
+			themes: ["light", "dark"]
+		}
+	}; 
+} */

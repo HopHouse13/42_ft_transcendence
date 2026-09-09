@@ -1,26 +1,45 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { UserProvider } from './context/UserContext'
-import Nav from './components/Nav'
-import CreateUserPage from './pages/CreateUserPage'
-import RoomPage from './pages/RoomPage'
-import GamePage from './pages/GamePage'
+import type { FC } from 'react';
+import { useState } from 'react';
+import Board from "./components/Board";
+import GameInfo from "./components/GameInfo";
+import type { BoardState } from "./types/gameTypes";
+import { INITIAL_BOARD } from "./constants/gameConstants";
 
-function App() {
-  return (
-    <UserProvider>
-      <BrowserRouter>
-        <div className="app">
-          <h1>ft_transcendence — Othello</h1>
-          <Nav />
-          <Routes>
-            <Route path="/" element={<CreateUserPage />} />
-            <Route path="/room" element={<RoomPage />} />
-            <Route path="/game/:gameId" element={<GamePage />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
-    </UserProvider>
-  )
-}
+const App: FC = () => {
+	const [showLatestFirst, setShowLatestFirst] = useState<boolean>(false);
+	const [history, setHistory] = useState<BoardState[]>([INITIAL_BOARD]);
+	const [currentMove, setCurrentMove] = useState<number>(0);
+
+	const xIsNext: boolean = currentMove % 2 === 0;
+	const currentBoard: BoardState = history[currentMove];
+
+	function handlePlay(nextBoard: BoardState): void {
+		const nextHistory: BoardState[] = [...history.slice(0, currentMove + 1), nextBoard];
+		setHistory(nextHistory);
+		setCurrentMove(nextHistory.length - 1);
+	}
+
+	function jumpTo(nextMove: number): void {
+		setCurrentMove(nextMove);
+	}
+
+	return (
+		<div className="game">
+			<div className="game-board">
+				<Board xIsNext={xIsNext} board={currentBoard} onPlay={handlePlay} />
+				<span className="move-info">
+					You are at move #{currentMove}
+				</span>
+			</div>
+			<GameInfo 
+				history={history}
+				currentMove={currentMove}
+				showLatestFirst={showLatestFirst}
+				onReverse={() => setShowLatestFirst(!showLatestFirst)}
+				onJumpTo={jumpTo}
+				/>
+		</div>
+	);
+};
 
 export default App
