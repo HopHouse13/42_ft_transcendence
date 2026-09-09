@@ -12,6 +12,7 @@ COPY . .
 
 # Build de production (Vite -> dossier /app/dist)
 RUN npm run build
+RUN npm install socket.io-client
 
 # ---------- Étape 2 : image finale, on ne garde que le build statique ----------
 FROM nginx:1.27-alpine AS production
