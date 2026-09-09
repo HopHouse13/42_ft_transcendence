@@ -8,7 +8,7 @@ export default function Square({value, onSquareClick, isPossibleMove}: SquarePro
 
 	return (
 		<button
-			className={`square ${isPossibleMove ? 'possibleMove' : ''}`}
+			className={`btn btn-primary hover:bg-base-300 ${isPossibleMove ? 'possibleMove' : ''}`}
 			onClick={onSquareClick}
 			aria-label={value === 'X' ? 'black pawn' :
 				value === 'O' ? 'white pawn' :

@@ -1,11 +1,10 @@
-import type { FC } from 'react';
 import { useState } from 'react';
 import Board from "./components/Board";
 import GameInfo from "./components/GameInfo";
 import type { BoardState } from "./types/gameTypes";
 import { INITIAL_BOARD } from "./constants/gameConstants";
 
-const App: FC = () => {
+const App =(): React.ReactElement => {
 	const [showLatestFirst, setShowLatestFirst] = useState<boolean>(false);
 	const [history, setHistory] = useState<BoardState[]>([INITIAL_BOARD]);
 	const [currentMove, setCurrentMove] = useState<number>(0);

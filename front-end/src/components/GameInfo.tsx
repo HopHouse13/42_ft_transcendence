@@ -34,34 +34,38 @@ interface GameInfoProps {
  * @param onJumpTo - Fonction pour naviguer vers un coup spécifique.
  */
 export default function GameInfo({history, currentMove, showLatestFirst, onReverse, onJumpTo}: GameInfoProps): React.ReactElement {
-	// Génère une liste d'éléments JSX pour chaque coup de l'historique
+	// Génère une liste d'éléments pour chaque coup de l'historique
 	const moves = history.map((board: BoardState, move: number) => {
 		// Récupère la description du coup (ex: "1. Black plays (3,4)", "2. White passes")
 		const description = getMoveDescription(history, move);
 		return (
-			<li key={move}>
+			// Chaque coup est encapsulé dans une carte avec un bouton cliquable
+			<div key={move} className="card bg-base-100 p-2 mb-2 shadow-sm hover:shadow-md transition-shadow">
 				{/* Bouton cliquable pour revenir à ce coup dans l'historique */}
-				<button onClick={() => onJumpTo(move)}>
+				<button 
+					onClick={() => onJumpTo(move)}
+					className={` "btn btn-ghost btn-sm w-full text-left"
+						${move === currentMove ? "btn-active" : "hover:btn-neutral"}`}
+				>
 					{description}
 				</button>
-			</li>
+			</div>
 		);
 	});
 
 	return (
-		<div className="game-info">
-			{/* Bouton pour inverser l'ordre d'affichage des coups (ascendant ↔ descendant) */}
-			<button className="toggle-button" onClick={onReverse}>
-				Reverse
+		// Conteneur principal du composant avec un style de carte*/}
+		<div className="card bg-base-200 p-4 rounded-box shadow-md">
+			{/* Bouton pour inverser l'ordre d'affichage des coups*/}
+			<button className="btn btn-primary btn-sm w-full mb-4" onClick={onReverse}>
+				{showLatestFirst ? "Show Latest First" : "Show Oldest First"}
 			</button>
 
-			{/* Liste ordonnée des coups joués */}
-			<ol>
-				{/* Affiche les coups dans l'ordre souhaité :
-				     - Si showLatestFirst=true : du premier au dernier coup (moves.reverse() car map a créé dans l'ordre naturel)
-				     - Si showLatestFirst=false : du dernier au premier coup (order naturel) */}
+			{/* Conteneur pour la liste des coups avec un espacement vertical */}
+			<div className="space-y-2">
+				{/* Affiche les coups dans l'ordre choisi par l'utilisateur */}
 				{showLatestFirst ? moves.reverse() : moves}
-			</ol>
+			</div>
 		</div>
 	);
 }
