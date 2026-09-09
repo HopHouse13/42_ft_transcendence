@@ -47,6 +47,10 @@ export class GameRoomService    {
     
     private readonly rooms = new Map<string, GameRoom>();
 
+    // ✅ Stocke la partie créée, accessible via le roomId d'ORIGINE
+    // du joueur qui attendait (celui qui n'a jamais reçu la GameState en retour direct)
+    private readonly completedMatches = new Map<string, GameState>();
+
 
     constructor(private readonly othelloService: OthelloService) {}
 
@@ -59,7 +63,7 @@ export class GameRoomService    {
     /*  4. La room est prête → on lance la partie et on supprime la room          */
     /* -------------------------------------------------------------------------- */
 
-    newPlayerEntry(player: PlayerRoom): string | Promise<GameState> {
+    async newPlayerEntry(player: PlayerRoom): Promise<string | GameState> {
 
         const waitingRoom = this._findWaitingRoom(player);
         if (!waitingRoom)   {
@@ -68,10 +72,25 @@ export class GameRoomService    {
         }
 
         const readyRoom = this._updateRoom(waitingRoom.roomId, player);
-        const game = this.othelloService.createGame( readyRoom.player1.userId, readyRoom.player2!.userId );
+        const game = await this.othelloService.createGame( readyRoom.player1.userId, readyRoom.player2!.userId );
 
+        // ✅ On garde une trace du match sous l'ID que le joueur 1
+        // (celui qui attendait) a reçu au tout début, pour qu'il puisse
+        // le retrouver via polling.
+        this.completedMatches.set(readyRoom.roomId, game);
+        //console.log('[DEBUG] match stocké sous roomId:', readyRoom.roomId);
         this._deleteRoom(readyRoom.roomId);
-        return( game );
+        return (game);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    // ✅ Méthode appelée par le controller pour le polling
+
+    getMatchResult(roomId: string): GameState | undefined {
+
+
+        //console.log('[DEBUG] recherche du roomId:', roomId, '| clés connues:', [...this.completedMatches.keys()]);
+        return this.completedMatches.get(roomId);
     }
 
     /* -------------------------------------------------------------------------- */
@@ -79,16 +98,20 @@ export class GameRoomService    {
     /*  Un invit est fourni → on rejoint la room correspondante                   */
     /* -------------------------------------------------------------------------- */
 
-    invitPlayerEnty(player: PlayerRoom)     {
+    async invitPlayerEnty(player: PlayerRoom)     {
 
         if (!player.invit)  {
-            
+
             return( this._createRoom(player.userId, player) );
         }
 
         const room = this._readRoom(player.invit);
         const readyRoom = this._updateRoom(room.roomId, player);
-        const game = this.othelloService.createGame( readyRoom.player1.userId, player.userId );
+        const game = await this.othelloService.createGame( readyRoom.player1.userId, player.userId );
+
+        // ✅ Même logique que newPlayerEntry : le joueur qui a créé la room
+        // via invitation peut aussi poller son roomId d'origine.
+        this.completedMatches.set(readyRoom.roomId, game);
 
         this._deleteRoom(readyRoom.roomId);
         return( game );

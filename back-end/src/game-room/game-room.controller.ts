@@ -3,7 +3,7 @@
 /*                                                                            */
 /* ========================================================================== */
 
-/*import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body } from '@nestjs/common';
 
 import { GameRoomService } from './game-room.service';
 import type { PlayerRoom } from './game-room.service';
@@ -11,11 +11,12 @@ import type { PlayerRoom } from './game-room.service';
 /* -------------------------------------------------------------------------- */
 /*                       ~~ Class GameRoomController ~~                       */
 /*                                                                            */
-/* POST /game-room/entry    --> rom match par couleur                         */
-/* POST /game-room/invit    --> rom match par invit                           */
+/* POST /game-room/entry          --> rom match par couleur                   */
+/* POST /game-room/invit          --> rom match par invit                     */
+/* GET  /game-room/status/:roomId --> polling pour le joueur en attente       */
 /* -------------------------------------------------------------------------- */
 
-/*@Controller('game-room')
+@Controller('game-room')
 export class GameRoomController     {
     
     constructor(private readonly gameRoomService: GameRoomService) {}
@@ -31,48 +32,19 @@ export class GameRoomController     {
         
         return( this.gameRoomService.invitPlayerEnty(player) );
     }
-}
 
-/* -------------------------------------------------------------------------- */
-import { Controller, Post, Body } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+    // ✅ Route de polling : le joueur qui attend (player1) interroge
+    // régulièrement son roomId d'origine pour savoir si un adversaire
+    // l'a rejoint et si la partie a démarré.
+    @Get('status/:roomId')
+    getStatus( @Param('roomId') roomId: string )   {
 
-import { GameRoomService, PlayerRoom } from './game-room.service';
-import { JoinGameDto } from './dto/join-game.dto';
+        const game = this.gameRoomService.getMatchResult(roomId);
 
-/* ==========================================================================
-   ⚠️ CONTROLLER TEMPORAIRE ⚠️
-   Le vrai design (voir socketId dans PlayerRoom) prévoit du WebSocket
-   via game-room.gateway.ts. Ce controller REST sert juste à tester le
-   matchmaking depuis le front en attendant que le gateway soit fait.
-   À supprimer / remplacer une fois le WebSocket branché.
-   ========================================================================== */
+        if (game) {
+            return( { status: 'ready', game } );
+        }
 
-@Controller('game-room')
-export class GameRoomController {
-  constructor(private readonly gameRoomService: GameRoomService) {}
-
-  @Post('join')
-  async join(@Body() dto: JoinGameDto) {
-    const player: PlayerRoom = {
-      userId: dto.userId,
-      // pas de vrai socket ici, on génère un id bidon pour respecter l'interface
-      socketId: `http-temp-${randomUUID()}`,
-      color: dto.color,
-      invit: dto.invit,
-    };
-
-    const result = dto.invit
-      ? await this.gameRoomService.invitPlayerEnty(player)
-      : await this.gameRoomService.newPlayerEntry(player);
-
-    // newPlayerEntry / invitPlayerEnty renvoient soit :
-    // - un roomId (string) -> en attente d'un adversaire
-    // - une GameState -> la partie a démarré
-    if (typeof result === 'string') {
-      return { status: 'waiting', roomId: result };
+        return( { status: 'waiting' } );
     }
-
-    return { status: 'ready', game: result };
-  }
 }
