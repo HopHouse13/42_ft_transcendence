@@ -1,18 +1,20 @@
-# Dockerfile de DÉVELOPPEMENT — hot-reload avec Vite
-# À ne pas utiliser en prod : ici Node tourne en continu, pas de build optimisé.
-
+# Utilise une image Node.js officielle
 FROM node:20-alpine
 
+# Définit le répertoire de travail
 WORKDIR /app
 
+# Copie les fichiers de configuration de npm
 COPY package.json package-lock.json* ./
 
+# Installe toutes les dépendances
 RUN npm install
-RUN npm ci
 
-# Le code source sera monté en volume par docker-compose,
-# donc pas besoin de le copier ici (voir docker-compose.dev.yml)
+# Copie le reste des fichiers du projet
+COPY . .
 
+# Expose le port 5173
 EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Lance l'application
+CMD ["npm", "run", "dev"]
