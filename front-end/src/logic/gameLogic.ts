@@ -220,7 +220,7 @@ export function getStatusText(board: BoardState, xIsNext: boolean, currentPlayer
 	let score: string = "";
 	let result: string = "";
 
-	score = `Black: ${blackCount} | White: ${whiteCount}`;
+	score = `Black: ${blackCount} | ${whiteCount} White`;
 	if (!currentPlayerHasMoves) {
 		if (!opponentsHasMoves) {
 			status += `Game Over !`;

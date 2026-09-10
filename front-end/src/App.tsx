@@ -23,20 +23,22 @@ const App =(): React.ReactElement => {
 	}
 
 	return (
-		<div className="game">
-			<div className="game-board">
+		<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+			<div className="lg:col-span-2">
 				<Board xIsNext={xIsNext} board={currentBoard} onPlay={handlePlay} />
-				<span className="move-info">
+				<span className="flex justify-center mt-4 text-lg font-semibold">
 					You are at move #{currentMove}
 				</span>
 			</div>
-			<GameInfo 
+			<div className="grid grid-cols-1 gap-4">
+				<GameInfo 
 				history={history}
 				currentMove={currentMove}
 				showLatestFirst={showLatestFirst}
 				onReverse={() => setShowLatestFirst(!showLatestFirst)}
 				onJumpTo={jumpTo}
 				/>
+			</div>
 		</div>
 	);
 };

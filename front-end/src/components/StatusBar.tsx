@@ -12,6 +12,6 @@ interface StatusBarProps {
 export default function StatusBar({board, xIsNext, currentPlayerHasMoves, opponentHasMoves}: StatusBarProps):React.ReactElement {
 	const statusText = getStatusText(board, xIsNext, currentPlayerHasMoves, opponentHasMoves);
 	return (
-		<div className="Status">{statusText}</div>
+		<div className="flex items-center justify-content font-semibold">{statusText}</div>
 	);
 }

@@ -44,8 +44,8 @@ export default function GameInfo({history, currentMove, showLatestFirst, onRever
 				{/* Bouton cliquable pour revenir à ce coup dans l'historique */}
 				<button 
 					onClick={() => onJumpTo(move)}
-					className={` "btn btn-ghost btn-sm w-full text-left"
-						${move === currentMove ? "btn-active" : "hover:btn-neutral"}`}
+					className={`"btn btn-ghost btn-sm w-full text-left"
+						${move === currentMove ? "btn-info" : " cursor-pointer hover:bg-base-200"}`}
 				>
 					{description}
 				</button>
@@ -55,14 +55,14 @@ export default function GameInfo({history, currentMove, showLatestFirst, onRever
 
 	return (
 		// Conteneur principal du composant avec un style de carte*/}
-		<div className="card bg-base-200 p-4 rounded-box shadow-md">
+		<div className="card bg-base-200 p-4 shadow-md">
 			{/* Bouton pour inverser l'ordre d'affichage des coups*/}
 			<button className="btn btn-primary btn-sm w-full mb-4" onClick={onReverse}>
 				{showLatestFirst ? "Show Latest First" : "Show Oldest First"}
 			</button>
 
 			{/* Conteneur pour la liste des coups avec un espacement vertical */}
-			<div className="space-y-2">
+			<div className="flex flex-col space-y-2 overflow-y-auto max-h-128">
 				{/* Affiche les coups dans l'ordre choisi par l'utilisateur */}
 				{showLatestFirst ? moves.reverse() : moves}
 			</div>

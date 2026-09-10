@@ -63,16 +63,16 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 	}
 
 	/**
-	 * Génère la structure JSX du plateau 8x8.
+	 * Génère la structure du plateau 8x8.
 	 * Crée une grille de composants Square avec les pions, les coups valides, et les gestionnaires de clic.
 	 *
-	 * @returns JSX.Element - La grille complète du plateau.
+	 * @returns React.ReactElement - La grille complète du plateau.
 	 */
 	const renderBoard = (): React.ReactElement => {
 		return (
-			<>
+			<div className="card bg-base-200 shadow-xl p-4">
 				{Array(8).fill(null).map((_, row: number) => (
-					<div className="board-row" key={row}>
+					<div className="" key={row}>
 						{Array(8).fill(null).map((_, col: number) => {
 							// Convertit les coordonnées (row, col) en objet Position
 							const cellPos = {row, col};
@@ -87,38 +87,40 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 						})}
 					</div>
 				))}
-			</>
+			</div>
 		);
 	};
 
 	return (
-		<div className="board-container">
-			{/* Barre d'état : affiche le score et le statut du jeu */}
-			<StatusBar
-				board={board}
-				xIsNext={xIsNext}
-				currentPlayerHasMoves={currentPlayerHasMoves}
-				opponentHasMoves={opponentHasMoves}
-			/>
+		<div className="card bg-base-200 p-4 shadow-md">
+			<div className="flex flex-col items-center justify-center gap-4">
+				{/* Barre d'état : affiche le score et le statut du jeu */}
+				<StatusBar
+					board={board}
+					xIsNext={xIsNext}
+					currentPlayerHasMoves={currentPlayerHasMoves}
+					opponentHasMoves={opponentHasMoves}
+				/>
 
-			{/* Bouton "Pass" - Apparaît si le joueur actuel ne peut pas jouer mais l'adversaire oui */}
-			{ !currentPlayerHasMoves && opponentHasMoves && (
-				<button
-					className="pass-button"
-					onClick={() => {
-						// Crée une copie du plateau sans modification (passer son tour)
-						const nextBoard: BoardState = board.slice();
-						// Transmet le même plateau pour indiquer un passage de tour
-						onPlay(nextBoard);
-					}}
-				>
-					Pass turn
-				</button>
-			)}
+				{/* Bouton "Pass" - Apparaît si le joueur actuel ne peut pas jouer mais l'adversaire oui */}
+				{ !currentPlayerHasMoves && opponentHasMoves && (
+					<button
+						className="btn btn-warning mt-4"
+						onClick={() => {
+							// Crée une copie du plateau sans modification (passer son tour)
+							const nextBoard: BoardState = board.slice();
+							// Transmet le même plateau pour indiquer un passage de tour
+							onPlay(nextBoard);
+						}}
+					>
+						Pass turn
+					</button>
+				)}
 
-			{/* Conteneur du plateau de jeu */}
-			<div className="board">
-				{renderBoard()}
+				{/* Conteneur du plateau de jeu */}
+				<div className="flex justify-center ">
+					{renderBoard()}
+				</div>
 			</div>
 		</div>
 	);

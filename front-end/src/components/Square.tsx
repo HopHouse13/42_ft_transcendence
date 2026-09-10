@@ -7,18 +7,18 @@ export default function Square({value, onSquareClick, isPossibleMove}: SquarePro
 						(value === 'O') ? 'white-pawn' : '';
 
 	return (
-		<button
-			className={`btn btn-primary hover:bg-base-300 ${isPossibleMove ? 'possibleMove' : ''}`}
+		<div
+			className={`h-16 w-16 btn btn-xl btn-primary`}
 			onClick={onSquareClick}
 			aria-label={value === 'X' ? 'black pawn' :
 				value === 'O' ? 'white pawn' :
 				isPossibleMove ? 'possible move' : 'empty square'}
 		>
 			{hasPawn ? (
-				<span className={`pawn ${pawnClass}`.trim()} />
+				<span className={`h-6 w-6 rounded-full ${pawnClass === 'black-pawn' ? 'bg-black' : 'bg-white'}`} />
 			 ) : isPossibleMove && (
-				<span className="possible-move-indicator" />
+				<span className="h-6 w-6 rounded-full bg-[#ffff0080]" />
 			 )}
-		</button>
+		</div>
 	);
 }

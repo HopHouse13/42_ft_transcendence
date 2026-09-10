@@ -1,15 +1,67 @@
 @import "tailwindcss";
-@plugin "daisyui"{
-    themes: light --default, dark --prefersdark;
-}
-/* 
-@import "daisyui";
+@plugin "daisyui";
 
-@config {
-
-	plugins: {
-		daisyui: {
-			themes: ["light", "dark"]
-		}
-	}; 
+/* :root, */
+/* [data-theme="othello"] {
+    color-scheme: dark;
+    --color-primary: oklch(51.497% 0.17139 142.591);
+    --color-secondary: oklch(65.519% 0.20955 144.226);
+    --color-accent: oklch(22.14% 0.03117 149.66);
+    --color-neutral: oklch(22.14% 0.03117 149.66);
+    --color-base-100: oklch(22.14% 0.03117 149.66);
+    --color-base-200: oklch(35.749% 0.09492 146.44);
+    --color-base-300: oklch(48.549% 0.13867 143.22);
+    --color-info: oklch(41.968% 0.18401 265.387);
+    --color-success: oklch(85.871% 0.29217 142.511);
+    --color-warning: oklch(81.177% 0.17482 108.658);
+    --color-error: oklch(46.56% 0.18795 28.86);
 } */
+
+/* @plugin "daisyui/theme" { */
+:root,
+[data-theme="Othello"] {
+  name: "Othello";
+  default: false;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(27% 0.006 286.033);
+  --color-base-200: oklch(21% 0.006 285.885);
+  --color-base-300: oklch(14% 0.005 285.823);
+  --color-base-content: oklch(83.768% 0.001 17.911);
+  --color-primary: oklch(47.104% 0.14216 143.555);
+  --color-primary-content: oklch(0% 0 0);
+  --color-secondary: oklch(68.631% 0.21366 140.995);
+  --color-secondary-content: oklch(13.955% 0.027 168.327);
+  --color-accent: oklch(70.628% 0.119 185.713);
+  --color-accent-content: oklch(14.125% 0.023 185.713);
+  --color-neutral: oklch(30.698% 0.039 171.364);
+  --color-neutral-content: oklch(86.139% 0.007 171.364);
+  --color-info: oklch(72.06% 0.191 231.6);
+  --color-info-content: oklch(0% 0 0);
+  --color-success: oklch(64.8% 0.15 160);
+  --color-success-content: oklch(0% 0 0);
+  --color-warning: oklch(84.71% 0.199 83.87);
+  --color-warning-content: oklch(0% 0 0);
+  --color-error: oklch(71.76% 0.221 22.18);
+  --color-error-content: oklch(0% 0 0);
+  --radius-selector: 2rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.1875rem;
+  --size-field: 0.1875rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: oklch(22.14% 0.03117 149.66);
+}
