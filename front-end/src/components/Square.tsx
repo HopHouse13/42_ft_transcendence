@@ -8,7 +8,7 @@ export default function Square({value, onSquareClick, isPossibleMove}: SquarePro
 
 	return (
 		<div
-			className={`h-16 w-16 btn btn-xl btn-primary`}
+			className={`h-16 w-16 btn btn-xl btn-primary p-0 m-0`}
 			onClick={onSquareClick}
 			aria-label={value === 'X' ? 'black pawn' :
 				value === 'O' ? 'white pawn' :

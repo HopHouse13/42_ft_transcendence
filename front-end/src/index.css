@@ -20,9 +20,6 @@
 /* @plugin "daisyui/theme" { */
 :root,
 [data-theme="Othello"] {
-  name: "Othello";
-  default: false;
-  prefersdark: true;
   color-scheme: "dark";
   --color-base-100: oklch(27% 0.006 286.033);
   --color-base-200: oklch(21% 0.006 285.885);
@@ -60,8 +57,8 @@ body {
     width: 100%;
     margin: 0;
     padding: 0;
+    background-color: oklch(21.389% 0.02912 150.181);
 }
 
-body {
-    background-color: oklch(22.14% 0.03117 149.66);
-}
+/* body { */
+/* } */
