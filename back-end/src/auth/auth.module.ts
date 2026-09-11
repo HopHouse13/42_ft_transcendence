@@ -5,6 +5,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
 	imports: [
@@ -22,19 +24,7 @@ import { AuthController } from './auth.controller';
 		}), 
 	],
 	controllers: [ AuthController ],
-	providers: [ AuthService ],
+	providers: [ AuthService, JwtStrategy, GoogleStrategy ],
 	exports: [ JwtModule ] // rend JwtService disponible pour les modules qui importeront AuthModule
 })
 export class AuthModule {}
-
-
-/*src/auth/
-├── auth.module.ts
-├── auth.service.ts
-├── auth.controller.ts
-├── strategies/
-│   └── jwt.strategy.ts
-├── guards/
-│   └── jwt-auth.guard.ts
-└── dto/
-    └── login.dto.ts*/

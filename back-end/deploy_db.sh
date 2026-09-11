@@ -3,7 +3,7 @@ set -e # arrete le script immédiatement si une commande échoue (une bonne prat
 
 echo "Deploy database..."
 
-npx prisma migrate deploy  || { echo "Migration failed!" >&2; exit 1; } # ">&2" redérige vers la sorrtie d'erreur (FD2)
+npx prisma migrate deploy || { echo "Migration failed!" >&2; exit 1; } # ">&2" redérige vers la sorrtie d'erreur (FD2)
 
 echo "Deploy finished!"
 

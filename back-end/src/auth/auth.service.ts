@@ -2,8 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
-import { UserData } from '../users/interfaces/user-data.interface';
-import { AuthData } from '../users/interfaces/auth-data.interface';
+import { UserData } from '../users/interfaces/write-user.interface';
+import { AuthData } from '../users/interfaces/write-auths.interface';
 import { AuthMode } from '@prisma/client';
 import { Payload } from './interfaces/payload.interface';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
@@ -37,7 +37,7 @@ export class AuthService
 
 	///
 
-	// login() est appelé lors d'une connection apres avoie identifier le user
+	// login() est appelé lors d'une connection apres avoir identifié le user
 	// il retourne un JWT (Jeton Web Token) complet a partir de l'id du user
 	// 1 JWT par client et par connection
 	async login( userId: string ): Promise< string >
@@ -70,7 +70,7 @@ export class AuthService
 	// Méthode appelé lors de la connection du user
 	async validateUser( username: string, password: string ): Promise< string >
 	{
-		const	authUser = await this.usersService.findForAuth( username );
+		const	authUser = await this.usersService.findForAuthLocal( username );
 
 		if ( !authUser || authUser.authMode !== AuthMode.LOCAL || !authUser.passwordHash ) // !authUser.passwordHash -> pour garantir a `argon2.verify()` qu'il est bien de type string (et pas null)
 			throw new UnauthorizedException( 'invalid user' );

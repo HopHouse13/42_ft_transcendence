@@ -1,10 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
 import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
-import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
+import { Prisma, AuthMode, User } from '@prisma/client'; // namespace Prisma pour obetenir la classe des exception a lever coté prisma
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserData } from './interfaces/user-data.interface';
-import { AuthData } from './interfaces/auth-data.interface';
-import { AuthUser } from './interfaces/auth-user.interface';
+import { UserData } from './interfaces/write-user.interface';
+import { AuthData } from './interfaces/write-auths.interface';
+import { LocalAuth } from './interfaces/read-local.interface';
 
 @Injectable() // cette classe peut être injectée
 export class UsersService
@@ -14,7 +14,7 @@ export class UsersService
 	// prisma devient un attribut privé avec la valeur (du pointeur) de l'objet PrismaService (instancié en debut de programme)
 	constructor( private readonly prisma: PrismaService ) {}
 
-	/////
+	///
 
 	async findAll() // renvoie un tableau de l'ensemble des users inscrient dans la db
 	{
@@ -32,7 +32,7 @@ export class UsersService
 		return ( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
 	}
 
-	/////
+	///
 
 	async findOne( id: string )
 	{
@@ -58,7 +58,7 @@ export class UsersService
 		return ( user );
 	}
 
-	/////
+	///
 
 	// usage interne uniquement (appelé que par AuthService)
 	// les données sont déjà validées par AuthService
@@ -74,7 +74,7 @@ export class UsersService
 
 		try
 		{
-			const	newUser = await this.prisma.user.create(
+			const	user = await this.prisma.user.create(
 			{
 				data: // rempli uniquement les champs cités dans data
 				{
@@ -85,7 +85,7 @@ export class UsersService
 					providerId:		providerId  // peut être undefined car champ optionnel dans le schema prisma
 				}
 			});
-			return ( newUser ); // newUser est un objet de type User
+			return ( user ); // user est un objet de type User
 		}
 		catch ( err )
 		{
@@ -101,7 +101,7 @@ export class UsersService
 		}
 	}
 
-	/////
+	///
 
 	async update( userId: string, dto: UpdateUserDto ) // 2 params -> id pour identifier quel user va etre update et dto deja instancié par Nest
 	{
@@ -137,7 +137,7 @@ export class UsersService
 		}
 	}
 
-	/////
+	///
 
 	async	remove( id: string ) // reçoit l'id du user à supprimer (transmis par le controller)
 	{
@@ -178,7 +178,7 @@ export class UsersService
 
 	// trouve un user à partir de son username, renvoie les données nécessaires à la validation de l'authenticité
 	// renvoie null si non trouvé. validationUser() géra le cas
-	async findForAuth( username: string ): Promise< AuthUser | null >
+	async	findForAuthLocal( username: string ): Promise< LocalAuth | null >
 	{
 		const	authUser =  await this.prisma.user.findUnique(
 		{
@@ -198,5 +198,23 @@ export class UsersService
 		return ( authUser );
 	}
 
+	///
+
+	async	findForAuthGoogle( providerId: string ) : Promise< User | null >
+	{
+		const	authUserGoogle = await this.prisma.user.findUnique(
+		{
+			where: 
+			{
+				authMode_providerId: // contrainte composite de la db -> CAD que l'unicité est garantie sur la COMBINAISON des deux champs ensemble (c'est explicite sur le schema)
+				{
+					authMode:	AuthMode.GOOGLE,
+					providerId:	providerId
+				}
+			}
+		});
+
+		return ( authUserGoogle ); // renvoie un objet avec les données db liées a AuthGoogle du user a partir du retour de google
+	}
 }
 

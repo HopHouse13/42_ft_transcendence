@@ -57,7 +57,7 @@ export class    OthelloService {
         const gameId = randomUUID(); const gameEntry = this._initGameEntry(hostUserId);
         this.games.set( gameId, gameEntry );
 
-        await this.prisma.game.create({ data: { id: gameId, status:'INGAME',  blackPlayerId : hostUserId, whitePlayerId : hostUserId} });
+        await this.prisma.game.create({ data: { id: gameId, status:'IN_PROGRESS',  blackPlayerId : hostUserId, whitePlayerId : hostUserId} });
         
         return( this.buildGameState(gameId, gameEntry) );
     }
@@ -74,7 +74,7 @@ export class    OthelloService {
     gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
     gameEntry.status = GameStatus.INGAME;
 
-      await this.prisma.game.update({ where: { id: gameId }, data: { whitePlayerId: userId, status: 'INGAME' } });
+      await this.prisma.game.update({ where: { id: gameId }, data: { whitePlayerId: userId, status: 'IN_PROGRESS' } });
       
     return( this.buildGameState(gameId, gameEntry) );
   }

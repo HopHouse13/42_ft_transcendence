@@ -52,6 +52,7 @@ model User {
 	gamesAswhite	Game[] @relation( "white" )
 	gamesWon		Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
 
+	@@unique([ authMode, providerId ])
 	@@map( "users" )
 }
 
@@ -64,9 +65,8 @@ enum PlayerColor {
 	@@map( "player_color" )
 }
 
-enum GameStatus {
-	INGAME
-	BREAK
+enum GameStatus { // BREAK, WAITTING
+	IN_PROGRESS
 	FINISHED
 	ABANDONED
 
@@ -75,8 +75,8 @@ enum GameStatus {
 
 model Game {
 	id				String @id @default( uuid() ) @db.Uuid
-	
-	status			GameStatus @default( INGAME )
+
+	status			GameStatus @default( IN_PROGRESS )
 	
 	blackPlayerId	String @db.Uuid @map( "black_player_id" )
 	whitePlayerId	String @db.Uuid @map( "white_player_id" )

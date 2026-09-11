@@ -1,6 +1,6 @@
 import { AuthMode } from "@prisma/client";
 
-export interface AuthUser
+export interface LocalAuth
 {
 	id:				string,
 	authMode:		AuthMode,

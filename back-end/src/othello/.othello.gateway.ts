@@ -19,7 +19,7 @@ import type { Move } from './interfaces/move-result.interface';
 
 interface CreateGamePayload    {
 
-  userId: string;
+  userId: string;  
 }
 
 interface JoinGamePayload   {

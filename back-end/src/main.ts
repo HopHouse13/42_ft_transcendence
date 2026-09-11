@@ -3,11 +3,10 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create( AppModule );
 
-	app.useGlobalPipes( new ValidationPipe() );
-
-	await app.listen(process.env.PORT ?? 3000);
+	app.useGlobalPipes( new ValidationPipe({ whitelist: true }));
+	await app.listen( process.env.PORT ?? 3000 );
 }
 bootstrap();
 
@@ -21,4 +20,5 @@ bootstrap();
 
 // Ces pipes de validation peuvent prendre des arguments pour modifier les comportements globaux du flux de verification de la donnée.
 // exemple: `whitelist:true`-> supprime automatiquement du body tout champ non déclaré dans le DTO
-// A voir avec Benoit
+
+// whitelist supprime silencieusement les champs qui ne sont pas déclarés dans les DTO, avant même que la validation ne s'exécute dessus
