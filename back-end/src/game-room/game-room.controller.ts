@@ -27,9 +27,9 @@ export class GameRoomController     {
     }
     
     @Post('invit')
-    invitPlayerEnty( @Body('player')player: PlayerRoom )   {
+    invitPlayerEntry( @Body('player')player: PlayerRoom )   {
         
-        return( this.gameRoomService.invitPlayerEnty(player) );
+        return( this.gameRoomService.invitPlayerEntry(player) );
     }
 }
 

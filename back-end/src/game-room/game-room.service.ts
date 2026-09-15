@@ -79,7 +79,7 @@ export class GameRoomService    {
     /*  Un invit est fourni → on rejoint la room correspondante                   */
     /* -------------------------------------------------------------------------- */
 
-    invitPlayerEnty(player: PlayerRoom)     {
+    invitPlayerEntry(player: PlayerRoom)     {
 
         if (!player.invit)  {
             
