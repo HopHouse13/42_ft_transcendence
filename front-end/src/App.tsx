@@ -2,6 +2,8 @@ import React from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import Game from './pages/game.tsx';
 import Connect from './pages/connect.tsx';
+import ForgotPassword from './pages/forgotPassword.tsx';
+import ResetPassword from './pages/resetPassword.tsx';
 import Rules from './pages/rules.tsx';
 import Leaderboard from './pages/leaderboard.tsx';
 import Watch from './pages/watch.tsx';
@@ -20,6 +22,8 @@ const App =(): React.ReactElement => {
 						<Route path="/" element={<Game />} />
 						<Route path="/game" element={<Game />} />
 						<Route path="/connect" element={<Connect />} />
+						<Route path="/forgotPassword" element={<ForgotPassword />} />
+						<Route path="/resetPassword" element={<ResetPassword />} />
 						<Route path="/rules" element={<Rules />} />
 						<Route path="/leaderboard" element={<Leaderboard />} />
 						<Route path="/watch" element={<Watch />} />
