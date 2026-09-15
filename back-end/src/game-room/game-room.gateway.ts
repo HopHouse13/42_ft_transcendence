@@ -7,15 +7,8 @@
 /*                                                                            */
 /* ========================================================================== */
 
-import {
-    WebSocketGateway,
-    WebSocketServer,
-    SubscribeMessage,
-    MessageBody,
-    ConnectedSocket,
-    OnGatewayConnection,
-    OnGatewayDisconnect,
-} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer, SubscribeMessage } from '@nestjs/websockets';
+import { MessageBody, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 import { GameRoomService } from '../game-room/game-room.service';
@@ -28,23 +21,23 @@ import type { Move } from '../othello/types/move.type';
 /*  CORS: à restreindre à l'origine réelle du front en prod (pas '*').        */
 /* -------------------------------------------------------------------------- */
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway( { cors: { origin: '*' }} )
 export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @WebSocketServer()
     server: Server;
+    
+    /* -------------------------------------------------------------------------- */
+    /* userId -> socketId courant. Permet de notifier N'IMPORTE QUEL joueur,      */
+    /* même celui qui attend depuis longtemps (pas seulement l'appelant).         */
+    /*                                                                            */
+    /* userId -> gameId, pour retrouver la partie en cours au disconnect.         */
+    /* -------------------------------------------------------------------------- */
 
-    /* userId -> socketId courant. Permet de notifier N'IMPORTE QUEL joueur,   */
-    /* même celui qui attend depuis longtemps (pas seulement l'appelant).      */
     private readonly connectedUsers = new Map<string, string>();
-
-    /* userId -> gameId, pour retrouver la partie en cours au disconnect.      */
     private readonly activeGameByUser = new Map<string, string>();
 
-    constructor(
-        private readonly gameRoomService: GameRoomService,
-        private readonly othelloService: OthelloService,
-    ) {}
+    constructor( private readonly gameRoomService: GameRoomService, private readonly othelloService: OthelloService ) {}
 
     /* -------------------------------------------------------------------------- */
     /*  Connexion : le client DOIT fournir son userId en query de handshake,      */
@@ -54,18 +47,19 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
     handleConnection(client: Socket) {
 
         const userId = client.handshake.query.userId as string | undefined;
-        if (!userId) {
+        if (!userId)    {
 
-            client.disconnect(true);
-            return;
+            client.disconnect(true); return;
         }
 
         this.connectedUsers.set(userId, client.id);
     }
 
+    /* -------------------------------------------------------------------------- */
+
     handleDisconnect(client: Socket) {
 
-        for (const [userId, socketId] of this.connectedUsers.entries()) {
+        for ( const [userId, socketId] of this.connectedUsers.entries() )   {
 
             if (socketId !== client.id) continue;
 
@@ -75,7 +69,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
             if (gameId) {
 
                 this.othelloService.markDisconnected(gameId, userId);
-                this.server.to(`game:${gameId}`).emit('opponentDisconnected', { userId });
+                this.server.to(`game:${gameId}`).emit('opponentDisconnected', { userId } );
             }
             break;
         }
@@ -86,10 +80,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
     /* -------------------------------------------------------------------------- */
 
     @SubscribeMessage('findMatch')
-    async onFindMatch(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() body: { userId: string; color?: string },
-    ) {
+    async onFindMatch( @ConnectedSocket() client: Socket, @MessageBody() body: { userId: string; color?: string } ) {
 
         const player: PlayerRoom = { userId: body.userId, socketId: client.id, color: body.color };
         const result = await this.gameRoomService.newPlayerEntry(player);
@@ -108,10 +99,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
     /* -------------------------------------------------------------------------- */
 
     @SubscribeMessage('createInvite')
-    async onCreateInvite(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() body: { userId: string },
-    ) {
+    async onCreateInvite( @ConnectedSocket() client: Socket, @MessageBody() body: { userId: string } ) {
 
         const player: PlayerRoom = { userId: body.userId, socketId: client.id };
         const roomId = await this.gameRoomService.invitPlayerEntry(player);
@@ -120,10 +108,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
 
     @SubscribeMessage('joinInvite')
-    async onJoinInvite(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() body: { userId: string; invit: string },
-    ) {
+    async onJoinInvite( @ConnectedSocket() client: Socket, @MessageBody() body: { userId: string; invit: string } ) {
 
         const player: PlayerRoom = { userId: body.userId, socketId: client.id, invit: body.invit };
         const result = await this.gameRoomService.invitPlayerEntry(player);
@@ -133,6 +118,8 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
     /* -------------------------------------------------------------------------- */
     /*  Notifie LES DEUX joueurs et les fait rejoindre la room de la partie       */
+    /* -------------------------------------------------------------------------- */
+
     /* -------------------------------------------------------------------------- */
 
     private _onMatchFound(gameState: GameState) {
@@ -154,9 +141,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
     /* -------------------------------------------------------------------------- */
 
     @SubscribeMessage('playMove')
-    async onPlayMove(
-        @MessageBody() body: { gameId: string; userId: string; move: Move },
-    ) {
+    async onPlayMove( @MessageBody() body: { gameId: string; userId: string; move: Move } ) {
 
         try {
 
@@ -170,6 +155,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
             socket?.emit('moveRejected', { message: err.message ?? 'Coup invalide' });
         }
     }
+    
 }
 
 /* -------------------------------------------------------------------------- */
