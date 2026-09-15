@@ -51,7 +51,7 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
 
             client.disconnect(true); return;
         }
-
+        
         this.connectedUsers.set(userId, client.id);
     }
 

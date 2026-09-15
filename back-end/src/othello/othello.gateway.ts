@@ -50,7 +50,14 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     /* -------------------------------------------------------------------------- */
-
+    
+    @SubscribeMessage('stateGame')
+    async handleStateGame( @MessageBody() gameId: string, @ConnectedSocket() client: Socket )   {
+        
+        const state = await this.othelloService.getState(gameId);
+        this.server.to(gameId).emit('gameState', state);
+    }
+    
     @SubscribeMessage('joinGame')
     async handleJoinGame( @MessageBody() payload: JoinGamePayload, @ConnectedSocket() client: Socket )  {
         
