@@ -17,7 +17,7 @@ const App =(): React.ReactElement => {
 	return (
 		<BrowserRouter>
 			<Layout>
-				<main className="flex flex-col items-center justify-center min-h-screen bg-base-100">
+				<main className="flex flex-col flex-grow items-center justify-center bg-base-100">
 					<Routes>
 						<Route path="/" element={<Game />} />
 						<Route path="/game" element={<Game />} />
