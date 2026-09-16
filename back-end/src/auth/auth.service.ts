@@ -75,17 +75,17 @@ export class AuthService
 
 	// methode a modifier lors de l'integration des OAuth, gere pour le moment uniauement la connection LOCAL
 	// Méthode appelé lors de la connection du user
-	async validateUser( username: string, password: string ): Promise< string >
+	async validateUser( email: string, password: string ): Promise< string >
 	{
-		const	user = await this.usersService.findByUsername( username );
+		const	user = await this.usersService.findByEmail( email );
 
 		if ( !user || !user.passwordHash ) // !user.passwordHash -> pour garantir a `argon2.verify()` qu'il est bien de type string (et pas null)
-			throw new UnauthorizedException( 'invalid user' );
+			throw new UnauthorizedException( 'invalid user or email' );
 
 		const isValid = await argon2.verify( user.passwordHash, password );
 
 		if ( !isValid )
-			throw new UnauthorizedException( 'invalid user' );
+			throw new UnauthorizedException( 'invalid user or email' );
 
 		return( user.id );
 	}

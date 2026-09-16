@@ -4,7 +4,6 @@ import { Prisma, AuthMode, User } from '@prisma/client'; // namespace Prisma pou
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserData } from './interfaces/write-user.interface';
 import { AuthData } from './interfaces/write-auths.interface';
-import { LocalAuth } from './interfaces/read-local.interface';
 import { ResetPasswordToken } from 'src/auth/interfaces/resetPassword.interface';
 
 @Injectable() // cette classe peut être injectée
@@ -61,30 +60,6 @@ export class UsersService
 
 	///
 
-	// trouve un user à partir de son username, renvoie les données nécessaires à la validation de l'authenticité
-	// renvoie null si non trouvé. validationUser() géra le cas
-	async findByUsername( username: string ): Promise< LocalAuth | null >
-	{
-		const	user =  await this.prisma.user.findUnique(
-		{
-			where:
-			{
-				username: username.toLowerCase()
-			},
-			select:
-			{
-				id:				true,
-				authMode:		true,
-				passwordHash:	true
-			}
-
-		});
-
-		return( user );
-	}
-
-	///
-
 	async findByEmail( email: string )
 	{
 		const	user = await this.prisma.user.findUnique(
@@ -95,8 +70,10 @@ export class UsersService
 			},
 			select:
 			{
-				id:		true,
-				email:	true
+				id:				true,
+				email:			true,
+				authMode:		true,
+				passwordHash:	true
 			}
 		});
 
@@ -167,7 +144,7 @@ export class UsersService
 			{
 				data: // rempli uniquement les champs cités dans data
 				{
-					username:		userData.username.toLowerCase(), // stock toujours les ussrname en minuscule pour eviter 2 comptes distint comme "Bob" et "bob"
+					username:		userData.username,
 					email:			userData.email,
 					authMode:		authData.authMode,
 					passwordHash:	passwordHash, // peut être undefined car champ optionnel dans le schema prisma
@@ -204,7 +181,7 @@ export class UsersService
 				},
 				data: // data signifi que les clés:valeurs a l'interieurs seront pris en compte pour modifier la db de ce user
 				{
-					username: dto.username?.toLowerCase(),
+					username: dto.username,
 					email: dto.email
 				}
 			});
