@@ -1,31 +1,63 @@
+import React, { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import AuthCard from "../components/authentication/AuthCard";
+import FormField from "../components/authentication/FormField";
+import { useAuth } from "../hooks/useAuth";
+import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT } from "../constants/authConstants";
+
 const ResetPassword = (): React.ReactElement => {
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get("token") ?? undefined;
+    const { loading, error, resetPassword } = useAuth();
+
+    const confirmPasswordError = useMemo(() => {
+        if (confirmPassword.length === 0)
+            return undefined;
+        return (confirmPassword !== password ? "Password don not match" : undefined)
+    }, [password, confirmPassword]);
+
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (confirmPasswordError)
+            return;
+        await resetPassword(password, token);
+    };
+
     return (
-        <form className="fieldset bg-base-200 border-base-300 rounded-box border p-4">
-            <div className="flex flex-col items-center justify-center">
-                <h1 className="text-4xl font-bold mb-4">Enter Your New Password</h1>
-                <p className="text-lg mb-4">You need to change your password. </p>
-                <label className="fieldset">
-                    <span className="label">Password</span>
-                    <input type="password" className="input validator" required placeholder="Password" minLength={8} maxLength={255} pattern="^(?=.*\d)(?=.*[a-zA-Z])(?=.*[.@#$*!?_+-]).{8,255}&" title="Must be more than 8 characters, including number, lowercase letter, uppercase letter" />
-                    <span className="validator-hint hidden">
-                        Must be more than 8 characters, including
-                        <br/> At least one number
-                        <br/> At least one letter
-                        <br/> At least one special character (e.g., .@#$*!?_+-)
-                    </span>
-                </label>
-                <label className="fieldset">
-                    <span className="label">Confirm Password</span>
-                    <input type="password" className="input validator" required placeholder="Confirm Password"  />
-                    <span className="validator-hint hidden">
-                        Must be the same as the password above
-                    </span>
-                </label>
-                <button type="submit" className="btn btn-neutral mt-4 mb-2">
-                    Continue
-                </button>
-            </div>
-        </form> 
+        <AuthCard
+            title="Enter Your New Password"
+            description={<p className="text-lg mb-4">You need to change your password.</p>}
+            onSubmit={handleSubmit}
+            submitLabel="Continue"
+            loading={loading}
+            error={error}
+        >
+            <FormField
+                label="Password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                placeholder="Password"
+                required
+                minLength={8}
+                maxLength={255}
+                pattern={PASSWORD_PATTERN}
+                title={PASSWORD_TITLE}
+                hint={PASSWORD_HINT}
+            />
+            <FormField
+                label="Confirm password"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="Confirm password"
+                required
+                error={confirmPasswordError}
+                hint="Must be the same as the password above."
+            />
+        </AuthCard>
     );
 };
 
