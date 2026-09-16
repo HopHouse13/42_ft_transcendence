@@ -1,4 +1,4 @@
-import { IsStrongPassword, MaxLength, Matches, IsString, MinLength, IsEmail } from "class-validator";
+import { IsStrongPassword, MaxLength, Matches, IsString, MinLength, IsEmail } from 'class-validator';
 
 // DTO pour valider le body de POST /auth/register
 export class RegisterDto

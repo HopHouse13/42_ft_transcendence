@@ -5,6 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserData } from './interfaces/write-user.interface';
 import { AuthData } from './interfaces/write-auths.interface';
 import { LocalAuth } from './interfaces/read-local.interface';
+import { ResetPasswordToken } from 'src/auth/interfaces/resetPassword.interface';
 
 @Injectable() // cette classe peut être injectée
 export class UsersService
@@ -29,7 +30,7 @@ export class UsersService
 				createdAt:	true,
 			}
 		});
-		return ( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
+		return( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
 	}
 
 	///
@@ -55,14 +56,102 @@ export class UsersService
 
 		if ( !user ) // findUnique renvoit null si il n'a pas trouvé de user
 			throw (new NotFoundException( `User ${id} non-existent` )); // expection Nest levée si le user n'exsite pas (catch par Nest via Expection Filter)
-		return ( user );
+		return( user );
 	}
+
+	///
+
+	// trouve un user à partir de son username, renvoie les données nécessaires à la validation de l'authenticité
+	// renvoie null si non trouvé. validationUser() géra le cas
+	async findByUsername( username: string ): Promise< LocalAuth | null >
+	{
+		const	user =  await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				username: username.toLowerCase()
+			},
+			select:
+			{
+				id:				true,
+				authMode:		true,
+				passwordHash:	true
+			}
+
+		});
+
+		return( user );
+	}
+
+	///
+
+	async findByEmail( email: string )
+	{
+		const	user = await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				email
+			},
+			select:
+			{
+				id:		true,
+				email:	true
+			}
+		});
+
+		return( user );
+	}
+
+	///
+
+	async findByResetToken( tokenHash: string )
+	{
+		const	user = await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				tokenPassword: tokenHash
+			},
+			select:
+			{
+				id:						true,
+				tokenPasswordExpiresAt:	true
+			}
+		});
+
+		return( user );
+	}
+
+	///
+
+		async updatePassword( id: string, newPasswordHash: string )
+		{
+			const	user = await this.prisma.user.update(
+			{
+				where:
+				{
+					id
+				},
+				data:
+				{
+					passwordHash:			newPasswordHash,
+					tokenPassword:			null,
+					tokenPasswordExpiresAt:	null
+				},
+				select:
+				{
+					id:			true,
+				}
+			});
+			return( user );
+		}
 
 	///
 
 	// usage interne uniquement (appelé que par AuthService)
 	// les données sont déjà validées par AuthService
-	async create( userData: UserData, authData: AuthData ) // renvoie un nouveau user avec ses données verifiées
+	async	create( userData: UserData, authData: AuthData ) // renvoie un nouveau user avec ses données verifiées
 	{
 		let	passwordHash: string | undefined;
 		let	providerId: string | undefined;
@@ -85,7 +174,7 @@ export class UsersService
 					providerId:		providerId  // peut être undefined car champ optionnel dans le schema prisma
 				}
 			});
-			return ( user ); // user est un objet de type User
+			return( user ); // user est un objet de type User
 		}
 		catch ( err )
 		{
@@ -119,7 +208,7 @@ export class UsersService
 					email: dto.email
 				}
 			});
-			return ( updateUser ); // updateUser est un objet complet de type User du user qui a été update
+			return( updateUser ); // updateUser est un objet complet de type User du user qui a été update
 		}
 		catch ( err )
 		{
@@ -139,7 +228,7 @@ export class UsersService
 
 	///
 
-	async	remove( id: string ) // reçoit l'id du user à supprimer (transmis par le controller)
+	async remove( id: string ) // reçoit l'id du user à supprimer (transmis par le controller)
 	{
 		try
 		{
@@ -158,7 +247,7 @@ export class UsersService
 				},
 			});
 
-			return ( { message: `User ${id} has indeed been deleted` , user: deleteUser } ); // message de confirmation + infos filtrées du user supprimé
+			return( { message: `User ${id} has indeed been deleted` , user: deleteUser } ); // message de confirmation + infos filtrées du user supprimé
 		}
 		catch ( err )
 		{
@@ -176,31 +265,7 @@ export class UsersService
 
 	///
 
-	// trouve un user à partir de son username, renvoie les données nécessaires à la validation de l'authenticité
-	// renvoie null si non trouvé. validationUser() géra le cas
-	async	findForAuthLocal( username: string ): Promise< LocalAuth | null >
-	{
-		const	authUser =  await this.prisma.user.findUnique(
-		{
-			where:
-			{
-				username: username.toLowerCase()
-			},
-			select:
-			{
-				id:				true,
-				authMode:		true,
-				passwordHash:	true
-			}
-
-		});
-
-		return ( authUser );
-	}
-
-	///
-
-	async	findForAuthGoogle( providerId: string ) : Promise< User | null >
+	async findForAuthGoogle( providerId: string ) : Promise< User | null >
 	{
 		const	authUserGoogle = await this.prisma.user.findUnique(
 		{
@@ -214,7 +279,27 @@ export class UsersService
 			}
 		});
 
-		return ( authUserGoogle ); // renvoie un objet avec les données db liées a AuthGoogle du user a partir du retour de google
+		return( authUserGoogle ); // renvoie un objet avec les données db liées a AuthGoogle du user a partir du retour de google
+	}
+
+	///
+
+	async setResetTokenPassword( resetPassword: ResetPasswordToken ): Promise< User >
+	{
+		const user = await this.prisma.user.update(
+		{
+			where:
+			{
+				id: resetPassword.id
+			},
+			data:
+			{
+				tokenPassword:			resetPassword.tokenHash,
+				tokenPasswordExpiresAt:	resetPassword.expiresAt
+			}
+		});
+
+		return( user );
 	}
 }
 

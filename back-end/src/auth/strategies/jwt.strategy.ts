@@ -16,7 +16,8 @@ export class JwtStrategy extends PassportStrategy( Strategy )
 		super({
 			jwtFromRequest:		ExtractJwt.fromAuthHeaderAsBearerToken(), // où -> dans le header de la requete à la propriété "Authorization" comme un "Bearer Token" (type de token)
 			ignoreExpiration:	false, // est ce qu'on ignore la date d'expiration -> non
-			secretOrKey:		configService.getOrThrow<string>( 'JWT_SECRET' ) // Avec quoi on re-génére la signature pour la comparer
+			secretOrKey:		configService.getOrThrow<string>( 'JWT_SECRET' ), // Avec quoi on re-génére la signature pour la comparer
+			algorithms:			[ 'HS256' ] 
 		});
 	}
 

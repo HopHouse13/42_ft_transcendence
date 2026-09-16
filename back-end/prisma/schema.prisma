@@ -33,24 +33,27 @@ enum AuthMode {
 // limite a 255 char -> convention historique
 
 model User {
-	id				String @id @default( uuid() ) @db.Uuid // clé primaire
-	username		String  @db.VarChar( 50 ) @unique // unique, max 50 char
-	email			String  @db.VarChar( 255 )@unique // unique, max 255 char
+	id						String @id @default( uuid() ) @db.Uuid // clé primaire
+	username				String  @db.VarChar( 50 ) @unique // unique, max 50 char
+	email					String  @db.VarChar( 255 )@unique // unique, max 255 char
 
-	authMode		AuthMode @default( LOCAL ) @map( "auth_mode" ) // Definie le mode d'authentification, LOCAL par defaut
-	passwordHash	String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
-	providerId		String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
+	authMode				AuthMode @default( LOCAL ) @map( "auth_mode" ) // Definie le mode d'authentification, LOCAL par defaut
+	passwordHash			String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
+	providerId				String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
 	
-	avatarUrl		String @db.VarChar( 255 ) @default( "/uploads/avatars/default.png" ) @map( "avatar_url" ) // stock une url vers l'avatar fournit par google ou le user ou avatar par defaut
+	avatarUrl				String @db.VarChar( 255 ) @default( "/uploads/avatars/default.png" ) @map( "avatar_url" ) // stock une url vers l'avatar fournit par google ou le user ou avatar par defaut
+
+	tokenPassword			String? @db.VarChar( 64 ) @unique @map( "token_password" )
+	tokenPasswordExpiresAt	DateTime? @map( "token_password_expires_at" )
 
 	// type DateTime -> type specifique a Prisma et est compris par postgresql
 	// now() -> donne l'horodatage de maintenant (fonction specifique a Prisma)
-	createdAt		DateTime @default( now() ) @map( "created_at" )
-	updatedAt		DateTime @updatedAt @map( "updated_at" ) // @updatedAt = Prisma met à jour automatiquement l'horodatage à chaque modif
+	createdAt				DateTime @default( now() ) @map( "created_at" )
+	updatedAt				DateTime @updatedAt @map( "updated_at" ) // @updatedAt = Prisma met à jour automatiquement l'horodatage à chaque modif
 
-	gamesAsBlack	Game[] @relation( "black" )
-	gamesAswhite	Game[] @relation( "white" )
-	gamesWon		Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
+	gamesAsBlack			Game[] @relation( "black" )
+	gamesAswhite			Game[] @relation( "white" )
+	gamesWon				Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
 
 	@@unique([ authMode, providerId ])
 	@@map( "users" )

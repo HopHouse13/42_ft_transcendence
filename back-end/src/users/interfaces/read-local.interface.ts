@@ -1,4 +1,4 @@
-import { AuthMode } from "@prisma/client";
+import { AuthMode } from '@prisma/client';
 
 export interface LocalAuth
 {

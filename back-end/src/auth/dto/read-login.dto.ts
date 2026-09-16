@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength } from "class-validator";
+import { IsString, MinLength, MaxLength } from 'class-validator';
 
 export class LoginDto
 {

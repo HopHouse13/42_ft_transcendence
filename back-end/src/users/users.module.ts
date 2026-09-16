@@ -1,6 +1,6 @@
-import { Module } from "@nestjs/common";
-import { UsersController } from "./users.controller";
-import { UsersService } from "./users.service";
+import { Module } from '@nestjs/common';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({ // decorateur Module permet de definir les metadonnées qui vont regir ce module
 	providers: [UsersService], // defini les services metier de ce module

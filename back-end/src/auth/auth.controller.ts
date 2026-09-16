@@ -1,10 +1,12 @@
-import { AuthService } from "./auth.service";
-import { Body, Controller, Post, Get } from "@nestjs/common";
-import { RegisterDto } from "./dto/register.dto";
-import { LoginDto } from "./dto/login.dto";
-import { GoogleGuard } from "../common/guards/google.guard";
-import { UseGuards } from "@nestjs/common";
-import { Req } from "@nestjs/common";
+import { AuthService } from './auth.service';
+import { Body, Controller, Post, Get } from '@nestjs/common';
+import { RegisterDto } from './dto/write-register.dto';
+import { LoginDto } from './dto/read-login.dto';
+import { GoogleGuard } from '../common/guards/google.guard';
+import { UseGuards } from '@nestjs/common';
+import { Req } from '@nestjs/common';
+import { ForgotPasswordDto } from './dto/write-forgotPassword.dto';
+import { ResetPasswordDto } from './dto/write-resetPassword.dto';
 
 @Controller( 'auth' )
 export class AuthController
@@ -16,7 +18,7 @@ export class AuthController
 	@Post( 'register' )
 	register( @Body() dto: RegisterDto )
 	{
-		return ( this.authService.register( dto ) );
+		return( this.authService.register( dto ));
 	}
 
 	///
@@ -24,7 +26,7 @@ export class AuthController
 	@Post( 'login' )
 	async login( @Body() dto: LoginDto )
 	{
-		return ( this.authService.login( await this.authService.validateUser( dto.username, dto.password ) ) );
+		return( this.authService.login( await this.authService.validateUser( dto.username, dto.password )));
 	}
 
 	///
@@ -39,9 +41,24 @@ export class AuthController
 	@Get( 'google/callback' )
 	async googleCallback( @Req() request ) // @Req: decorateur de parametre -> Passport attache à soit le retour de validate() soit le retour de done() à request.user
 	{
-		return ( this.authService.login( request.user.id ) );
+		return( this.authService.login( request.user.id ));
 	}
 
+	///
+
+	@Post( 'forgot-password' )
+	async forgotPassword( @Body() dto: ForgotPasswordDto )
+	{
+		return( this.authService.forgotPassword( dto ));
+	}
+
+	///
+
+	@Post( 'reset-password' )
+	async resetPassword( @Body() dto: ResetPasswordDto )
+	{
+		return( this.authService.resetPassword( dto ));
+	}
 };
 
 
