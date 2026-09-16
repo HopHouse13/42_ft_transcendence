@@ -2,8 +2,11 @@ services:
   proxy:
     build: ./proxy
     ports:
-      - "80:80"       # HTTP
-      - "443:443"     # HTTPS (à configurer plus tard)
+      - "8080:80"       # HTTP (redirects to 443)
+      - "8443:443"     # HTTPS
+    depends_on:
+      - backend
+      - frontend
     networks:
       - ft_transcendence_network
 
@@ -12,8 +15,8 @@ services:
     volumes:
       - ./back-end:/app       # ton code hôte monté en live dans le conteneur
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000"
     env_file:
       - ./back-end/.env
     environment:
@@ -25,12 +28,14 @@ services:
       - ft_transcendence_network
 
   frontend:
-    build: ./front-end
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
     volumes:
       - ./front-end:/app
       - /app/node_modules
-    ports:
-      - "5173:5173"
+    # ports:
+    #   - "5173:5173"
     networks:
       - ft_transcendence_network
 
@@ -45,7 +50,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U othello_user -d othello_db"]
       interval: 2s

@@ -14,7 +14,7 @@ interface UseAuthRetun {
 	resetPassword: (password: string, token?: string) => Promise<AuthResult>;
 }
 
-const API_BASE = "/mockApi/auth";
+const API_BASE = "/api/auth";
 
 export function useAuth(): UseAuthRetun {
 	const [loading, setLoading] = useState(false);
