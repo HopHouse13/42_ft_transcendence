@@ -2,7 +2,7 @@ import { Type } from 'class-transformer' ;
 import { IsInt, Min, Max } from 'class-validator' ;
 import { IsUUID, IsString, IsNotEmpty, ValidateNested } from 'class-validator' ;
 
-class MoveDto   {
+export class MoveDto   {
     
 /* *
  * Limite du plateau (0 à 7 pour un plateau 8x8).
