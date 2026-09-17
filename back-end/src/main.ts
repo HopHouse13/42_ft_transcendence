@@ -28,4 +28,4 @@ transform: true,// convertit automatiquement les types (utile si body en JSON st
 // Ces pipes de validation peuvent prendre des arguments pour modifier les comportements globaux du flux de verification de la donnée.
 // exemple: `whitelist:true`-> supprime automatiquement du body tout champ non déclaré dans le DTO
 
-// whitelist supprime silencieusement les champs qui ne sont pas déclarés dans les DTO, avant même que la validation ne s'exécute dessus
+// whitelist supprime silencieusement les champs qui ne sont pas déclarés dans les DTO, avant même que la validation ne s'exécute dessus.
