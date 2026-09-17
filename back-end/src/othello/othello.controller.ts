@@ -24,14 +24,14 @@ export class OthelloController {
     }
     
     @Get(':gameId')
-    async getState( @Param('gameId', ParseUUIDPipe) gameId: string ){
+    async getState( @Param('gameId', ParseUUIDPipe) gameId: string )    {
         
         return( this.othelloService.getState(gameId) );
     }
     
     @Post('/:hostId/:visitorId')
     async creatGame( @Param('hostId', ParseUUIDPipe) hostId: string,
-                    @Param('visitorId', ParseUUIDPipe) visitorId: string ) {
+                    @Param('visitorId', ParseUUIDPipe) visitorId: string )  {
         
         //const userId = 'HostUser' ;
         return( this.othelloService.createGame(hostId, visitorId) );
@@ -47,7 +47,7 @@ export class OthelloController {
     }
 
     @Delete(':gameId')
-    async remove(@Param('gameId', ParseUUIDPipe) gameId: string) {
+    async remove(@Param('gameId', ParseUUIDPipe) gameId: string)    {
         return this.othelloService.remove(gameId);
     }
     

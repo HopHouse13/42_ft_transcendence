@@ -17,6 +17,7 @@ RUN npm install
 RUN npm i -g @nestjs/cli
 RUN npm install class-validator class-transformer
 RUN npm install @nestjs/websockets @nestjs/platform-socket.io socket.io
+RUN npm i -D socket.io-client
 #RUN npm install ws
 
 COPY prisma ./prisma
