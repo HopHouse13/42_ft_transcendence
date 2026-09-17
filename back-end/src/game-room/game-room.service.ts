@@ -6,12 +6,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
+import type { PlayerRoom } from './interfaces/player-room.interface';
 import { OthelloService } from '../othello/othello.service';
 import type { GameState } from '../othello/interfaces/game-state.interface';
 
 /* -------------------------------------------------------------------------- */
 
-export interface PlayerRoom {
+/*export interface PlayerRoom {
     
     userId:      string;
     socketId:    string;
@@ -19,7 +20,7 @@ export interface PlayerRoom {
     
     invit?:      string
 }
-
+*/
 export interface GameRoom   {
     
     roomId:     string ;

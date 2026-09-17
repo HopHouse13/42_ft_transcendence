@@ -12,7 +12,7 @@ import { MessageBody, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect 
 import { Server, Socket } from 'socket.io';
 
 import { GameRoomService } from '../game-room/game-room.service';
-import type { PlayerRoom } from '../game-room/game-room.service';
+import type { PlayerRoom } from '../game-room/interfaces/player-room.interface';
 import { OthelloService } from '../othello/othello.service';
 import type { GameState } from '../othello/interfaces/game-state.interface';
 import type { Move } from '../othello/types/move.type';

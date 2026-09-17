@@ -5,8 +5,11 @@
 
 import { Controller, Post, Body } from '@nestjs/common';
 
-import { GameRoomService } from './game-room.service';
-import type { PlayerRoom } from './game-room.service';
+import { GameRoomService } from './game-room.service' ;
+//import type { PlayerRoom } from './game-room.service' ;
+import { PlayerRoomDto }   from './dto/player-room.dto' ;
+import  type { PlayerRoom }      from './interfaces/player-room.interface';
+
 
 /* -------------------------------------------------------------------------- */
 /*                       ~~ Class GameRoomController ~~                       */
@@ -21,13 +24,13 @@ export class GameRoomController     {
     constructor(private readonly gameRoomService: GameRoomService) {}
     
     @Post('entry')
-    newPlayerEntry( @Body('player') player: PlayerRoom )  {
+    newPlayerEntry( @Body('player') player: PlayerRoomDto )  {
         
         return( this.gameRoomService.newPlayerEntry(player) );
     }
     
     @Post('invit')
-    invitPlayerEntry( @Body('player')player: PlayerRoom )   {
+    invitPlayerEntry( @Body('player') player: PlayerRoomDto )   {
         
         return( this.gameRoomService.invitPlayerEntry(player) );
     }
