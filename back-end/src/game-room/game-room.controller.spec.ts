@@ -21,14 +21,14 @@ describe('GameRoomController', () => {
     let controller: GameRoomController;
     let gameRoomService: {
         newPlayerEntry: jest.Mock;
-        invitPlayerEnty: jest.Mock;
+        invitPlayerEntry: jest.Mock;
     };
 
     beforeEach(async () => {
 
         gameRoomService = {
             newPlayerEntry: jest.fn(),
-            invitPlayerEnty: jest.fn(),
+            invitPlayerEntry: jest.fn(),
         };
 
         const module: TestingModule = await Test.createTestingModule({
@@ -50,7 +50,7 @@ describe('GameRoomController', () => {
     });
 
     /* ---------------------------------------------------------------------- */
-    /*                        POST /game-room/entry                          */
+    /*                        POST /game-room/entry                           */
     /* ---------------------------------------------------------------------- */
 
     describe('newPlayerEntry', () => {
@@ -70,21 +70,21 @@ describe('GameRoomController', () => {
     });
 
     /* ---------------------------------------------------------------------- */
-    /*                        POST /game-room/invit                          */
+    /*                        POST /game-room/invit                           */
     /* ---------------------------------------------------------------------- */
 
-    describe('invitPlayerEnty', () => {
+    describe('invitPlayerEntry', () => {
 
-        it('appelle gameRoomService.invitPlayerEnty avec le joueur et retourne son résultat', () => {
+        it('appelle gameRoomService.invitPlayerEntry avec le joueur et retourne son résultat', () => {
 
             const player = makePlayer({ userId: 'user-2', invit: 'room-id-123' });
 
-            gameRoomService.invitPlayerEnty.mockReturnValue({ id: 'game-1' });
+            gameRoomService.invitPlayerEntry.mockReturnValue({ id: 'game-1' });
 
-            const result = controller.invitPlayerEnty(player);
+            const result = controller.invitPlayerEntry(player);
 
-            expect(gameRoomService.invitPlayerEnty).toHaveBeenCalledTimes(1);
-            expect(gameRoomService.invitPlayerEnty).toHaveBeenCalledWith(player);
+            expect(gameRoomService.invitPlayerEntry).toHaveBeenCalledTimes(1);
+            expect(gameRoomService.invitPlayerEntry).toHaveBeenCalledWith(player);
             expect(result).toEqual({ id: 'game-1' });
         });
     });

@@ -127,16 +127,16 @@ describe('GameRoomService', () => {
     });
 
     /* ---------------------------------------------------------------------- */
-    /*                         invitPlayerEnty()                              */
+    /*                         invitPlayerEntry()                              */
     /* ---------------------------------------------------------------------- */
 
-    describe('invitPlayerEnty', () => {
+    describe('invitPlayerEntry', () => {
 
         it('crée une room et retourne son roomId quand player.invit est vide', () => {
 
             const player = makePlayer({ userId: 'user-1' });
 
-            const result = service.invitPlayerEnty(player);
+            const result = service.invitPlayerEntry(player);
 
             expect(typeof result).toBe('string');
             expect(othelloService.createGame).not.toHaveBeenCalled();
@@ -145,10 +145,10 @@ describe('GameRoomService', () => {
         it('rejoint la room via invit et lance la partie', () => {
 
             const player1 = makePlayer({ userId: 'user-1' });
-            const roomId = service.invitPlayerEnty(player1) as string;
+            const roomId = service.invitPlayerEntry(player1) as string;
 
             const player2 = makePlayer({ userId: 'user-2', invit: roomId });
-            const result = service.invitPlayerEnty(player2);
+            const result = service.invitPlayerEntry(player2);
 
             expect(othelloService.createGame).toHaveBeenCalledTimes(1);
             expect(othelloService.createGame).toHaveBeenCalledWith('user-1', 'user-2');
@@ -158,10 +158,10 @@ describe('GameRoomService', () => {
         it('supprime la room une fois la partie lancée via invitation', () => {
 
             const player1 = makePlayer({ userId: 'user-1' });
-            const roomId = service.invitPlayerEnty(player1) as string;
+            const roomId = service.invitPlayerEntry(player1) as string;
 
             const player2 = makePlayer({ userId: 'user-2', invit: roomId });
-            service.invitPlayerEnty(player2);
+            service.invitPlayerEntry(player2);
 
             expect(() => (service as any)._readRoom(roomId)).toThrow(NotFoundException);
         });
@@ -170,7 +170,7 @@ describe('GameRoomService', () => {
 
             const player = makePlayer({ userId: 'user-2', invit: 'unknown-room-id' });
 
-            expect(() => service.invitPlayerEnty(player)).toThrow(NotFoundException);
+            expect(() => service.invitPlayerEntry(player)).toThrow(NotFoundException);
             expect(othelloService.createGame).not.toHaveBeenCalled();
         });
     });
