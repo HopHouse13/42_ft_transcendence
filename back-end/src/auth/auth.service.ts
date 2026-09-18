@@ -1,17 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/write-register.dto';
-import { UserData } from '../users/interfaces/write-user.interface';
-import { AuthData } from '../users/interfaces/write-auths.interface';
-import { AuthMode } from '@prisma/client';
+import { UsersService } from '../user/users.service';
+import { RegisterDto } from './dto/register.dto';
 import { Payload } from './interfaces/payload.interface';
-import { ForgotPasswordDto } from './dto/write-forgotPassword.dto';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { createHash, randomBytes } from 'node:crypto';
-import { ResetPasswordToken } from './interfaces/resetPassword.interface';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
-import { ResetPasswordDto } from './dto/write-resetPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { UserPublic, UserPrivate, UserCreate, UserProfil, UserUpdate } from '../user/interfaces/user.interface';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
 
@@ -99,16 +96,10 @@ export class AuthService
 		if( user )
 		{
 			const	token = randomBytes( 32 ).toString( 'hex' ); // genere un buffer de 32 octets puis convertie en hexadecimale dans une string de 64 char
-			const	tokenHash  = createHash( 'sha256' ).update( token ).digest( 'hex' ); // createHash renvoie un objet qui genere le hash, .update donne ce qu'il faut hasher, .digest formate le resultat (hexadecimale la) 
-			const	expiresAt = new Date( Date.now() + 10 * 60 * 1000 ) // Date exprime le temps en milliseconde, la on prend le temps de maintenant + 10min
+			const	tokenPassword  = createHash( 'sha256' ).update( token ).digest( 'hex' ); // createHash renvoie un objet qui genere le hash, .update donne ce qu'il faut hasher, .digest formate le resultat (hexadecimale la) 
+			const	tokenPasswordExpiresAt = new Date( Date.now() + 10 * 60 * 1000 ) // Date exprime le temps en milliseconde, la on prend le temps de maintenant + 10min
 		
-			const	resetPassword: ResetPasswordToken = {
-				id: user.id,
-				tokenHash,
-				expiresAt
-			};
-
-			await this.usersService.setResetTokenPassword( resetPassword ); // on stock le hash+l'expiration dans le user dans la db
+			await this.usersService.setResetTokenPassword( user.id , tokenPassword, tokenPasswordExpiresAt );// on va set le tokenPassword et son expiration dans le user trouvé
 
 			const	resetLink = `${this.configService.getOrThrow<string>( 'FRONT_URL' )}/reset-password?token=${ token }`; // creation du link pour reset le password
 		

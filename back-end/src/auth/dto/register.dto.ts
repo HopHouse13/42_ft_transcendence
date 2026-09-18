@@ -18,11 +18,11 @@ export class RegisterDto
 	@IsString()
 	@MinLength( 3 )
 	@MaxLength( 50 )
-	username!: string; // mêmes règles que CreateUserDto (users/dto/create-user.dto.ts)
+	username!: string;
 
 	@IsEmail()
 	@MaxLength( 255 )
-	email! : string; // mêmes règles que CreateUserDto
+	email!: string;
 };
 // `!` après une propriété de classe indique au compilateur que cette variable sera initialisée avant d'être utilisée
 

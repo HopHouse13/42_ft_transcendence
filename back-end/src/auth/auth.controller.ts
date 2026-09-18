@@ -1,12 +1,12 @@
 import { AuthService } from './auth.service';
 import { Body, Controller, Post, Get } from '@nestjs/common';
-import { RegisterDto } from './dto/write-register.dto';
-import { LoginDto } from './dto/read-login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { GoogleGuard } from '../common/guards/google.guard';
 import { UseGuards } from '@nestjs/common';
 import { Req } from '@nestjs/common';
-import { ForgotPasswordDto } from './dto/write-forgotPassword.dto';
-import { ResetPasswordDto } from './dto/write-resetPassword.dto';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
 
 @Controller( 'auth' )
 export class AuthController
@@ -34,7 +34,7 @@ export class AuthController
 	@UseGuards( GoogleGuard )
 	@Get( 'google' )
 	async googleCall() {}
-
+   
 	///
 
 	@UseGuards( GoogleGuard )

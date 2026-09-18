@@ -14,14 +14,6 @@ datasource db {
 
 /// USER ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-enum AuthMode {
-	LOCAL
-	GOOGLE
-	AUTH42
-
-	@@map( "auth_mode" )
-}
-
 // UUID -> (Universally Unique Identifier) base hexadecimale, ID unique (géré par Prisma) type utlisé pour annonymiser la clé primaire
 // un Champ -> nom, type, attribus(optionnel)
 // @<mot clé> -> attributs, qui donne des propriétés au champ (@@<mot clé> -> pour tous les champ du modèle) lagage propre a Prisma
@@ -34,14 +26,13 @@ enum AuthMode {
 
 model User {
 	id						String @id @default( uuid() ) @db.Uuid // clé primaire
-	username				String  @db.VarChar( 50 ) @unique // unique, max 50 char
-	email					String  @db.VarChar( 255 )@unique // unique, max 255 char
-
-	authMode				AuthMode @default( LOCAL ) @map( "auth_mode" ) // Definie le mode d'authentification, LOCAL par defaut
-	passwordHash			String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
-	providerId				String? @db.VarChar( 255 ) @map( "provider_id" ) // stock l'ID unique fourni pour le provider
-	
+	username				String @db.VarChar( 50 ) @unique // unique, max 50 char
+	email					String @db.VarChar( 255 )@unique // unique, max 255 char
 	avatarUrl				String @db.VarChar( 255 ) @default( "/uploads/avatars/default.png" ) @map( "avatar_url" ) // stock une url vers l'avatar fournit par google ou le user ou avatar par defaut
+
+	passwordHash			String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
+	googleId				String? @db.VarChar( 255 ) @unique @map( "google_id" ) // stock l'ID unique fourni par Google
+	gitId					String? @db.VarChar( 255 ) @unique @map( "git_id" ) // stock l'ID unique fourni par Git
 
 	tokenPassword			String? @db.VarChar( 64 ) @unique @map( "token_password" )
 	tokenPasswordExpiresAt	DateTime? @map( "token_password_expires_at" )
@@ -55,7 +46,6 @@ model User {
 	gamesAswhite			Game[] @relation( "white" )
 	gamesWon				Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
 
-	@@unique([ authMode, providerId ])
 	@@map( "users" )
 }
 
@@ -68,7 +58,7 @@ enum PlayerColor {
 	@@map( "player_color" )
 }
 
-enum GameStatus { // BREAK, WAITTING
+enum GameStatus {
 	IN_PROGRESS
 	FINISHED
 	ABANDONED

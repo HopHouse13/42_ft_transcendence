@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../users/users.service';
+import { UsersService } from '../../user/users.service';
 import { Profile } from 'passport';
-import { UserData } from '../../users/interfaces/write-user.interface';
-import { AuthData } from '../../users/interfaces/write-auths.interface';
+import { UserData } from '../../user/interfaces/write-user.interface';
+import { AuthData } from '../../user/interfaces/write-auths.interface';
 import { AuthMode, User } from '@prisma/client';
 
 @Injectable()
