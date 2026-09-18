@@ -1,5 +1,6 @@
 import React from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthProvider.tsx';
 import Game from './pages/game.tsx';
 import Connect from './pages/connect.tsx';
 import ForgotPassword from './pages/forgotPassword.tsx';
@@ -15,25 +16,27 @@ import Layout from './components/Layout.tsx';
 const App =(): React.ReactElement => {
 	
 	return (
-		<BrowserRouter>
-			<Layout>
-				<main className="flex flex-col flex-grow items-center justify-center bg-base-100">
-					<Routes>
-						<Route path="/" element={<Game />} />
-						<Route path="/game" element={<Game />} />
-						<Route path="/connect" element={<Connect />} />
-						<Route path="/forgotPassword" element={<ForgotPassword />} />
-						<Route path="/resetPassword" element={<ResetPassword />} />
-						<Route path="/rules" element={<Rules />} />
-						<Route path="/leaderboard" element={<Leaderboard />} />
-						<Route path="/watch" element={<Watch />} />
-						<Route path="/aboutUs" element={<AboutUs />} />
-						<Route path="/termsOfUse" element={<TermsOfUse />} />
-						<Route path="/privacyPolicy" element={<PrivacyPolicy />} />
-					</Routes>
-				</main>
-			</Layout>
-		</BrowserRouter>
+		<AuthProvider>
+			<BrowserRouter>
+				<Layout>
+					<main className="flex flex-col flex-grow items-center justify-center bg-base-100 py-2">
+						<Routes>
+							<Route path="/" element={<Game />} />
+							<Route path="/game" element={<Game />} />
+							<Route path="/connect" element={<Connect />} />
+							<Route path="/forgotPassword" element={<ForgotPassword />} />
+							<Route path="/resetPassword" element={<ResetPassword />} />
+							<Route path="/rules" element={<Rules />} />
+							<Route path="/leaderboard" element={<Leaderboard />} />
+							<Route path="/watch" element={<Watch />} />
+							<Route path="/aboutUs" element={<AboutUs />} />
+							<Route path="/termsOfUse" element={<TermsOfUse />} />
+							<Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+						</Routes>
+					</main>
+				</Layout>
+			</BrowserRouter>
+		</AuthProvider>
 	);
 };
 
