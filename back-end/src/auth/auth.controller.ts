@@ -1,6 +1,6 @@
 import { AuthService } from './auth.service';
 import { Body, Controller, Post, Get } from '@nestjs/common';
-import { RegisterDto } from './dto/register.dto';
+import { RegisterDto, extractUserCreate } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleGuard } from '../common/guards/google.guard';
 import { UseGuards } from '@nestjs/common';
@@ -16,9 +16,9 @@ export class AuthController
 	///
 
 	@Post( 'register' )
-	register( @Body() dto: RegisterDto )
+	async register( @Body() dto: RegisterDto )
 	{
-		return( this.authService.register( dto ));
+		return( this.authService.localRegister( await extractUserCreate( dto ) ));
 	}
 
 	///
@@ -31,7 +31,7 @@ export class AuthController
 
 	///
 
-	@UseGuards( GoogleGuard )
+	@UseGuards( GoogleGuard ) // regarder comment ca se connecter a la strat auth google
 	@Get( 'google' )
 	async googleCall() {}
    
@@ -41,7 +41,7 @@ export class AuthController
 	@Get( 'google/callback' )
 	async googleCallback( @Req() request ) // @Req: decorateur de parametre -> Passport attache à soit le retour de validate() soit le retour de done() à request.user
 	{
-		return( this.authService.login( request.user.id ));
+		return( this.authService.login( request.user ));
 	}
 
 	///
@@ -49,7 +49,7 @@ export class AuthController
 	@Post( 'forgot-password' )
 	async forgotPassword( @Body() dto: ForgotPasswordDto )
 	{
-		return( this.authService.forgotPassword( dto ));
+		return( this.authService.forgotPassword( dto.email ));
 	}
 
 	///
@@ -57,7 +57,7 @@ export class AuthController
 	@Post( 'reset-password' )
 	async resetPassword( @Body() dto: ResetPasswordDto )
 	{
-		return( this.authService.resetPassword( dto ));
+		return( this.authService.resetPassword( dto.password, dto.token ));
 	}
 };
 

@@ -292,7 +292,7 @@ export class UsersService
 
 	///
 
-	async findForAuthGoogle( googleId: string ) : Promise< UserPrivate | null >
+	async findByGoogleId( googleId: string ) : Promise< UserPrivate | null >
 	{
 		const	authUserGoogle: UserPrivate | null = await this.prisma.user.findUnique(
 		{
@@ -355,5 +355,40 @@ export class UsersService
 		});
 
 		return( user );
+	}
+
+	///
+
+	async addGoogleId( id: string, googleId: string ): Promise< UserPrivate >
+	{
+		const	user: UserPrivate = await this.prisma.user.update(
+		{
+			where:
+			{
+				id
+			},
+			data:
+			{
+				googleId
+			},
+			select:
+			{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
+
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
+
+					tokenPassword:			true,
+					tokenPasswordExpiresAt:	true
+			}
+		});
+
+		return ( user );
 	}
 }
