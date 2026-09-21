@@ -5,7 +5,7 @@ import { Payload } from './interfaces/payload.interface';
 import { createHash, randomBytes } from 'node:crypto';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
-import { UserPrivate, UserCreate } from '../user/interfaces/user.interface';
+import { UserPublic, UserPrivate, UserCreate } from '../user/interfaces/user.interface';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
 
@@ -21,39 +21,36 @@ export class AuthService
 
 	// localRegister: -> créer le useer -> log le user
 	// creste a besoin du password hashé, il est hashé dans dans la fonction d'extration du dto vers userCreate
-	async localRegister( userCreate: UserCreate ): Promise< string >
+	async localRegister( userCreate: UserCreate ): Promise<{ jwt: string, userPublic: UserPublic }>
 	{
 		return( this.login( await this.usersService.create( userCreate ))); // a la fin de l'enregistrement, login() est appelé pour generer un jwt pour le nouveau user, qu'il puisse de connection dans la foulée (auto-log)
 	}
 
 	///
 
-	// Conception du payload du JWT
+	// Construit le payload qui sera encodé dans le JWT. il est composé de l'id et username
 	// Signe (génère) le JWT à partir du payload généré et du `SERCRET_JWT` dans .env
 	// Retourne un JWT (Jeton Web Token) complet à partir de l'id du user
 	// 1 JWT par client et par connection
-	async login( userPrivate: UserPrivate ): Promise< string >
+	async login( userPrivate: UserPrivate ): Promise<{ jwt: string, userPublic: UserPublic }>
 	{
-		const	payload: Payload = await this.buildPayload( userPrivate.id );
+		const	payload: Payload = 
+		{
+			sub:		userPrivate.id,
+			username:	userPrivate.username
+		};
 		const	jwt = this.jwtService.sign( payload );
 
-		return( jwt );
-	}
-
-	///
-
-	// construit le payload qui sera encodé dans le JWT. il est composé de l'id et username
-	async buildPayload( userId: string ): Promise< Payload >
-	{
-		const	user = await this.usersService.findOne( userId );
-
-		const	payload: Payload =
+		const	userPublic: UserPublic =
 		{
-			sub:		user.id,
-			username:	user.username
+			id: 		userPrivate.id,
+    		username: userPrivate.username,
+    		avatarUrl: userPrivate.avatarUrl,
+    		createdAt: userPrivate.createdAt,
+    		updatedAt: userPrivate.updatedAt
 		};
-
-		return( payload );
+	
+		return({ jwt, userPublic });
 	}
 
 	///

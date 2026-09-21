@@ -1,0 +1,34 @@
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Response } from 'express';
+
+@Injectable()
+export class CookieInterceptor implements NestInterceptor // `implements` c'est comme une interface -> ca impose une structure de ta classe
+{
+	intercept( context: ExecutionContext, next: CallHandler ): Observable<any>
+	{
+		const	res: Response = context.switchToHttp().getResponse(); // récupère l'objet Express qui construira la réponse HTTP finale. Stocké dans res.
+
+		return( next.handle().pipe( // next.hqngle represente l'execution du corps de la methode dans le controller
+			map(( result: any ) => // pipe est un processus de transformation de chaque observable - map est la premeire et unique brique du pipe, elle renvoie une fonction qui sera appliquer sur chaque observable
+			{
+				const	{ jwt, userPublic } = result ?? {}; // destructuration
+
+				if( !jwt )
+					return ( result );
+
+				res.cookie( 'token', jwt,
+				{
+					httpOnly:	true, // interdit l'acces du cookie au js
+					secure:		true, // only https
+					sameSite:	'lax', // accepte le multi source
+					maxAge: 1000 * 60 * 60, // 1h
+				});
+
+				return({ userPublic }); // return le resultat de login sans le jwt
+			})
+		))
+	}
+
+};

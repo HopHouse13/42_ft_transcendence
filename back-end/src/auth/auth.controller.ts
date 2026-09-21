@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { Body, Controller, Post, Get } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseInterceptors } from '@nestjs/common';
 import { RegisterDto, extractUserCreate } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleGuard } from '../common/guards/google.guard';
@@ -7,7 +7,9 @@ import { UseGuards } from '@nestjs/common';
 import { Req } from '@nestjs/common';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { CookieInterceptor } from '../common/interceptors/cookie.interceptor';
 
+@UseInterceptors( CookieInterceptor )
 @Controller( 'auth' )
 export class AuthController
 {

@@ -6,8 +6,8 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
 	const app = await NestFactory.create( AppModule );
 
-	app.use( cookieParser() );
-	app.useGlobalPipes( new ValidationPipe({ whitelist: true }));
+	app.use( cookieParser() ); // middleware: parse les cookies dans le header de chaque requete et initialiser req.cookies pour avoir acces aux données des cookies a tous les endroits on req. est accessible
+	app.useGlobalPipes( new ValidationPipe({ whitelist: true }));  // applique la validation des DTO sur toutes les routes, et supprime les champs non déclarés dans le DTO
 	//app.enableCors({ origin: '*' }); // a verifier
 	await app.listen( process.env.PORT ?? 3000 );
 }
