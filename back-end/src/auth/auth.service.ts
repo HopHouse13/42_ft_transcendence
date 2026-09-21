@@ -67,7 +67,7 @@ export class AuthService
 		if ( !user )
 			throw new UnauthorizedException( 'invalid user or email or password' );
 
-		if ( !user.passwordHash ) // doit etre géré: le cas que le user existe mais il n a pas de password (  me le rapeller dans la todo)
+		if ( !user.passwordHash ) // doit etre géré: le cas que le user existe mais il n a pas de password (me le rapeller dans la todo)
 			throw new UnauthorizedException( 'invalid user or email or password' );
 
 		const isValid = await argon2.verify( user.passwordHash, password );

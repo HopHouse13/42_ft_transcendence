@@ -8,7 +8,7 @@ import { Payload } from "../interfaces/payload.interface";
 // PassportStrategy(Strategy) -> mixin (fonction) qui adapte la classe Strategy (la classe de vérification spécifique à passport-jwt) à Nest et retourne une classe utilisable dans Nest
 // JwtStrategy en hérite ensuite
 @Injectable()
-export class JwtStrategy extends PassportStrategy( Strategy )
+export class JwtStrategy extends PassportStrategy( Strategy, 'jwtStrategy' ) // 'jwtStrategy' <- nom donné à la strategie
 {
 	constructor( private configService: ConfigService, private userService: UsersService )
 	{

@@ -31,7 +31,7 @@ export class AuthController
 
 	///
 
-	@UseGuards( GoogleGuard ) // regarder comment ca se connecter a la strat auth google
+	@UseGuards( GoogleGuard ) // GoogleGuard intercepte toutes les requetes arrivantes de googleCall et applique googleStrategy
 	@Get( 'google' )
 	async googleCall() {}
    

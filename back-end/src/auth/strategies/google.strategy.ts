@@ -7,7 +7,7 @@ import { Profile } from 'passport';
 import { UserCreate } from '../../user/interfaces/user.interface';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy( Strategy )
+export class GoogleStrategy extends PassportStrategy( Strategy, 'googleStrategy' )
 {
 	constructor( private configService: ConfigService, private usersService: UsersService )
 	{
@@ -53,6 +53,7 @@ export class GoogleStrategy extends PassportStrategy( Strategy )
 				user = await this.usersService.create( dataCreate ); // vraiment nouveau
 			}
 		}
+
 		done( null, user ); // fonction de callback pour signaler a passport que la verification/creation du user est terminé et voici le user ( pour que request.user soit implementé avec le user )
 	}
 }
