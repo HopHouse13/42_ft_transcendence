@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { Body, Controller, Post, Get, UseInterceptors, Res, Req } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseInterceptors, Res, Req, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto, extractUserCreate } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { GoogleGuard } from '../common/guards/google.guard';
@@ -21,7 +21,7 @@ export class AuthController
 	@Post( 'register' )
 	async register( @Body() dto: RegisterDto )
 	{
-		return( this.authService.localRegister( await extractUserCreate( dto ) ));
+		return( this.authService.login( await this.authService.localRegister( await extractUserCreate( dto ))));
 	}
 
 	///
@@ -36,16 +36,24 @@ export class AuthController
 
 	@UseGuards( JwtGuard )
 	@Post( 'logout' )
-	logout( @Res({ passthrough: true }) res: Response )
+	async logout( @Req() request, @Res({ passthrough: true }) response: Response )
 	{
-		res.clearCookie( 'token', // express update l'expiration du cookie -> navigateur lit ca et suprime le cookie
+		// clearCookie "supprime" les cookies: en realité, il set les MaxAge a 1 -> rend instantanément le cookie expiré -> le navigateur le supprime automatiquement 
+		response.clearCookie( 'token',
 		{
 			httpOnly:	true,
 			secure:		true,
 			sameSite:	'lax',
-    	});
+		});
 
-    return( { message: 'logged out' } );
+		response.clearCookie( 'refresh_token',
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
+		});
+
+		return( await this.authService.logout( request.user.id )); // logout set le refreshtoken et son expiration a null et retourne le user logout
 	}
 
 	///
@@ -76,26 +84,19 @@ export class AuthController
 	@Post( 'reset-password' )
 	async resetPassword( @Body() dto: ResetPasswordDto )
 	{
-		return( this.authService.resetPassword( dto.password, dto.token ));
+		return( this.authService.login( await this.authService.resetPassword( dto.password, dto.token )));
+	}
+
+	///
+	
+	@Post( 'refresh' )
+	async refresh( @Req() request )
+	{
+		const	refreshTokenRaw = request.cookies?.refresh_token;
+
+		if ( !refreshTokenRaw )
+			throw new UnauthorizedException( 'no refresh token provided' );
+
+		return( this.authService.login( await this.authService.validateRefreshToken( refreshTokenRaw )));
 	}
 };
-
-
-
-// flux register()
-// > validation des regles de format des données entrantes avec validationPipe
-// > génération de 2 objets: userData et authData
-// > hashage du password
-// > création du user dans la db
-// > appelle de login() qui lui retourne son JWT ( Jeton Web Token )
-// ---
-// flux login() (connection a son profil)
-// > validation des regles de format de username/password
-// > récupération des données du user pour verification dans le db
-// > check du mode d'auth
-
-// Si LOCAL (username + password)
-// > vérification de l'authenticité du user en comparant le password transmis et son passwordHash de la db
-// > génération du contenu d'une partie du JWT avec les données du user (id+username)
-// > signature de son JWT (création du token a l'aide de la clé secrète dans .env)
-// > retourne son JWT

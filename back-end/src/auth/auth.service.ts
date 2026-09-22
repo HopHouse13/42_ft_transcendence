@@ -21,9 +21,9 @@ export class AuthService
 
 	// localRegister: -> créer le useer -> log le user
 	// creste a besoin du password hashé, il est hashé dans dans la fonction d'extration du dto vers userCreate
-	async localRegister( userCreate: UserCreate ): Promise<{ jwt: string, userPublic: UserPublic }>
+	async localRegister( userCreate: UserCreate ): Promise< UserPrivate >
 	{
-		return( this.login( await this.usersService.create( userCreate ))); // a la fin de l'enregistrement, login() est appelé pour generer un jwt pour le nouveau user, qu'il puisse de connection dans la foulée (auto-log)
+		return( await this.usersService.create( userCreate )); // a la fin de l'enregistrement, login() est appelé pour generer un jwt pour le nouveau user, qu'il puisse de connection dans la foulée (auto-log)
 	}
 
 	///
@@ -32,25 +32,27 @@ export class AuthService
 	// Signe (génère) le JWT à partir du payload généré et du `SERCRET_JWT` dans .env
 	// Retourne un JWT (Jeton Web Token) complet à partir de l'id du user
 	// 1 JWT par client et par connection
-	async login( userPrivate: UserPrivate ): Promise<{ jwt: string, userPublic: UserPublic }>
+	async login( user: UserPrivate ): Promise<{ jwt: string, refreshToken: string, userPublic: UserPublic }>
 	{
 		const	payload: Payload = 
 		{
-			sub:		userPrivate.id,
-			username:	userPrivate.username
+			sub:		user.id,
+			username:	user.username
 		};
 		const	jwt = this.jwtService.sign( payload );
 
+		const	refreshToken = await this.generateRefreshToken( user.id ); // renvoi le refreshToken brute
+
 		const	userPublic: UserPublic =
 		{
-			id: 		userPrivate.id,
-    		username: userPrivate.username,
-    		avatarUrl: userPrivate.avatarUrl,
-    		createdAt: userPrivate.createdAt,
-    		updatedAt: userPrivate.updatedAt
+			id: 		user.id,
+    		username: user.username,
+    		avatarUrl: user.avatarUrl,
+    		createdAt: user.createdAt,
+    		updatedAt: user.updatedAt
 		};
 	
-		return({ jwt, userPublic });
+		return({ jwt, refreshToken, userPublic });
 	}
 
 	///
@@ -67,7 +69,7 @@ export class AuthService
 		if ( !user.passwordHash ) // doit etre géré: le cas que le user existe mais il n a pas de password (me le rapeller dans la todo)
 			throw new UnauthorizedException( 'invalid user or email or password' );
 
-		const isValid = await argon2.verify( user.passwordHash, password );
+		const	isValid = await argon2.verify( user.passwordHash, password );
 
 		if ( !isValid ) // wrong password
 			throw new UnauthorizedException( 'invalid user or email or password' );
@@ -86,12 +88,14 @@ export class AuthService
 			// genere un buffer de 32 octets puis convertie en hexadecimale dans une string de 64 char
 			const	token = randomBytes( 32 ).toString( 'hex' );
 			// createHash renvoie un objet qui genere le hash, .update donne ce qu'il faut hasher, .digest formate le resultat (hexadecimale la) 
-			const	tokenPassword  = createHash( 'sha256' ).update( token ).digest( 'hex' );
+			const	passwordToken  = createHash( 'sha256' ).update( token ).digest( 'hex' );
+			// extraction de la variable d'env de la durée de validation du token
+			const	expirationSeconds = parseInt( this.configService.getOrThrow<string>( 'PASSWORD_TOKEN_EXPIRATION' ), 10 );
 			// +10min - Date exprime le temps en milliseconde
-			const	tokenPasswordExpiresAt = new Date( Date.now() + 10 * 60 * 1000 )
+			const	passwordTokenExpiresAt = new Date( Date.now() + expirationSeconds * 1000 );
 		
-			// set le tokenPassword et son expiration dans le user trouvé
-			await this.usersService.setResetTokenPassword( user.id , tokenPassword, tokenPasswordExpiresAt );
+			// set le passwordToken et son expiration dans le user trouvé
+			await this.usersService.setPasswordToken( user.id , passwordToken, passwordTokenExpiresAt );
 
 			const	resetLink = `${this.configService.getOrThrow<string>( 'FRONT_URL' )}/reset-password?token=${ token }`; // creation du link pour reset le password
 		
@@ -109,15 +113,51 @@ export class AuthService
 		const	tokenHashClient = createHash( 'sha256' ).update( token ).digest( 'hex' );
 
 		// recherche le user avec le meme token hashé
-		const 	user = await this.usersService.findByResetToken( tokenHashClient );
+		const 	user = await this.usersService.findByPasswordToken( tokenHashClient );
 
-		if ( !user || !user.tokenPasswordExpiresAt || new Date() > user.tokenPasswordExpiresAt )
+		if ( !user || !user.passwordTokenExpiresAt || new Date() > user.passwordTokenExpiresAt )
 			throw new UnauthorizedException( 'invalid or expired token' );
 
 		// passe l'id et le password hashé dans la foulée
-		const	updateUser = await this.usersService.updatePassword( user.id, await argon2.hash( password ));
+		const	updateUser = await this.usersService.setPassword( user.id, await argon2.hash( password ));
 	
-		// si tout est bon, le user est automatiqument log
-		return( this.login( updateUser ) );
+		// si tout est bon, retourne le userPrivate pour le log
+		return( updateUser );
+	}
+
+	///
+
+	async generateRefreshToken( id: string ): Promise< string >
+	{
+		const	token = randomBytes( 32 ).toString( 'hex' );
+		const	refreshToken = createHash( 'sha256' ).update( token ).digest( 'hex' );
+
+		const	expirationSeconds = parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 );
+		const	refreshTokenExpiresAt = new Date( Date.now() + expirationSeconds * 1000 ); // Date.now() (millisecondes) donc faut passer expirationSeconds en millisecondes
+
+		await this.usersService.setRefreshToken( id, refreshToken, refreshTokenExpiresAt );
+
+		return( token ); // le token BRUT part dans le cookie
+	}
+
+	///
+
+	async validateRefreshToken( refreshTokenRaw: string ): Promise< UserPrivate >
+	{
+		const	refreshTokenHash = createHash( 'sha256' ).update( refreshTokenRaw ).digest( 'hex' );
+
+		const	user = await this.usersService.findByRefreshToken( refreshTokenHash );
+
+		if( !user || !user.refreshTokenExpiresAt || new Date() > user.refreshTokenExpiresAt )
+			throw new UnauthorizedException( 'invalid or expired refresh token' );
+
+		return ( user );
+	}
+
+	///
+
+	async logout( userId: string ): Promise< UserPublic >
+	{
+		return( await this.usersService.clearRefreshToken( userId ));
 	}
 };

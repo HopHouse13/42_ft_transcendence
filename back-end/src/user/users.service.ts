@@ -78,8 +78,11 @@ export class UsersService
 				googleId:				true,
 				gitId:					true,
 
-				tokenPassword:			true,
-				tokenPasswordExpiresAt:	true
+				passwordToken:			true,
+				passwordTokenExpiresAt:	true,
+				
+				refreshToken:			true,
+				refreshTokenExpiresAt:	true
 			}
 		});
 
@@ -88,13 +91,47 @@ export class UsersService
 
 	///
 
-	async findByResetToken( tokenHash: string ): Promise< UserPrivate | null >
+	async findByGoogleId( googleId: string ) : Promise< UserPrivate | null >
+	{
+		const	authUserGoogle: UserPrivate | null = await this.prisma.user.findUnique(
+		{
+			where: 
+			{
+				googleId
+			},
+			select:
+			{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
+
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
+
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+			}
+		});
+
+		return( authUserGoogle ); // renvoie un objet user avec les données UserPrivate
+	}
+
+	///
+
+	async findByPasswordToken( tokenHash: string ): Promise< UserPrivate | null >
 	{
 		const	user: UserPrivate | null = await this.prisma.user.findUnique(
 		{
 			where:
 			{
-				tokenPassword: tokenHash
+				passwordToken: tokenHash
 			},
 			select:
 			{
@@ -109,8 +146,11 @@ export class UsersService
 				googleId:				true,
 				gitId:					true,
 
-				tokenPassword:			true,
-				tokenPasswordExpiresAt:	true
+				passwordToken:			true,
+				passwordTokenExpiresAt:	true,
+
+				refreshToken:			true,
+				refreshTokenExpiresAt:	true
 			}
 		});
 
@@ -119,7 +159,41 @@ export class UsersService
 
 	///
 
-	async updatePassword( id: string, newPasswordHash: string ): Promise< UserPrivate >
+	async findByRefreshToken( refreshToken: string ): Promise< UserPrivate | null >
+	{
+		const	user: UserPrivate | null = await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				refreshToken
+			},
+			select:
+			{
+				id:						true,
+				username:				true,
+				email:					true,
+				avatarUrl:				true,
+				createdAt:				true,
+				updatedAt:				true,
+
+				passwordHash:			true,
+				googleId:				true,
+				gitId:					true,
+
+				passwordToken:			true,
+				passwordTokenExpiresAt:	true,
+
+				refreshToken:			true,
+				refreshTokenExpiresAt:	true
+			}
+		});
+
+		return( user );
+	}
+
+	///
+
+	async setPassword( id: string, newPasswordHash: string ): Promise< UserPrivate >
 	{
 		const	user: UserPrivate = await this.prisma.user.update(
 		{
@@ -130,8 +204,8 @@ export class UsersService
 			data:
 			{
 				passwordHash:			newPasswordHash,
-				tokenPassword:			null,
-				tokenPasswordExpiresAt:	null
+				passwordToken:			null,
+				passwordTokenExpiresAt:	null
 			},
 			select:
 			{
@@ -146,8 +220,11 @@ export class UsersService
 				googleId:				true,
 				gitId:					true,
 
-				tokenPassword:			true,
-				tokenPasswordExpiresAt:	true
+				passwordToken:			true,
+				passwordTokenExpiresAt:	true,
+
+				refreshToken:			true,
+				refreshTokenExpiresAt:	true
 			}
 		});
 		return( user );
@@ -187,8 +264,11 @@ export class UsersService
 					googleId:				true,
 					gitId:					true,
 
-					tokenPassword:			true,
-					tokenPasswordExpiresAt:	true
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
 				}
 			});
 			return( user );
@@ -254,6 +334,122 @@ export class UsersService
 
 	///
 
+	async setPasswordToken( id: string, passwordToken: string, passwordTokenExpiresAt: Date ): Promise< UserPrivate >
+	{
+		const user: UserPrivate = await this.prisma.user.update(
+		{
+			where:
+			{
+				id
+			},
+			data:
+			{
+				passwordToken,
+				passwordTokenExpiresAt
+			},
+			select:
+			{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
+
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
+
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+			}
+		});
+
+		return( user );
+	}
+
+	///
+
+	async setGoogleId( id: string, googleId: string ): Promise< UserPrivate >
+	{
+		const	user: UserPrivate = await this.prisma.user.update(
+		{
+			where:
+			{
+				id
+			},
+			data:
+			{
+				googleId
+			},
+			select:
+			{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
+
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
+
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+			}
+		});
+
+		return ( user );
+	}
+
+	///
+
+	async setRefreshToken( id: string, refreshToken: string, refreshTokenExpiresAt: Date ): Promise< UserPrivate >
+	{
+		const	user: UserPrivate = await this.prisma.user.update(
+		{
+			where:
+			{
+				id
+			},
+			data:
+			{
+				refreshToken,
+				refreshTokenExpiresAt
+			},
+			select:
+			{
+				id:						true,
+				username:				true,
+				email:					true,
+				avatarUrl:				true,
+				createdAt:				true,
+				updatedAt:				true,
+
+				passwordHash:			true,
+				googleId:				true,
+				gitId:					true,
+
+				passwordToken:			true,
+				passwordTokenExpiresAt:	true,
+
+				refreshToken:			true,
+				refreshTokenExpiresAt:	true
+			}
+		});
+
+		return ( user );
+	}
+
+	///
+
 	async remove( id: string ): Promise <{ message: string, deleteUser: UserPublic }>
 	{
 		try
@@ -292,40 +488,9 @@ export class UsersService
 
 	///
 
-	async findByGoogleId( googleId: string ) : Promise< UserPrivate | null >
+	async clearRefreshToken( id:string ): Promise< UserPublic >
 	{
-		const	authUserGoogle: UserPrivate | null = await this.prisma.user.findUnique(
-		{
-			where: 
-			{
-				googleId
-			},
-			select:
-			{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
-
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
-
-					tokenPassword:			true,
-					tokenPasswordExpiresAt:	true
-			}
-		});
-
-		return( authUserGoogle ); // renvoie un objet user avec les données UserPrivate
-	}
-
-	///
-
-	async setResetTokenPassword( id: string, tokenPassword: string, tokenPasswordExpiresAt: Date ): Promise< UserPrivate >
-	{
-		const user: UserPrivate = await this.prisma.user.update(
+		const	user = await this.prisma.user.update(
 		{
 			where:
 			{
@@ -333,62 +498,20 @@ export class UsersService
 			},
 			data:
 			{
-				tokenPassword,
-				tokenPasswordExpiresAt
+				refreshToken:			null,
+				refreshTokenExpiresAt:	null
 			},
 			select:
 			{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
-
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
-
-					tokenPassword:			true,
-					tokenPasswordExpiresAt:	true
+				id:			true,
+				username:	true,
+				avatarUrl:	true,
+				createdAt:	true,
+				updatedAt:	true
 			}
 		});
 
 		return( user );
 	}
-
-	///
-
-	async addGoogleId( id: string, googleId: string ): Promise< UserPrivate >
-	{
-		const	user: UserPrivate = await this.prisma.user.update(
-		{
-			where:
-			{
-				id
-			},
-			data:
-			{
-				googleId
-			},
-			select:
-			{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
-
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
-
-					tokenPassword:			true,
-					tokenPasswordExpiresAt:	true
-			}
-		});
-
-		return ( user );
-	}
 }
+

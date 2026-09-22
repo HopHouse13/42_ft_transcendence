@@ -34,8 +34,11 @@ model User {
 	googleId				String? @db.VarChar( 255 ) @unique @map( "google_id" ) // stock l'ID unique fourni par Google
 	gitId					String? @db.VarChar( 255 ) @unique @map( "git_id" ) // stock l'ID unique fourni par Git
 
-	tokenPassword			String? @db.VarChar( 64 ) @unique @map( "token_password" )
-	tokenPasswordExpiresAt	DateTime? @map( "token_password_expires_at" )
+	passwordToken			String? @db.VarChar( 64 ) @unique @map( "password_token" )
+	passwordTokenExpiresAt	DateTime? @map( "password_token_expires_at" )
+
+	refreshToken			String? @db.VarChar( 64 ) @unique @map( "refresh_token" )
+	refreshTokenExpiresAt	DateTime? @map( "refresh_token_expires_at" )
 
 	// type DateTime -> type specifique a Prisma et est compris par postgresql
 	// now() -> donne l'horodatage de maintenant (fonction specifique a Prisma)
@@ -91,6 +94,8 @@ model Game {
 	
 	@@map( "games" )
 }
+
+/// MOVE ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 model Move {
 	gameId			String @db.Uuid @map( "game_id" )

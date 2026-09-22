@@ -40,7 +40,7 @@ export class GoogleStrategy extends PassportStrategy( Strategy, 'googleStrategy'
 			user = await this.usersService.findByEmail( email );
 
 			if ( user )
-				user = await this.usersService.addGoogleId( user.id, googleId ); // lie le compte existant
+				user = await this.usersService.setGoogleId( user.id, googleId ); // lie le compte existant
 			else
 			{
 				const	dataCreate: UserCreate =
