@@ -24,7 +24,7 @@ export class CookieInterceptor implements NestInterceptor // `implements` c'est 
 				if( !jwt )
 					return ( result );
 
-				res.cookie( 'token', jwt,
+				res.cookie( 'access_token', jwt,
 				{
 					httpOnly:	true, // interdit l'acces du cookie au js
 					secure:		true, // only https

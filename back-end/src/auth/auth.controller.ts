@@ -2,13 +2,14 @@ import { AuthService } from './auth.service';
 import { Body, Controller, Post, Get, UseInterceptors, Res, Req, UnauthorizedException } from '@nestjs/common';
 import { RegisterDto, extractUserCreate } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { GoogleGuard } from '../common/guards/google.guard';
-import { UseGuards } from '@nestjs/common';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
+import { UseGuards } from '@nestjs/common';
+import { JwtGuard } from '../common/guards/jwt.guard';
+import { GoogleGuard } from '../common/guards/google.guard';
+import { GitGuard } from '../common/guards/github.guard';
 import { CookieInterceptor } from '../common/interceptors/cookie.interceptor';
 import type { Response } from 'express';
-import { JwtGuard } from '../common/guards/jwt.guard';
 
 @UseInterceptors( CookieInterceptor )
 @Controller( 'auth' )
@@ -39,7 +40,7 @@ export class AuthController
 	async logout( @Req() request, @Res({ passthrough: true }) response: Response )
 	{
 		// clearCookie "supprime" les cookies: en realité, il set les MaxAge a 1 -> rend instantanément le cookie expiré -> le navigateur le supprime automatiquement 
-		response.clearCookie( 'token',
+		response.clearCookie( 'access_token',
 		{
 			httpOnly:	true,
 			secure:		true,
@@ -66,7 +67,21 @@ export class AuthController
 
 	@UseGuards( GoogleGuard )
 	@Get( 'google/callback' )
-	async googleCallback( @Req() request ) // @Req: decorateur de parametre -> Passport attache à soit le retour de validate() soit le retour de done() à request.user
+	async googleCallback( @Req() request ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
+	{
+		return( this.authService.login( request.user ));
+	}
+
+	///
+	@UseGuards( GitGuard ) // GithubGuard intercepte toutes les requetes arrivantes de GithubCall et applique GithubStrategy
+	@Get( 'github' )
+	async githubCall() {}
+
+	///
+
+	@UseGuards( GitGuard )
+	@Get( 'github/callback' )
+	async githubCallback( @Req() request ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
 		return( this.authService.login( request.user ));
 	}

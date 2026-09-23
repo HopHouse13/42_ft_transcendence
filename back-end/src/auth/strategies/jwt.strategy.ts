@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy( Strategy, 'jwtStrategy' ) // 
 	{
 		// super() exécute le constructeur de la classe parente, avec la config suivante, pour qu'elle s'initialise correctement.
 		super({
-			jwtFromRequest:		( req: Request ) => req?.cookies?.token ?? null,  // va chercher le JWT dans le cookie 'token'; renvoie null si absent
+			jwtFromRequest:		( req: Request ) => req?.cookies?.access_token ?? null,  // va chercher le JWT dans le cookie 'access_token'; renvoie null si absent
 			ignoreExpiration:	false, // est ce qu'on ignore la date d'expiration -> non
 			secretOrKey:		configService.getOrThrow<string>( 'JWT_SECRET' ), // Avec quoi on re-génére la signature pour la comparer
 			algorithms:			[ 'HS256' ] 

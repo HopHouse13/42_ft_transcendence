@@ -31,7 +31,6 @@ export class GoogleStrategy extends PassportStrategy( Strategy, 'googleStrategy'
 		if ( !email )
 			throw new UnauthorizedException( 'google account has no accessible email' ); // du coup ca annule le processus de register ou du login?
 
-		// cas normal : user déjà lié à ce compte Google, retour direct
 		let	user = await this.usersService.findByGoogleId( googleId );
 
 		if ( !user )

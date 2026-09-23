@@ -93,7 +93,7 @@ export class UsersService
 
 	async findByGoogleId( googleId: string ) : Promise< UserPrivate | null >
 	{
-		const	authUserGoogle: UserPrivate | null = await this.prisma.user.findUnique(
+		const	user: UserPrivate | null = await this.prisma.user.findUnique(
 		{
 			where: 
 			{
@@ -120,7 +120,41 @@ export class UsersService
 			}
 		});
 
-		return( authUserGoogle ); // renvoie un objet user avec les données UserPrivate
+		return( user ); // renvoie un objet user avec les données UserPrivate
+	}
+
+	///
+
+	async findByGitId( gitId: string ): Promise< UserPrivate | null >
+	{
+		const	user: UserPrivate | null = await this.prisma.user.findUnique(
+		{
+			where: 
+			{
+				gitId
+			},
+			select:
+			{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
+
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
+
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+			}
+		});
+
+		return( user ); // renvoie un objet userPrivate
 	}
 
 	///
@@ -384,6 +418,44 @@ export class UsersService
 			data:
 			{
 				googleId
+			},
+			select:
+			{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
+
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
+
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+			}
+		});
+
+		return ( user );
+	}
+
+	///
+
+	async setGitId( id: string, gitId: string ): Promise< UserPrivate >
+	{
+		const	user: UserPrivate = await this.prisma.user.update(
+		{
+			where:
+			{
+				id
+			},
+			data:
+			{
+				gitId
 			},
 			select:
 			{
