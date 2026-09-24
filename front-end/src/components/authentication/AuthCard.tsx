@@ -20,7 +20,7 @@ const AuthCard = ({
     children,
 }: AuthCardProps) => (
     <form
-        className="fieldset bg-base-200 border-base-200 rounded-box border p-4"
+        className="fieldset w-full bg-base-200 border-base-200 rounded-box border p-4"
         onSubmit={onSubmit}
     >
         <div className="flex flex-col items-center justify-center">

@@ -92,8 +92,8 @@ const AuthForm = ({
 			{isLogin && (
 				<label className="fieldset">
 					<span className="text-xs justify-center flex">
-						<Link to="/forgotPassword" className="link link-hover">
-							Forgot your password? Rest it
+						<Link to="/forgot-password" className="link link-hover">
+							Forgot your password? Reset it
 						</Link>
 					</span>
 				</label>

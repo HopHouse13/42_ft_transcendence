@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-useless-escape
 export const PASSWORD_PATTERN ="^(?=.*\\d)(?=.*[a-zA-Z])(?=.*[.@$#*!?_\+\-]){8,255}$";
 
 export const PASSWORD_TITLE = "Must be more than 8 characters, including number, lowercase letter, uppercase letter";
