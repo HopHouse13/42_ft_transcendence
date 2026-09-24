@@ -114,4 +114,13 @@ export class AuthController
 
 		return( this.authService.login( await this.authService.validateRefreshToken( refreshTokenRaw )));
 	}
+
+	///
+
+	@UseGuards( JwtGuard )
+	@Get( 'me' )
+	async me( @Req() request )
+	{
+		return ( request.user );
+	}
 };
