@@ -11,6 +11,7 @@ import AboutUs from './pages/aboutUs.tsx';
 import TermsOfUse from './pages/termsOfUse.tsx';
 import PrivacyPolicy from './pages/privacyPolicy.tsx';
 import Layout from './components/Layout.tsx';
+import UserProfile from './pages/userProfile.tsx';
 
 const App =(): React.ReactElement => {
 	
@@ -25,6 +26,7 @@ const App =(): React.ReactElement => {
 						<Route path="/forgotPassword" element={<ForgotPassword />} />
 						<Route path="/resetPassword" element={<ResetPassword />} />
 						<Route path="/rules" element={<Rules />} />
+						<Route path="/profile" element={<UserProfile />} />
 						<Route path="/leaderboard" element={<Leaderboard />} />
 						<Route path="/watch" element={<Watch />} />
 						<Route path="/aboutUs" element={<AboutUs />} />
