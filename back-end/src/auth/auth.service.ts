@@ -97,7 +97,7 @@ export class AuthService
 			// set le passwordToken et son expiration dans le user trouvé
 			await this.usersService.setPasswordToken( user.id , passwordToken, passwordTokenExpiresAt );
 
-			const	resetLink = `${this.configService.getOrThrow<string>( 'RESET_EMAIL_URL' )}/reset-password?token=${ token }`; // creation du link pour reset le password
+			const	resetLink = `${this.configService.getOrThrow<string>( 'APP_URL' )}/reset-password?token=${ token }`; // creation du link pour reset le password
 		
 			await this.mailService.sendResetPasswordEmail( user.email, resetLink ); // envoi du mail
 		}

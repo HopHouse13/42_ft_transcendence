@@ -40,7 +40,7 @@ export function useAuth(): UseAuthRetun {
 				setError(message);
 				return { success: false, message };
 			}
-			return { success: true, user: data.user };
+			return { success: true, user: data.userPublic };
 		} catch {
 			const message = "Network error, please try again";
 			setError(message);
@@ -60,7 +60,7 @@ export function useAuth(): UseAuthRetun {
 		request("forgot-password", { email });
 
 	const resetPassword = (password: string, token?: string) =>
-		request("reset=password", { password, token });
+		request("reset-password", { password, token });
 
 	const logout = () =>
 		request("logout", {}); 

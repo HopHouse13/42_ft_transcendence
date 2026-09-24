@@ -15,6 +15,9 @@ const Connect = () => {
 		switchMode,
 		handleSubmit
  	} = useAuthForm();
+
+	console.log("[DEBUG] Display Connect starting");
+
   return (
 	<div className="size-full flex flex-col items-center justify-center">
 		<div className="flex flex-col items-center max-w-xs gap-8 w-full px-4">
