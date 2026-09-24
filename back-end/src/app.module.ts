@@ -8,10 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { GameRoomModule } from './game-room/game-room.module';
 import { PrismaService } from './prisma/prisma.service';
 import { OthelloService } from './othello/othello.service';
+import { BotPlayerModule } from './bot-player/bot-player.module';
 
 @Module({
 
-  imports: [PrismaModule, UsersModule, OthelloModule, GameRoomModule, AuthModule],
+  imports: [PrismaModule, UsersModule, OthelloModule, GameRoomModule, AuthModule, BotPlayerModule],
   controllers: [AppController],
   providers: [AppService, PrismaService, OthelloService],
 })
