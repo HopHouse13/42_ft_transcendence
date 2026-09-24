@@ -1,4 +1,5 @@
 import AuthTabs from "../components/authentication/AuthTabs";
+import AuthButtons from "../components/authentication/AuthButtons";
 import AuthForm from "../components/authentication/AuthForm";
 import { useAuthForm } from "../hooks/useAuthForm";
 
@@ -16,11 +17,11 @@ const Connect = () => {
 		handleSubmit
  	} = useAuthForm();
 
-	console.log("[DEBUG] Display Connect starting");
-
   return (
 	<div className="size-full flex flex-col items-center justify-center">
-		<div className="flex flex-col items-center max-w-xs gap-8 w-full px-4">
+		<div className="flex flex-col items-center max-w-xs gap-2 w-full pt-4">
+			<AuthButtons/>
+			<div className="divider">OR</div>
 			<AuthTabs mode={mode} onSwitch={switchMode}/>
 			<AuthForm
 				mode={mode}

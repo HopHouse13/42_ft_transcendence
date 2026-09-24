@@ -41,7 +41,6 @@ export function useAuthForm() {
 			: await register(username, email, password);
 
 		if (result.success && result.user ) {
-			console.log(`[DEBUG] ${mode} successful`);
 			setUser(result.user);
 			navigate("/game", {replace: true});
 		}

@@ -24,8 +24,8 @@ const App =(): React.ReactElement => {
 							<Route path="/" element={<Game />} />
 							<Route path="/game" element={<Game />} />
 							<Route path="/connect" element={<Connect />} />
-							<Route path="/forgotPassword" element={<ForgotPassword />} />
-							<Route path="/resetPassword" element={<ResetPassword />} />
+							<Route path="/forgot-password" element={<ForgotPassword />} />
+							<Route path="/reset-password" element={<ResetPassword />} />
 							<Route path="/rules" element={<Rules />} />
 							<Route path="/leaderboard" element={<Leaderboard />} />
 							<Route path="/watch" element={<Watch />} />

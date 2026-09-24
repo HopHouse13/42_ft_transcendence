@@ -1,14 +1,10 @@
 import { useState } from "react";
+import type { AuthProvider, AuthResult } from "../types/authTypes";
 
-interface AuthResult {
-	success: boolean;  
-	message?: string;
-	user?: {id: number, username: string}
-}
-
-interface UseAuthRetun {
+interface UseAuthReturn {
 	loading: boolean;
 	error: string | null;
+	authWithSocial: ( provider: AuthProvider ) => void;
 	login: (email: string, password: string) => Promise<AuthResult>;
 	register: (username: string, email: string, password: string) => Promise<AuthResult>;
 	forgotPassword: (email: string) => Promise<AuthResult>;
@@ -16,7 +12,7 @@ interface UseAuthRetun {
 	logout: () => Promise<AuthResult>;
 }
 
-export function useAuth(): UseAuthRetun {
+export function useAuth(): UseAuthReturn {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +46,10 @@ export function useAuth(): UseAuthRetun {
 		}
 	};
 
+	const authWithSocial = (provider: AuthProvider) => {
+		window.location.href = `/api/auth/${provider}`;
+	}
+
 	const login = (email: string, password: string) =>
 		request("login", { email, password });
 
@@ -65,7 +65,7 @@ export function useAuth(): UseAuthRetun {
 	const logout = () =>
 		request("logout", {}); 
 
-	return { loading, error, login, register, forgotPassword, resetPassword, logout };
+	return { loading, error, authWithSocial, login, register, forgotPassword, resetPassword, logout };
 }
 
 // Résumé du flux
