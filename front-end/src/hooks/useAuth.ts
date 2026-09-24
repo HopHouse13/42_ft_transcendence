@@ -3,6 +3,7 @@ import { useState } from "react";
 interface AuthResult {
 	success: boolean;  
 	message?: string;
+	user?: {id: number, username: string}
 }
 
 interface UseAuthRetun {
@@ -12,9 +13,8 @@ interface UseAuthRetun {
 	register: (username: string, email: string, password: string) => Promise<AuthResult>;
 	forgotPassword: (email: string) => Promise<AuthResult>;
 	resetPassword: (password: string, token?: string) => Promise<AuthResult>;
+	logout: () => Promise<AuthResult>;
 }
-
-const API_BASE = "/api/auth";
 
 export function useAuth(): UseAuthRetun {
 	const [loading, setLoading] = useState(false);
@@ -27,9 +27,10 @@ export function useAuth(): UseAuthRetun {
 		setLoading(true);
 		setError(null);
 		try{
-			const res = await fetch(`${API_BASE}/${endpoint}`, {
+			const res = await fetch(`/api/auth/${endpoint}`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
+				credentials: 'include',
 				body: JSON.stringify(body),
 			});
 			const data = await res.json().catch(() => ({}));
@@ -39,7 +40,7 @@ export function useAuth(): UseAuthRetun {
 				setError(message);
 				return { success: false, message };
 			}
-			return { success: true };
+			return { success: true, user: data.user };
 		} catch {
 			const message = "Network error, please try again";
 			setError(message);
@@ -61,7 +62,10 @@ export function useAuth(): UseAuthRetun {
 	const resetPassword = (password: string, token?: string) =>
 		request("reset=password", { password, token });
 
-	return { loading, error, login, register, forgotPassword, resetPassword };
+	const logout = () =>
+		request("logout", {}); 
+
+	return { loading, error, login, register, forgotPassword, resetPassword, logout };
 }
 
 // Résumé du flux
