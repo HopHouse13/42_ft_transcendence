@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AuthCard from "../components/authentication/AuthCard";
-import FormField from "../components/authentication/FormField";
+import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 
 const ForgotPassword = () => {

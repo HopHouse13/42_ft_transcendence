@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import AuthCard from "../components/authentication/AuthCard";
-import FormField from "../components/authentication/FormField";
+import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
 import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT } from "../constants/authConstants";
 

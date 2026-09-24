@@ -31,7 +31,7 @@ const FormField = ({
 	title,
 	className,
 }: FormFieldProps) => (
-	<label className={`filedset w-full mt-2 ${className ?? ""}`}>
+	<label className={`fieldset w-full mt-2 ${className ?? ""}`}>
 		<span className="label">{label}</span>
 		<input
 			type={type}
