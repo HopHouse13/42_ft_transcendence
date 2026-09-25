@@ -1,17 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/write-register.dto';
-import { UserData } from '../users/interfaces/write-user.interface';
-import { AuthData } from '../users/interfaces/write-auths.interface';
-import { AuthMode } from '@prisma/client';
+import { UsersService } from '../user/users.service';
 import { Payload } from './interfaces/payload.interface';
-import { ForgotPasswordDto } from './dto/write-forgotPassword.dto';
 import { createHash, randomBytes } from 'node:crypto';
-import { ResetPasswordToken } from './interfaces/resetPassword.interface';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
-import { ResetPasswordDto } from './dto/write-resetPassword.dto';
+import { UserPublic, UserPrivate, UserCreate } from '../user/interfaces/user.interface';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
 
@@ -25,92 +19,85 @@ export class AuthService
 
 	///
 
-	async register( dto: RegisterDto ): Promise< string >
+	// localRegister: -> créer le useer -> log le user
+	// creste a besoin du password hashé, il est hashé dans dans la fonction d'extration du dto vers userCreate
+	async localRegister( userCreate: UserCreate ): Promise< UserPrivate >
 	{
-		const	userData: UserData = {
-			username:		dto.username,
-			email:			dto.email
-		};
-
-		const	authData: AuthData = {
-			authMode:		AuthMode.LOCAL,
-			passwordHash:	await argon2.hash( dto.password ) // argon2 hash le password ici
-		};
-
-		const	newUser = await this.usersService.create( userData, authData );
-
-		return( this.login( newUser.id ) ); // a la fin de l'enregistrement, login() est appelé pour generer un jwt pour le nouveau user, qu'il puisse de connection dans la foulée (auto-log)
+		return( await this.usersService.create( userCreate )); // a la fin de l'enregistrement, login() est appelé pour generer un jwt pour le nouveau user, qu'il puisse de connection dans la foulée (auto-log)
 	}
 
 	///
 
-	// login() est appelé lors d'une connection apres avoir identifié le user
-	// il retourne un JWT (Jeton Web Token) complet a partir de l'id du user
+	// Construit le payload qui sera encodé dans le JWT. il est composé de l'id et username
+	// Signe (génère) le JWT à partir du payload généré et du `SERCRET_JWT` dans .env
+	// Retourne un JWT (Jeton Web Token) complet à partir de l'id du user
 	// 1 JWT par client et par connection
-	async login( userId: string ): Promise< string >
+	async login( user: UserPrivate ): Promise<{ jwt: string, refreshToken: string, userPublic: UserPublic }>
 	{
-		const	payload = await this.buildPayload( userId );
-		const	jwt = this.jwtService.sign( payload );
-		
-		return( jwt );
-	}
-
-	///
-
-	// construit le payload qui sera encodé dans le JWT. il est composé de l'id et sur name du user
-	async buildPayload( userId: string ): Promise< Payload >
-	{
-		const	user = await this.usersService.findOne( userId );
-
-		const	payload: Payload =
+		const	payload: Payload = 
 		{
 			sub:		user.id,
 			username:	user.username
 		};
+		const	jwt = this.jwtService.sign( payload );
 
-		return( payload );
+		const	refreshToken = await this.generateRefreshToken( user.id ); // renvoi le refreshToken brute
+
+		const	userPublic: UserPublic =
+		{
+			id: 		user.id,
+    		username: user.username,
+    		avatarUrl: user.avatarUrl,
+    		createdAt: user.createdAt,
+    		updatedAt: user.updatedAt
+		};
+	
+		return({ jwt, refreshToken, userPublic });
 	}
 
 	///
 
 	// methode a modifier lors de l'integration des OAuth, gere pour le moment uniauement la connection LOCAL
 	// Méthode appelé lors de la connection du user
-	async validateUser( email: string, password: string ): Promise< string >
+	async validateUser( email: string, password: string ): Promise< UserPrivate >
 	{
-		const	user = await this.usersService.findByEmail( email );
+		const	user: UserPrivate | null = await this.usersService.findByEmail( email );
 
-		if ( !user || !user.passwordHash ) // !user.passwordHash -> pour garantir a `argon2.verify()` qu'il est bien de type string (et pas null)
-			throw new UnauthorizedException( 'invalid user or email' );
+		if ( !user )
+			throw new UnauthorizedException( 'invalid user or email or password' );
 
-		const isValid = await argon2.verify( user.passwordHash, password );
+		if ( !user.passwordHash ) // doit etre géré: le cas que le user existe mais il n a pas de password (me le rapeller dans la todo)
+			throw new UnauthorizedException( 'invalid user or email or password' );
 
-		if ( !isValid )
-			throw new UnauthorizedException( 'invalid user or email' );
+		const	isValid = await argon2.verify( user.passwordHash, password );
 
-		return( user.id );
+		if ( !isValid ) // wrong password
+			throw new UnauthorizedException( 'invalid user or email or password' );
+
+		return( user );
 	}
 
 	///
 
-	async forgotPassword( dto: ForgotPasswordDto ): Promise< { message: string } >
+	async forgotPassword( email: string ): Promise< { message: string } >
 	{
-		const	user = await this.usersService.findByEmail( dto.email );
+		const	user = await this.usersService.findByEmail( email );
 		
 		if( user )
 		{
-			const	token = randomBytes( 32 ).toString( 'hex' ); // genere un buffer de 32 octets puis convertie en hexadecimale dans une string de 64 char
-			const	tokenHash  = createHash( 'sha256' ).update( token ).digest( 'hex' ); // createHash renvoie un objet qui genere le hash, .update donne ce qu'il faut hasher, .digest formate le resultat (hexadecimale la) 
-			const	expiresAt = new Date( Date.now() + 10 * 60 * 1000 ) // Date exprime le temps en milliseconde, la on prend le temps de maintenant + 10min
+			// genere un buffer de 32 octets puis convertie en hexadecimale dans une string de 64 char
+			const	token = randomBytes( 32 ).toString( 'hex' );
+			// createHash renvoie un objet qui genere le hash, .update donne ce qu'il faut hasher, .digest formate le resultat (hexadecimale la) 
+			const	passwordToken  = createHash( 'sha256' ).update( token ).digest( 'hex' );
+			// extraction de la variable d'env de la durée de validation du token
+			const	expirationSeconds = parseInt( this.configService.getOrThrow<string>( 'PASSWORD_TOKEN_EXPIRATION' ), 10 );
+			// +10min - Date exprime le temps en milliseconde
+			const	passwordTokenExpiresAt = new Date( Date.now() + expirationSeconds * 1000 );
 		
-			const	resetPassword: ResetPasswordToken = {
-				id: user.id,
-				tokenHash,
-				expiresAt
-			};
+			// set le passwordToken et son expiration dans le user trouvé
+			await this.usersService.setPasswordToken( user.id , passwordToken, passwordTokenExpiresAt );
 
-			await this.usersService.setResetTokenPassword( resetPassword ); // on stock le hash+l'expiration dans le user dans la db
-
-			const	resetLink = `${this.configService.getOrThrow<string>( 'FRONT_URL' )}/reset-password?token=${ token }`; // creation du link pour reset le password
+			const	resetLink = `${this.configService.getOrThrow<string>( 'APP_URL' )}/reset-password?token=${ token }`; // creation du link pour reset le password
 		
 			await this.mailService.sendResetPasswordEmail( user.email, resetLink ); // envoi du mail
 		}
@@ -120,18 +107,57 @@ export class AuthService
 
 	///
 
-	async resetPassword( dto: ResetPasswordDto )
+	async resetPassword( password: string, token: string )
 	{
-		const	tokenHashClient = createHash( 'sha256' ).update( dto.token ).digest( 'hex' );
+		// genere le hash avec le meme algo, au meme format avec le token transmit.
+		const	tokenHashClient = createHash( 'sha256' ).update( token ).digest( 'hex' );
 
-		const 	user = await this.usersService.findByResetToken( tokenHashClient );
+		// recherche le user avec le meme token hashé
+		const 	user = await this.usersService.findByPasswordToken( tokenHashClient );
 
-		if ( !user || !user.tokenPasswordExpiresAt || new Date() > user.tokenPasswordExpiresAt )
+		if ( !user || !user.passwordTokenExpiresAt || new Date() > user.passwordTokenExpiresAt )
 			throw new UnauthorizedException( 'invalid or expired token' );
 
-		const	updateUser = await this.usersService.updatePassword( user.id, await argon2.hash( dto.password )); // passe l'id et le password hashé dans la foulée
+		// passe l'id et le password hashé dans la foulée
+		const	updateUser = await this.usersService.setPassword( user.id, await argon2.hash( password ));
 	
-		return( this.login( updateUser.id ) ); // si tout est bon, le user est automatiqument log
+		// si tout est bon, retourne le userPrivate pour le log
+		return( updateUser );
+	}
+
+	///
+
+	async generateRefreshToken( id: string ): Promise< string >
+	{
+		const	token = randomBytes( 32 ).toString( 'hex' );
+		const	refreshToken = createHash( 'sha256' ).update( token ).digest( 'hex' );
+
+		const	expirationSeconds = parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 );
+		const	refreshTokenExpiresAt = new Date( Date.now() + expirationSeconds * 1000 ); // Date.now() (millisecondes) donc faut passer expirationSeconds en millisecondes
+
+		await this.usersService.setRefreshToken( id, refreshToken, refreshTokenExpiresAt );
+
+		return( token ); // le token BRUT part dans le cookie
+	}
+
+	///
+
+	async validateRefreshToken( refreshTokenRaw: string ): Promise< UserPrivate >
+	{
+		const	refreshTokenHash = createHash( 'sha256' ).update( refreshTokenRaw ).digest( 'hex' );
+
+		const	user = await this.usersService.findByRefreshToken( refreshTokenHash );
+
+		if( !user || !user.refreshTokenExpiresAt || new Date() > user.refreshTokenExpiresAt )
+			throw new UnauthorizedException( 'invalid or expired refresh token' );
+
+		return ( user );
+	}
+
+	///
+
+	async logout( userId: string ): Promise< UserPublic >
+	{
+		return( await this.usersService.clearRefreshToken( userId ));
 	}
 };
-

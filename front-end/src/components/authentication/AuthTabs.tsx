@@ -6,7 +6,7 @@ interface AuthTabsProps {
 }
 
 const AuthTabs = ({ mode, onSwitch }: AuthTabsProps ) => (
-	<div className="justify-center bg-base-300 p-2 rouded-full">
+	<div className="justify-center bg-base-300 p-2 rounded-full">
 		<div className="tabs tabs-boxed border-base-300 rounded-box">
 			<input
 				type="radio"

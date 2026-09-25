@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { useAuth } from "./useAuth";
-import type { AuthMode } from "../types/authTypes";
 import { useNavigate } from "react-router-dom";
+import type { AuthMode } from "../types/authTypes";
+import { useAuth } from "./useAuth";
 
 export function useAuthForm() {
 	const [mode, setMode] = useState<AuthMode>("login");
@@ -34,11 +34,12 @@ export function useAuthForm() {
 		if (!isLogin && confirmPasswordError)
 			return;
 
-		const result = isLogin ? await login(email, password) : await register(username, email, password);
+		const result = isLogin 
+			? await login(email, password) 
+			: await register(username, email, password);
 
 		if (result.success) {
-			console.log(`${mode} successful`);
-			navigate("/game");
+			navigate("/game", {replace: true});
 		}
 	};
 

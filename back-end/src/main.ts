@@ -1,11 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
 	const app = await NestFactory.create( AppModule );
 
-	app.useGlobalPipes( new ValidationPipe({ whitelist: true }));
+	app.use( cookieParser() ); // middleware: parse les cookies dans le header de chaque requete et initialiser req.cookies pour avoir acces aux données des cookies a tous les endroits on req. est accessible
+	app.useGlobalPipes( new ValidationPipe({ whitelist: true }));  // applique la validation des DTO sur toutes les routes, et supprime les champs non déclarés dans le DTO
 	//app.enableCors({ origin: '*' }); // a verifier
 	await app.listen( process.env.PORT ?? 3000 );
 }
@@ -28,4 +30,4 @@ transform: true,// convertit automatiquement les types (utile si body en JSON st
 // Ces pipes de validation peuvent prendre des arguments pour modifier les comportements globaux du flux de verification de la donnée.
 // exemple: `whitelist:true`-> supprime automatiquement du body tout champ non déclaré dans le DTO
 
-// whitelist supprime silencieusement les champs qui ne sont pas déclarés dans les DTO, avant même que la validation ne s'exécute dessus
+// whitelist supprime silencieusement les champs qui ne sont pas déclarés dans les DTO, avant même que la validation ne s'exécute dessus.

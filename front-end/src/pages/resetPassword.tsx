@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import AuthCard from "../components/authentication/AuthCard";
 import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
@@ -12,6 +12,8 @@ const ResetPassword = (): React.ReactElement => {
     const token = searchParams.get("token") ?? undefined;
     const { loading, error, resetPassword } = useAuth();
 
+	const navigate = useNavigate();
+
     const confirmPasswordError = useMemo(() => {
         if (confirmPassword.length === 0)
             return undefined;
@@ -23,6 +25,7 @@ const ResetPassword = (): React.ReactElement => {
         if (confirmPasswordError)
             return;
         await resetPassword(password, token);
+        navigate("/connect", {replace: true});
     };
 
     return (

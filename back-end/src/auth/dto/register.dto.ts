@@ -1,4 +1,6 @@
 import { IsStrongPassword, MaxLength, Matches, IsString, MinLength, IsEmail } from 'class-validator';
+import { UserCreate } from '../../user/interfaces/user.interface';
+import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
 // DTO pour valider le body de POST /auth/register
 export class RegisterDto
@@ -18,11 +20,11 @@ export class RegisterDto
 	@IsString()
 	@MinLength( 3 )
 	@MaxLength( 50 )
-	username!: string; // mêmes règles que CreateUserDto (users/dto/create-user.dto.ts)
+	username!: string;
 
 	@IsEmail()
 	@MaxLength( 255 )
-	email! : string; // mêmes règles que CreateUserDto
+	email!: string;
 };
 // `!` après une propriété de classe indique au compilateur que cette variable sera initialisée avant d'être utilisée
 
@@ -33,3 +35,14 @@ export class RegisterDto
 // - caracteres speciaux autorisés: . @ # $ * ! ? - _ +
 
 // regex -> ^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[.@#$*!?_+-])[a-zA-Z0-9.@#$*!?_+-]{8,255}
+
+export async function extractUserCreate( dto: RegisterDto ): Promise< UserCreate >
+{
+	const	data: UserCreate = {
+		username: dto.username,
+		email: dto.email,
+		passwordHash: await argon2.hash( dto.password )
+	};
+
+	return( data );
+}

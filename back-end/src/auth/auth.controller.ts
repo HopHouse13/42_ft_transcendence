@@ -1,13 +1,17 @@
 import { AuthService } from './auth.service';
-import { Body, Controller, Post, Get } from '@nestjs/common';
-import { RegisterDto } from './dto/write-register.dto';
-import { LoginDto } from './dto/read-login.dto';
+import { Body, Controller, Post, Get, UseInterceptors, Res, Req, UnauthorizedException } from '@nestjs/common';
+import { RegisterDto, extractUserCreate } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgotPassword.dto';
+import { ResetPasswordDto } from './dto/resetPassword.dto';
+import {  HttpStatus, UseGuards } from '@nestjs/common';
+import { JwtGuard } from '../common/guards/jwt.guard';
 import { GoogleGuard } from '../common/guards/google.guard';
-import { UseGuards } from '@nestjs/common';
-import { Req } from '@nestjs/common';
-import { ForgotPasswordDto } from './dto/write-forgotPassword.dto';
-import { ResetPasswordDto } from './dto/write-resetPassword.dto';
+import { GitGuard } from '../common/guards/github.guard';
+import { CookieInterceptor } from '../common/interceptors/cookie.interceptor';
+import type { Response } from 'express';
 
+@UseInterceptors( CookieInterceptor )
 @Controller( 'auth' )
 export class AuthController
 {
@@ -16,9 +20,9 @@ export class AuthController
 	///
 
 	@Post( 'register' )
-	register( @Body() dto: RegisterDto )
+	async register( @Body() dto: RegisterDto )
 	{
-		return( this.authService.register( dto ));
+		return( this.authService.login( await this.authService.localRegister( await extractUserCreate( dto ))));
 	}
 
 	///
@@ -31,17 +35,83 @@ export class AuthController
 
 	///
 
-	@UseGuards( GoogleGuard )
+	@UseGuards( JwtGuard )
+	@Post( 'logout' )
+	async logout( @Req() request, @Res({ passthrough: true }) response: Response )
+	{
+		// clearCookie "supprime" les cookies: en realité, il set les MaxAge a 1 -> rend instantanément le cookie expiré -> le navigateur le supprime automatiquement 
+		response.clearCookie( 'access_token',
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
+		});
+
+		response.clearCookie( 'refresh_token',
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
+		});
+
+		return( await this.authService.logout( request.user.id )); // logout set le refreshtoken et son expiration a null et retourne le user logout
+	}
+
+	///
+
+	@UseGuards( GoogleGuard ) // GoogleGuard intercepte toutes les requetes arrivantes de googleCall et applique googleStrategy
 	@Get( 'google' )
 	async googleCall() {}
-
+   
 	///
 
 	@UseGuards( GoogleGuard )
 	@Get( 'google/callback' )
-	async googleCallback( @Req() request ) // @Req: decorateur de parametre -> Passport attache à soit le retour de validate() soit le retour de done() à request.user
+	async googleCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
-		return( this.authService.login( request.user.id ));
+		const aut = await this.authService.login( request.user );
+		res.cookie('acces_token', aut.jwt, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 600000,
+		});
+		res.cookie('refresh_token', aut.refreshToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 7 * 24 * 3600000,
+		});
+
+		return( res.redirect(HttpStatus.FOUND, "https://localhost:8443/game") );
+	}
+
+	///
+	@UseGuards( GitGuard ) // GithubGuard intercepte toutes les requetes arrivantes de GithubCall et applique GithubStrategy
+	@Get( 'github' )
+	async githubCall() {}
+
+	///
+
+	@UseGuards( GitGuard )
+	@Get( 'github/callback' )
+	async githubCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
+	{
+		const aut = await this.authService.login( request.user );
+		res.cookie('acces_token', aut.jwt, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 600000,
+		});
+		res.cookie('refresh_token', aut.refreshToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 7 * 24 * 3600000,
+		});
+
+		return( res.redirect(HttpStatus.FOUND, "https://localhost:8443/game") );
 	}
 
 	///
@@ -49,7 +119,7 @@ export class AuthController
 	@Post( 'forgot-password' )
 	async forgotPassword( @Body() dto: ForgotPasswordDto )
 	{
-		return( this.authService.forgotPassword( dto ));
+		return( this.authService.forgotPassword( dto.email ));
 	}
 
 	///
@@ -57,26 +127,28 @@ export class AuthController
 	@Post( 'reset-password' )
 	async resetPassword( @Body() dto: ResetPasswordDto )
 	{
-		return( this.authService.resetPassword( dto ));
+		return( this.authService.login( await this.authService.resetPassword( dto.password, dto.token )));
+	}
+
+	///
+	
+	@Post( 'refresh' )
+	async refresh( @Req() request )
+	{
+		const	refreshTokenRaw = request.cookies?.refresh_token;
+
+		if ( !refreshTokenRaw )
+			throw new UnauthorizedException( 'no refresh token provided' );
+
+		return( this.authService.login( await this.authService.validateRefreshToken( refreshTokenRaw )));
+	}
+
+	///
+
+	@UseGuards( JwtGuard )
+	@Get( 'me' )
+	async me( @Req() request )
+	{
+		return ( request.user );
 	}
 };
-
-
-
-// flux register()
-// > validation des regles de format des données entrantes avec validationPipe
-// > génération de 2 objets: userData et authData
-// > hashage du password
-// > création du user dans la db
-// > appelle de login() qui lui retourne son JWT ( Jeton Web Token )
-// ---
-// flux login() (connection a son profil)
-// > validation des regles de format de username/password
-// > récupération des données du user pour verification dans le db
-// > check du mode d'auth
-
-// Si LOCAL (username + password)
-// > vérification de l'authenticité du user en comparant le password transmis et son passwordHash de la db
-// > génération du contenu d'une partie du JWT avec les données du user (id+username)
-// > signature de son JWT (création du token a l'aide de la clé secrète dans .env)
-// > retourne son JWT
