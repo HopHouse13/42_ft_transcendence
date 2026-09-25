@@ -17,6 +17,10 @@ export class UsersService
 	{
 		const	users: UserPublic[] = await this.prisma.user.findMany(
 		{
+			where:
+			{
+				isDelete:	false
+			},
 			select: // ne retourne que les champs listés à true
 			{
 				id:			true,
@@ -37,7 +41,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:	false
 			},
 			select:
 			{
@@ -63,7 +68,8 @@ export class UsersService
 		{
 			where:
 			{
-				email
+				email,
+				isDelete:				false
 			},
 			select:
 			{
@@ -97,7 +103,8 @@ export class UsersService
 		{
 			where: 
 			{
-				googleId
+				googleId,
+				isDelete:					false
 			},
 			select:
 			{
@@ -131,7 +138,8 @@ export class UsersService
 		{
 			where: 
 			{
-				gitId
+				gitId,
+				isDelete:					false
 			},
 			select:
 			{
@@ -165,7 +173,8 @@ export class UsersService
 		{
 			where:
 			{
-				passwordToken: tokenHash
+				passwordToken:			tokenHash,
+				isDelete:				false
 			},
 			select:
 			{
@@ -199,7 +208,8 @@ export class UsersService
 		{
 			where:
 			{
-				refreshToken
+				refreshToken,
+				isDelete:				false
 			},
 			select:
 			{
@@ -233,7 +243,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:				false
 			},
 			data:
 			{
@@ -279,11 +290,11 @@ export class UsersService
 			{
 				data:
 				{
-					username:		dataCreate.username,
-					email:			dataCreate.email,
-					passwordHash:	dataCreate.passwordHash,
-					googleId:		dataCreate.googleId,
-					gitId:			dataCreate.gitId
+					username:				dataCreate.username,
+					email:					dataCreate.email,
+					passwordHash:			dataCreate.passwordHash,
+					googleId:				dataCreate.googleId,
+					gitId:					dataCreate.gitId
 				},
 				select:
 				{
@@ -331,7 +342,8 @@ export class UsersService
 			{
 				where:
 				{
-					id
+					id,
+					isDelete:	false
 				},
 				data:
 				{
@@ -374,7 +386,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:					false
 			},
 			data:
 			{
@@ -413,7 +426,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:					false
 			},
 			data:
 			{
@@ -451,7 +465,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:					false
 			},
 			data:
 			{
@@ -489,7 +504,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:				false
 			},
 			data:
 			{
@@ -526,11 +542,18 @@ export class UsersService
 	{
 		try
 		{
-			const	deleteUser: UserPublic = await this.prisma.user.delete(
+			const	deleteUser: UserPublic = await this.prisma.user.update(
 			{
 				where:
 				{
-					id // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+					id, // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+					isDelete:	false
+				},
+				data:
+				{
+					isDelete:	true,
+					username:	`removed_player_${ id.slice( -8 ) }`,
+					email:		`removed_player_${ id.slice( -8 ) }`
 				},
 				select: // ne retourne que les champs listés à true par mesure de sécurité
 				{
@@ -566,7 +589,8 @@ export class UsersService
 		{
 			where:
 			{
-				id
+				id,
+				isDelete:				false
 			},
 			data:
 			{
@@ -575,11 +599,11 @@ export class UsersService
 			},
 			select:
 			{
-				id:			true,
-				username:	true,
-				avatarUrl:	true,
-				createdAt:	true,
-				updatedAt:	true
+				id:						true,
+				username:				true,
+				avatarUrl:				true,
+				createdAt:				true,
+				updatedAt:				true
 			}
 		});
 
