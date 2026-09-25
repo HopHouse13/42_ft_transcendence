@@ -1,6 +1,7 @@
 services:
   proxy:
     build: ./proxy
+    container_name: nginx
     ports:
       - "8080:80"       # HTTP (redirects to 443)
       - "8443:443"     # HTTPS
@@ -12,6 +13,7 @@ services:
 
   backend:
     build: ./back-end
+    container_name: backend
     volumes:
       - ./back-end:/app       # ton code hôte monté en live dans le conteneur
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
@@ -31,6 +33,7 @@ services:
     build:
       context: ./front-end
       dockerfile: Dockerfile
+    container_name: frontend
     volumes:
       - ./front-end:/app
       - /app/node_modules
@@ -40,7 +43,8 @@ services:
       - ft_transcendence_network
 
   database:
-    image: postgres:16-alpine
+    image: docker.io/library/postgres:16-alpine
+    container_name: db
     env_file:
       - .env
     environment:
@@ -65,9 +69,14 @@ services:
     depends_on:
       - database
       - prometheus
+    environment:
+      - GF_SERVER_ROOT_URL=https://localhost:8443/grafana/
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
     restart: unless-stopped
-    ports:
-      - "3101:3001"
+    # ports:
+    #   - "3101:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
     networks:
       - ft_transcendence_network
 
@@ -77,10 +86,15 @@ services:
     depends_on:
       - database
     restart: unless-stopped
-    ports:
-      - "9100:9000"
+    # ports:
+    #   - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z # /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \ prom/prometheus
+      - prometheus-data:/prometheus
     networks:
       - ft_transcendence_network
+    # command:
+    #   - "--config.file=/etc/config/prometheus.yml"
 
 
 # Réseau dédié pour que les conteneurs communiquent
@@ -90,3 +104,7 @@ networks:
 
 volumes:
   postgres_data:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
