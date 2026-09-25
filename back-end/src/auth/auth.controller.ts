@@ -4,7 +4,7 @@ import { RegisterDto, extractUserCreate } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
 import { ResetPasswordDto } from './dto/resetPassword.dto';
-import { UseGuards } from '@nestjs/common';
+import {  HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../common/guards/jwt.guard';
 import { GoogleGuard } from '../common/guards/google.guard';
 import { GitGuard } from '../common/guards/github.guard';
@@ -67,9 +67,23 @@ export class AuthController
 
 	@UseGuards( GoogleGuard )
 	@Get( 'google/callback' )
-	async googleCallback( @Req() request ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
+	async googleCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
-		return( this.authService.login( request.user ));
+		const aut = await this.authService.login( request.user );
+		res.cookie('acces_token', aut.jwt, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 600000,
+		});
+		res.cookie('refresh_token', aut.refreshToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 7 * 24 * 3600000,
+		});
+
+		return( res.redirect(HttpStatus.FOUND, "https://localhost:8443/game") );
 	}
 
 	///
@@ -81,9 +95,23 @@ export class AuthController
 
 	@UseGuards( GitGuard )
 	@Get( 'github/callback' )
-	async githubCallback( @Req() request ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
+	async githubCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
-		return( this.authService.login( request.user ));
+		const aut = await this.authService.login( request.user );
+		res.cookie('acces_token', aut.jwt, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 600000,
+		});
+		res.cookie('refresh_token', aut.refreshToken, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 7 * 24 * 3600000,
+		});
+
+		return( res.redirect(HttpStatus.FOUND, "https://localhost:8443/game") );
 	}
 
 	///

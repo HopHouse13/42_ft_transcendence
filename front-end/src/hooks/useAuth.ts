@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useAuthContext } from "./useAuthContext";
 import type { AuthProvider, AuthResult } from "../types/authTypes";
 
 interface UseAuthReturn {
 	loading: boolean;
 	error: string | null;
 	authWithSocial: ( provider: AuthProvider ) => void;
+	// authWithSocial: ( provider: AuthProvider,  ) => Promise<AuthResult>;
 	login: (email: string, password: string) => Promise<AuthResult>;
 	register: (username: string, email: string, password: string) => Promise<AuthResult>;
 	forgotPassword: (email: string) => Promise<AuthResult>;
@@ -15,6 +17,7 @@ interface UseAuthReturn {
 export function useAuth(): UseAuthReturn {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const { setUser } = useAuthContext();
 
 	const request = async (
 		endpoint: string,
@@ -36,7 +39,13 @@ export function useAuth(): UseAuthReturn {
 				setError(message);
 				return { success: false, message };
 			}
-			return { success: true, user: data.userPublic };
+
+			const user = data.userPublic ?? data.user;
+            if (user) {
+                setUser(user);
+            }
+			return { success: true, user };
+
 		} catch {
 			const message = "Network error, please try again";
 			setError(message);
@@ -46,9 +55,8 @@ export function useAuth(): UseAuthReturn {
 		}
 	};
 
-	const authWithSocial = (provider: AuthProvider) => {
-		window.location.href = `/api/auth/${provider}`;
-	}
+	const authWithSocial = (provider: AuthProvider) =>
+		(window.location.href = `/api/auth/${provider}`);
 
 	const login = (email: string, password: string) =>
 		request("login", { email, password });

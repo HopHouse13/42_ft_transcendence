@@ -4,22 +4,50 @@ import type { User } from "../types/authTypes";
 
 export function AuthProvider({ children }: {children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        fetch('/api/auth/me',
-            {credentials: 'include'})
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => setUser(data?.user ?? null))
-        .finally(() => setLoading(false));
+        const fetchMe = async () => {
+            try {
+
+                let res = await fetch('/api/auth/me', {credentials: 'include'});
+                
+                if (res.status === 401) {
+                    const refreshRes = await fetch('/api/auth/refresh', {
+                        method: "POST",
+                        credentials: "include",
+                    });
+                    
+                    if (refreshRes.ok) {
+                        res = await fetch('/api/auth/me', {credentials: 'include'});
+                    }
+                }
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data.userPublic ?? data);
+                } else {
+                    setUser(null);
+                }
+            } catch {
+                setUser(null);
+            } finally {
+                setLoading(false);
+            };
+        };
+
+        fetchMe();
     }, []);
 
     const logout = async () => {
-        await fetch('/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
-        setUser(null);
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } finally {
+            setUser(null);
+        }
     };
 
     return (

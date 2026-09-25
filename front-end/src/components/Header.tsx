@@ -47,7 +47,7 @@ const Header: FC = () => {
 				<div className="flex flex-1 justify-end">
 					<ul>
 						<li>
-							{ loading ?( 
+							{ loading ? ( 
 								<div className="w-24 h-10 animate-pulse bg-base-300 rounded-btn"/>
 							) : isAuthenticated ? (
 								<div className="dropdown dropdown-end">
@@ -61,7 +61,7 @@ const Header: FC = () => {
 									</ul>
 								</div>
 							) : (
-								<NavLink to="connect" className=" btn btn-ghost rounded-btn text-lg hover:bg-base-300">
+								<NavLink to="/connect" className=" btn btn-ghost rounded-btn text-lg hover:bg-base-300">
 									Login
 								</NavLink>
 							)}
