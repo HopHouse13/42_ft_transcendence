@@ -7,7 +7,7 @@ import { Request } from 'express';
 
 // @UsePipes( new ValidationPipe() ) // instancie ValidationPipe pour qu'il check les regles du DTO lors d'une requete (actuellement instancié dans le main)
 @UseGuards( JwtGuard ) // applique le guard 'JwtGuard'
-@Controller( 'users' ) // décorateur : toutes les routes de cette classe sont préfixées par /users
+@Controller( 'user' ) // décorateur : toutes les routes de cette classe sont préfixées par /user
 export class UsersController
 {
 	constructor( private readonly usersService : UsersService) {} // constructeur pour injecter l'instance unique usersService de type UsersService
@@ -26,6 +26,14 @@ export class UsersController
 	findOne( @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id ciblé depuis l'URL
 	{
 		return( this.usersService.findOne( id )); // relaie id au service, qui renvoie le user ou lève un 404 si introuvable
+	}
+
+	///
+
+	@Get( ':id/profile' )
+	profile( @Param( 'id', ParseUUIDPipe ) id: string )
+	{
+		return( this.usersService.findProfile( id ));
 	}
 
 	///

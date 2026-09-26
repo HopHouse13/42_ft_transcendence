@@ -29,6 +29,8 @@ model User {
 	username				String @db.VarChar( 50 ) @unique // unique, max 50 char
 	email					String @db.VarChar( 255 )@unique // unique, max 255 char
 	avatarUrl				String @db.VarChar( 255 ) @default( "/uploads/avatars/default.png" ) @map( "avatar_url" ) // stock une url vers l'avatar fournit par google ou le user ou avatar par defaut
+	elo						Int @default( 1000 )
+
 	isDelete				Boolean @default( false ) @map( "is_delete" )
 
 	passwordHash			String? @db.VarChar( 255 ) @map( "password_hash" ) // stock un mdp hashé si LOCAL
