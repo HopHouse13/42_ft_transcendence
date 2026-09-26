@@ -22,6 +22,8 @@ import { Move } from '../othello/types/move.type';
 export class ComputePlayerService {
 
     constructor(private readonly strategy: RandomBotStrategy) {}
+    // constructor(private readonly strategy: MinmaxBotStrategy) {}
+
 
     async requestMove(cells: Cell[], color: Player, legalMoves: Move[]): Promise<Move | null> {
         
