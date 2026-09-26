@@ -24,6 +24,8 @@ import type { PlayerInfo } from './interfaces/player-info.interface';
 import type { MoveResult } from './interfaces/move-result.interface';
 import type { GameResult } from './interfaces/game-result.interface';
 
+import { ComputePlayerService } from '../compute-player/compute-player.service';
+
 /* ========================================================================== */
 
 /**
@@ -51,7 +53,7 @@ export class    OthelloService {
  */
     private readonly games = new Map<string, GameEntry>();
     
-    constructor(private readonly prisma: PrismaService) {}
+    constructor( private readonly computePlayerService: ComputePlayerService, private readonly prisma: PrismaService) {}
     
 /**
  * Fonction createGame and joinGame
@@ -267,7 +269,48 @@ export class    OthelloService {
             
             return( restored) ;
         }
- 
+ */
+    async playBotTurn(gameId: string) {
+        const game = this.games.get(gameId);
+        if (!game) return;
+
+        // Identification du Bot avec userId
+        const botPlayer = game.players.find(p => p.userId === 'bot_1');
+        if (!botPlayer) return;
+        
+        const botColor = botPlayer.color;
+        const engine = game.engine;
+
+        // Vérification que c'est bien au tour du bot
+        if (engine.getCurrentPlayer() !== botColor || engine.isGameOver()) {
+            return;
+        }
+
+        const legalMoves = engine.allValidMove(botColor);
+
+            /// 1. Génération du tableau plat (64 cases) à la volée depuis le moteur pour le bot
+        const board = engine.getBoard();
+        const cellsParams: EngineCell[] = []; // <-- Remplacer Cell[] par EngineCell[]
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            cellsParams.push(board.getCell(r, c));
+          }
+        }
+
+            // 2. On envoie ce tableau généré au service du bot
+            const move = await this.computePlayerService.requestMove(cellsParams, botColor, legalMoves);
+
+            if (move) {
+              // 3. Application du coup. L'engine met à jour son propre OthelloBoard interne[cite: 9].
+              // Plus besoin de boucler pour mettre à jour game.cells manuellement.
+              engine.playMove(move, botColor);
+            }
+
+            // 4. Boucle au cas où l'humain n'a pas de coup valide
+            if (engine.getCurrentPlayer() === botColor && !engine.isGameOver()) {
+                await this.playBotTurn(gameId);
+            }
+      }
     
 /**
  * Private Methode _initGameEntry and _getGameEntry for use a interface GameEntry

@@ -7,6 +7,11 @@ import { Injectable } from '@nestjs/common';
 import { BotStrategy, Position } from './interfaces/compute-strategy.interface';
 import { RandomBotStrategy } from './strategies/random-bot.strategy';
 
+import { Cell } from '../othello/types/cell.type';
+import { Player } from '../othello/types/player.type';
+import { Move } from '../othello/types/move.type';
+
+// ... le reste de ta classe ComputePlayerService reste identique
 /* -------------------------------------------------------------------------- */
 /*                       ~~ Class ComputePlayerService ~~                     */
 /*                                                                            */
@@ -16,27 +21,18 @@ import { RandomBotStrategy } from './strategies/random-bot.strategy';
 @Injectable()
 export class ComputePlayerService {
 
-    // On injecte notre stratégie aléatoire. Plus tard, on pourra injecter MinimaxBotStrategy
     constructor(private readonly strategy: RandomBotStrategy) {}
 
-/**
- * Méthode appelée par ton GameService.
- * Elle est asynchrone pour simuler le temps de réflexion.
- *
-*/
-    async requestMove(board: any[][], color: string, legalMoves: Position[]): Promise<Position | null> {
+    async requestMove(cells: Cell[], color: Player, legalMoves: Move[]): Promise<Move | null> {
         
-        // Délai artificiel d'UX (ex: entre 400ms et 1200ms)[cite: 2]
         const thinkingTime = Math.floor(Math.random() * 800) + 400;
       
         return new Promise((resolve) => {
             setTimeout(() => {
-                // Demande à la stratégie de calculer le coup après le délai
-                const move = this.strategy.computeMove(board, color, legalMoves);
+                const move = this.strategy.computeMove(cells, color, legalMoves);
                 resolve(move);
             }, thinkingTime);
         });
     }
 }
-
 /* -------------------------------------------------------------------------- */
