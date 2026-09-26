@@ -8,6 +8,8 @@ services:
     depends_on:
       - backend
       - frontend
+      - grafana
+      - prometheus     # added for prometheus interface through proxy
     networks:
       - ft_transcendence_network
 
@@ -28,6 +30,8 @@ services:
         condition: service_healthy
     networks:
       - ft_transcendence_network
+    expose:
+      - "3000"
 
   frontend:
     build:
@@ -41,6 +45,8 @@ services:
     #   - "5173:5173"
     networks:
       - ft_transcendence_network
+    expose:
+      - "5173"
 
   database:
     image: docker.io/library/postgres:16-alpine
@@ -77,13 +83,17 @@ services:
     #   - "3101:3000"
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:Z
     networks:
       - ft_transcendence_network
+    expose:
+      - "3000"
 
   prometheus:
     image: docker.io/prom/prometheus:latest
     container_name: prometheus
     depends_on:
+      - postgres-exporter
       - database
     restart: unless-stopped
     # ports:
@@ -93,9 +103,30 @@ services:
       - prometheus-data:/prometheus
     networks:
       - ft_transcendence_network
-    # command:
-    #   - "--config.file=/etc/config/prometheus.yml"
+    expose:
+      - "9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml" # added for prometheus interface through proxy
+      - "--web.external-url=https://localhost:8443/prometheus/" # added for prometheus interface through proxy
+      - "--web.route-prefix=/" # added for prometheus interface through proxy
 
+  postgres-exporter:
+    image: docker.io/prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    env_file:
+      - .env
+    environment:
+      - DATA_SOURCE_URI=database:5432/${POSTGRES_DB}?sslmode=disable
+      - DATA_SOURCE_USER=${POSTGRES_USER}
+      - DATA_SOURCE_PASS=${POSTGRES_PASSWORD}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - ft_transcendence_network
+    expose:
+      - "9187"
+    restart: unless-stopped
 
 # Réseau dédié pour que les conteneurs communiquent
 networks:

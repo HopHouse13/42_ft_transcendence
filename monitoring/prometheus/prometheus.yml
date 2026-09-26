@@ -8,10 +8,11 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   # Prometheus scraping the Node Exporter container
-  - job_name: 'back-end'
+  - job_name: 'backend'
     static_configs:
       - targets: ['backend:3000']
 
-  # - job_name: 'database'
-  #   static_configs:
-  #     - targets: ['localhost:5432']
+  # Prometheus scraping the database container through the postgres-exporter
+  - job_name: 'database'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
