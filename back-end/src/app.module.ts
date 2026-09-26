@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -10,8 +11,19 @@ import { PrismaService } from './prisma/prisma.service';
 import { OthelloService } from './othello/othello.service';
 
 @Module({
-
-  imports: [PrismaModule, UsersModule, OthelloModule, GameRoomModule, AuthModule],
+  imports: [
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true, // Automatically tracks Node.js CPU, RAM, event loop lag, and garbage collection
+      },
+    }),
+    PrismaModule,
+    UsersModule,
+    OthelloModule,
+    GameRoomModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService, OthelloService],
 })
