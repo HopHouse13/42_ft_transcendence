@@ -1,6 +1,6 @@
-export interface User {
-  id: string;
-  username: string;
+import type { AuthUser } from "./authTypes";
+
+export interface ProfileUser extends AuthUser {
   avatarUrl: string | null;
   elo: number;
   rank: number;
@@ -37,7 +37,7 @@ export interface Match {
 }
 
 export interface UserProfileData {
-  user: User;
+  user: ProfileUser;
   stats: UserStats;
   recentMatches: Match[];
 }

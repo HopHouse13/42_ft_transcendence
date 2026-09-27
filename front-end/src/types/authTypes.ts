@@ -2,13 +2,14 @@ export type AuthMode = "login" | "register";
 
 export type AuthProvider = "google" | "github"
 
-export interface User{
-    id: number;
+export interface AuthUser {
+    id: string;
     username: string;
+    avatarUrl?: string | null;
 }
 
 export interface AuthResult {
-	success: boolean;  
+	success: boolean;
 	message?: string;
-	user?: {id: number, username: string};
+	user?: AuthUser;
 }

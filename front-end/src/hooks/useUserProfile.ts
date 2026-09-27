@@ -1,5 +1,5 @@
-import { useState, useEffect, useContext, useCallback } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuthContext } from './useAuthContext';
 import type { UserProfileData } from '../types/profileTypes';
 
 interface UseUserProfileReturn {
@@ -11,71 +11,63 @@ interface UseUserProfileReturn {
 }
 
 export function useUserProfile(userId?: string): UseUserProfileReturn {
-  const { currentUser, updateCurrentUser } = useContext(AuthContext);
+  const { user, setUser } = useAuthContext();
 
-  const isSelf = !userId || userId === currentUser?.id;
-  const targetId = isSelf ? currentUser?.id : userId;
+  const isSelf = !userId || userId === user?.id;
+  const targetId = isSelf ? user?.id : userId;
 
-  const [profile, setProfile] = useState<UserProfileData | null>(() => {
-    if (isSelf && currentUser?.profileData) {
-      return currentUser.profileData;
-    }
-    return null;
-  });
-
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFetching, setIsFetching] = useState<boolean>(false);
-
-  // Derive loading state dynamically during render without synchronously setting state
-  const shouldFetch = Boolean(targetId) && !(isSelf && currentUser?.profileData) && !profile;
-  const loading = shouldFetch || isFetching;
 
   useEffect(() => {
-    // Only proceed if a fetch is actually required
-    if (!targetId || (isSelf && currentUser?.profileData)) {
+    if (!targetId) {
+      setProfile(null);
+      setError(null);
       return;
     }
 
-    let isMounted = true;
-
-    // Use queueMicrotask to ensure state update happens asynchronously after render cycle
-    queueMicrotask(() => {
-      if (isMounted) setIsFetching(true);
-    });
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
 
     fetch(`/api/users/${targetId}/profile`, {
       method: 'GET',
       credentials: 'include',
       headers: { Accept: 'application/json' },
+      signal: controller.signal,
     })
-      .then((res) => {
+      .then(async (res) => {
         if (res.status === 401) {
           throw new Error('Unauthorized. Please log in again.');
         }
         if (!res.ok) {
           throw new Error('Failed to load user profile.');
         }
-        return res.json() as Promise<UserProfileData>;
+
+        return (await res.json()) as UserProfileData;
       })
       .then((data) => {
-        if (isMounted) {
+        if (!controller.signal.aborted) {
           setProfile(data);
-          setIsFetching(false);
         }
       })
       .catch((err: Error) => {
-        if (isMounted) {
+        if (err.name !== 'AbortError' && !controller.signal.aborted) {
           setError(err.message);
-          setIsFetching(false);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
         }
       });
 
     return () => {
-      isMounted = false;
+      controller.abort();
     };
-  }, [userId, currentUser, isSelf, targetId]);
+  }, [targetId]);
 
-  // Method to update user profile (username and avatar)
   const updateProfile = useCallback(
     async (formData: FormData): Promise<void> => {
       const res = await fetch('/api/users/me/profile', {
@@ -93,11 +85,19 @@ export function useUserProfile(userId?: string): UseUserProfileReturn {
 
       setProfile(updatedProfile);
 
-      if (updateCurrentUser) {
-        updateCurrentUser(updatedProfile);
+      if (isSelf && user) {
+        setUser((prevUser) => {
+          if (!prevUser) return prevUser;
+
+          return {
+            ...prevUser,
+            username: updatedProfile.user.username,
+            avatarUrl: updatedProfile.user.avatarUrl ?? prevUser.avatarUrl ?? null,
+          };
+        });
       }
     },
-    [updateCurrentUser]
+    [isSelf, setUser, user]
   );
 
   return {

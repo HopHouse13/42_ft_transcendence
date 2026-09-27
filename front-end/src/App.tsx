@@ -14,6 +14,9 @@ import PrivacyPolicy from './pages/privacyPolicy.tsx';
 import Layout from './components/Layout.tsx';
 import UserProfile from './pages/userProfile.tsx';
 
+
+
+
 const App =(): React.ReactElement => {
 	
 	return (

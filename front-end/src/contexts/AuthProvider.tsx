@@ -1,28 +1,27 @@
 import { useEffect, useState } from "react";
 import { AuthContext } from "./authContext";
-import type { User } from "../types/authTypes";
+import type { AuthUser } from "../types/authTypes";
 
-export function AuthProvider({ children }: {children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchMe = async () => {
             try {
+                let res = await fetch('/api/auth/me', { credentials: 'include' });
 
-                let res = await fetch('/api/auth/me', {credentials: 'include'});
-                
                 if (res.status === 401) {
                     const refreshRes = await fetch('/api/auth/refresh', {
                         method: "POST",
                         credentials: "include",
                     });
-                    
+
                     if (refreshRes.ok) {
-                        res = await fetch('/api/auth/me', {credentials: 'include'});
+                        res = await fetch('/api/auth/me', { credentials: 'include' });
                     }
                 }
-                
+
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data.userPublic ?? data);
@@ -33,10 +32,10 @@ export function AuthProvider({ children }: {children: React.ReactNode }) {
                 setUser(null);
             } finally {
                 setLoading(false);
-            };
+            }
         };
 
-        fetchMe();
+        void fetchMe();
     }, []);
 
     const logout = async () => {
@@ -51,7 +50,7 @@ export function AuthProvider({ children }: {children: React.ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, setUser, logout}}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, setUser, logout }}>
             {children}
         </AuthContext.Provider>
     );
