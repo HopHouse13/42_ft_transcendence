@@ -93,8 +93,10 @@ services:
     image: docker.io/prom/prometheus:latest
     container_name: prometheus
     depends_on:
-      - postgres-exporter
+      - backend
       - database
+      - postgres-exporter
+      - node-exporter
     restart: unless-stopped
     # ports:
     #   - "9090:9090"
@@ -127,6 +129,20 @@ services:
     expose:
       - "9187"
     restart: unless-stopped
+
+  node-exporter:
+    image: docker.io/prom/node-exporter:latest
+    container_name: node-exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    networks:
+      - ft_transcendence_network
+    expose:
+      - "9100"
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
 
 # Réseau dédié pour que les conteneurs communiquent
 networks:
