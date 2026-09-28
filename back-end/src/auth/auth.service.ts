@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../user/users.service';
+import { UserService } from '../user/user.service';
 import { Payload } from './interfaces/payload.interface';
 import { createHash, randomBytes } from 'node:crypto';
 import { MailService } from '../mail/mail.service';
@@ -15,7 +15,7 @@ import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports
 @Injectable()
 export class AuthService
 {
-	constructor( private jwtService: JwtService, private usersService: UsersService, private mailService: MailService, private configService: ConfigService ) {}; // `private` permet de construire un attribut privé a la class
+	constructor( private jwtService: JwtService, private usersService: UserService, private mailService: MailService, private configService: ConfigService ) {}; // `private` permet de construire un attribut privé a la class
 
 	///
 

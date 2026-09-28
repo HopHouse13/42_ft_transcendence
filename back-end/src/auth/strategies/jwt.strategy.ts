@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Strategy, ExtractJwt } from "passport-jwt"; // passport-jwt est un package générique specialisé JWT de JS (independant a Nest)
 import { PassportStrategy } from "@nestjs/passport"; // PassportStrategy est une fonction pour faire le pont entre les lib comme passport a l'environement nest. Elle retourne une nouvelle classe, générée à partir de la classe externe passée en arg, adaptée à l'environnement Nest.
 import { ConfigService } from "@nestjs/config";
-import { UsersService } from "../../user/users.service";
+import { UserService } from "../../user/user.service";
 import { Payload } from "../interfaces/payload.interface";
 import { Request } from 'express';
 
@@ -11,7 +11,7 @@ import { Request } from 'express';
 @Injectable()
 export class JwtStrategy extends PassportStrategy( Strategy, 'jwtStrategy' ) // 'jwtStrategy' <- nom donné à la strategie
 {
-	constructor( private configService: ConfigService, private userService: UsersService )
+	constructor( private configService: ConfigService, private userService: UserService )
 	{
 		// super() exécute le constructeur de la classe parente, avec la config suivante, pour qu'elle s'initialise correctement.
 		super({

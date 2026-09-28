@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersModule } from '../user/users.module';
+import { UserModule } from '../user/user.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -12,7 +12,7 @@ import { MailService } from '../mail/mail.service';
 
 @Module({
 	imports: [
-		UsersModule, // pour accéder a `usersService.create` de register()
+		UserModule, // pour accéder a `usersService.create` de register()
 		ConfigModule, // permet de lire dynamiquement les variables du .env
 		PassportModule,  // active le système générique de stratégies d'authentification
 		JwtModule.registerAsync({ // pour signer (générer les jwt) pour la reponse de la requéte

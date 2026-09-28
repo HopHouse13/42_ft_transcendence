@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client'; // namespace Prisma pour obetenir la cl
 import { UserPublic, UserPrivate, UserCreate, UserProfil, UserUpdate } from './interfaces/user.interface';
 
 @Injectable() // cette classe peut être injectée
-export class UsersService
+export class UserService
 {
 	// Le constructeur declare/initialiser Prisma avec l'injection de PrismaService (instance de PrismaService)
 	// il faut voir ca un peu comme la ligne d'initialisation des attributs du class en c++

@@ -3,13 +3,13 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-github2';
 import type { VerifyCallback } from 'passport-oauth2';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../user/users.service';
+import { UserService } from '../../user/user.service';
 import { UserCreate } from '../../user/interfaces/user.interface';
 
 @Injectable()
 export class GitStrategy extends PassportStrategy( Strategy, 'gitStrategy' )
 {
-	constructor( private configService: ConfigService, private usersService: UsersService )
+	constructor( private configService: ConfigService, private usersService: UserService )
 	{
 		super(
 		{

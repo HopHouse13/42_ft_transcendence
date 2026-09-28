@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ForbiddenException, Req, /*ValidationPipe, UsePipes*/ } from '@nestjs/common'; // import des décorateurs utiles à UsersController
-import { UsersService } from './users.service'; // import de la definition de la classe UserService de users.service
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ForbiddenException, Req, /*ValidationPipe, UsePipes*/ } from '@nestjs/common'; // import des décorateurs utiles à UserController
+import { UserService } from './user.service'; // import de la definition de la classe UserService de users.service
 import { UpdateUserDto, extractUserUpdate } from './dto/update-user.dto'; // import de la classe UpdateUserDto
 import { UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../common/guards/jwt.guard';
@@ -7,10 +7,10 @@ import { Request } from 'express';
 
 // @UsePipes( new ValidationPipe() ) // instancie ValidationPipe pour qu'il check les regles du DTO lors d'une requete (actuellement instancié dans le main)
 @UseGuards( JwtGuard ) // applique le guard 'JwtGuard'
-@Controller( 'users' ) // décorateur : toutes les routes de cette classe sont préfixées par /users
-export class UsersController
+@Controller( 'user' ) // décorateur : toutes les routes de cette classe sont préfixées par /users
+export class UserController
 {
-	constructor( private readonly usersService : UsersService) {} // constructeur pour injecter l'instance unique usersService de type UsersService
+	constructor( private readonly usersService : UserService) {} // constructeur pour injecter l'instance unique usersService de type UserService
 	
 	///
 

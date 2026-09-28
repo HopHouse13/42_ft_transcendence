@@ -2,14 +2,14 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
-import { UsersService } from '../../user/users.service';
+import { UserService } from '../../user/user.service';
 import { Profile } from 'passport';
 import { UserCreate } from '../../user/interfaces/user.interface';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy( Strategy, 'googleStrategy' )
 {
-	constructor( private configService: ConfigService, private usersService: UsersService )
+	constructor( private configService: ConfigService, private usersService: UserService )
 	{
 		super(
 		{
