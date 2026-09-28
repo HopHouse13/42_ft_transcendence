@@ -43,7 +43,7 @@ export class GitStrategy extends PassportStrategy( Strategy, 'gitStrategy' )
 			{
 				const	dataCreate: UserCreate =
 				{
-					username:	email.split( '@' )[0] + '_' + gitId.slice( -4 ),
+					username:	( profile.username ?? ( email.split( '@' )[0] + '_' + gitId.slice( -4 ))),
 					email,
 					gitId
 				};
