@@ -35,7 +35,7 @@ interface GameInfoProps {
  */
 export default function GameInfo({history, currentMove, showLatestFirst, onReverse, onJumpTo}: GameInfoProps): React.ReactElement {
 	// Génère une liste d'éléments pour chaque coup de l'historique
-	const moves = history.map((board: BoardState, move: number) => {
+	const moves = history.map((_, move: number) => {
 		// Récupère la description du coup (ex: "1. Black plays (3,4)", "2. White passes")
 		const description = getMoveDescription(history, move);
 		return (

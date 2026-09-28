@@ -1,110 +1,94 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthContext } from './useAuthContext';
 import type { UserProfileData } from '../types/profileTypes';
+import { queryKeys } from '../queries/queryKeys';
 
 interface UseUserProfileReturn {
-  profile: UserProfileData | null;
-  loading: boolean;
-  error: string | null;
-  isSelf: boolean;
-  updateProfile: (formData: FormData) => Promise<void>;
+	profile: UserProfileData | null;
+	loading: boolean;
+	error: string | null;
+	isSelf: boolean;
+	updateProfile: (formData: FormData) => Promise<void>;
 }
 
 export function useUserProfile(userId?: string): UseUserProfileReturn {
-  const { user, setUser } = useAuthContext();
+	const { user, setUser, loading: authLoading } = useAuthContext();
+	const queryClient = useQueryClient();
 
-  const isSelf = !userId || userId === user?.id;
-  const targetId = isSelf ? user?.id : userId;
+	const isSelf = !userId || userId === user?.id;
+	const targetId = isSelf ? user?.id : userId;
 
-  const [profile, setProfile] = useState<UserProfileData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+	const profileQuery = useQuery({
+		queryKey: queryKeys.users.profile(targetId ?? ''),
+		enabled: Boolean(targetId),
+		retry: false,
+		queryFn: async ({ signal }): Promise<UserProfileData> => {
+			if (!targetId) {
+				throw new Error('A user ID is required to load a profile.' );
+			}
 
-  useEffect(() => {
-    if (!targetId) {
-      setProfile(null);
-      setError(null);
-      return;
-    }
+			const res = await fetch(`/api/users/${targetId}/profile`, {
+				credentials: 'include',
+				headers: { Accept: 'application/json' },
+				signal,
+			});
 
-    const controller = new AbortController();
-    setLoading(true);
-    setError(null);
+			if (res.status === 401) {
+				throw new Error('Unauthorized. Please log in again.');
+			}
+			if (!res.ok) {
+				throw new Error('Failed to load user profile.');
+			}
 
-    fetch(`/api/users/${targetId}/profile`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    })
-      .then(async (res) => {
-        if (res.status === 401) {
-          throw new Error('Unauthorized. Please log in again.');
-        }
-        if (!res.ok) {
-          throw new Error('Failed to load user profile.');
-        }
+			return (await res.json()) as UserProfileData;
+		},
+	});
 
-        return (await res.json()) as UserProfileData;
-      })
-      .then((data) => {
-        if (!controller.signal.aborted) {
-          setProfile(data);
-        }
-      })
-      .catch((err: Error) => {
-        if (err.name !== 'AbortError' && !controller.signal.aborted) {
-          setError(err.message);
-        }
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
+	const updateProfileMutation = useMutation ({
+		mutationFn: async (formData: FormData): Promise<UserProfileData> => {
+			const res = await fetch('/api/users/me/profile', {
+				method: 'PATCH',
+				credentials: 'include',
+				body: formData,
+			});
 
-    return () => {
-      controller.abort();
-    };
-  }, [targetId]);
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
+				throw new Error(data.message || 'Failed to update profile.');
+			}
 
-  const updateProfile = useCallback(
-    async (formData: FormData): Promise<void> => {
-      const res = await fetch('/api/users/me/profile', {
-        method: 'PATCH',
-        credentials: 'include',
-        body: formData,
-      });
+			return (await res.json()) as UserProfileData;
+		},
+		onSuccess: (updatedProfile) => {
+			queryClient.setQueryData(
+				queryKeys.users.profile(updatedProfile.user.id),
+				updatedProfile,
+			);
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || 'Failed to update profile.');
-      }
+			if (isSelf) {
+				setUser((prevUser) => {
+					if (!prevUser)
+						return prevUser;
 
-      const updatedProfile: UserProfileData = await res.json();
+					return {
+						...prevUser,
+						username: updatedProfile.user.username,
+						avatarUrl: updatedProfile.user.avatarUrl,
+					};
+				});
+			}
+		},
+	});
 
-      setProfile(updatedProfile);
-
-      if (isSelf && user) {
-        setUser((prevUser) => {
-          if (!prevUser) return prevUser;
-
-          return {
-            ...prevUser,
-            username: updatedProfile.user.username,
-            avatarUrl: updatedProfile.user.avatarUrl ?? prevUser.avatarUrl ?? null,
-          };
-        });
-      }
-    },
-    [isSelf, setUser, user]
-  );
-
-  return {
-    profile,
-    loading,
-    error,
-    isSelf,
-    updateProfile,
-  };
+	return {
+		profile: profileQuery.data ?? null,
+		loading: profileQuery.isLoading || (isSelf && authLoading),
+		error: profileQuery.error instanceof Error
+			? profileQuery.error.message
+			: null,
+		isSelf,
+		updateProfile: async (formData: FormData) => {
+			await updateProfileMutation.mutateAsync(formData);
+		},
+	};
 }

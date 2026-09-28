@@ -6,7 +6,6 @@ interface AuthContextValue {
     isAuthenticated: boolean;
     loading: boolean;
     setUser: Dispatch<SetStateAction<AuthUser | null>>;
-    logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

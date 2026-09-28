@@ -1,86 +1,120 @@
-import { useState } from "react";
-import { useAuthContext } from "./useAuthContext";
-import type { AuthProvider, AuthResult } from "../types/authTypes";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AuthProvider, AuthResult, AuthUser } from '../types/authTypes';
+import { queryKeys } from '../queries/queryKeys';
+
+interface AuthResponse {
+  userPublic?: AuthUser;
+  message?: string;
+}
+
+interface AuthVariables {
+  endpoint: string;
+  body: Record<string, unknown>;
+}
 
 interface UseAuthReturn {
-	loading: boolean;
-	error: string | null;
-	authWithSocial: ( provider: AuthProvider ) => void;
-	// authWithSocial: ( provider: AuthProvider,  ) => Promise<AuthResult>;
-	login: (email: string, password: string) => Promise<AuthResult>;
-	register: (username: string, email: string, password: string) => Promise<AuthResult>;
-	forgotPassword: (email: string) => Promise<AuthResult>;
-	resetPassword: (password: string, token?: string) => Promise<AuthResult>;
-	logout: () => Promise<AuthResult>;
+  loading: boolean;
+  error: string | null;
+  authWithSocial: (provider: AuthProvider) => void;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  register: (username: string, email: string, password: string) => Promise<AuthResult>;
+  forgotPassword: (email: string) => Promise<AuthResult>;
+  resetPassword: (password: string, token?: string) => Promise<AuthResult>;
+  logout: () => Promise<AuthResult>;
 }
 
 export function useAuth(): UseAuthReturn {
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const { setUser } = useAuthContext();
+  const queryClient = useQueryClient();
 
-	const request = async (
-		endpoint: string,
-		body: Record<string, unknown>
-	): Promise<AuthResult> =>{
-		setLoading(true);
-		setError(null);
-		try{
-			const res = await fetch(`/api/auth/${endpoint}`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				credentials: 'include',
-				body: JSON.stringify(body),
-			});
-			const data = await res.json().catch(() => ({}));
+  const authMutation = useMutation<AuthResponse, Error, AuthVariables>({
+	mutationFn: async ({ endpoint, body }) => {
+	  const response = await fetch(`/api/auth/${endpoint}`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		credentials: 'include',
+		body: JSON.stringify(body),
+	  });
 
-			if (!res.ok) {
-				const message = data.message ?? "Something went wrong"; // Erreur sans message d'erreur retourne
-				setError(message);
-				return { success: false, message };
-			}
+	  const data = (await response.json().catch(() => ({}))) as AuthResponse;
 
-			const user = data.userPublic ?? data.user;
-            if (user) {
-                setUser(user);
-            }
-			return { success: true, user };
+	  if (!response.ok) {
+		throw new Error(data.message ?? 'Something went wrong.');
+	  }
 
-		} catch {
-			const message = "Network error, please try again";
-			setError(message);
-			return {success: false, message};
-		} finally {
-			setLoading(false);
+	  return data;
+	},
+
+	onSuccess: (data, variables) => {
+	  if (variables.endpoint === 'logout') {
+		queryClient.setQueryData(queryKeys.auth.me(), null);
+		return;
+	  }
+
+	  if (
+		variables.endpoint === 'login' ||
+		variables.endpoint === 'register' ||
+		variables.endpoint === 'reset-password'
+	) {
+		const authenticatedUser = data.userPublic;
+
+		if (authenticatedUser) {
+		  queryClient.setQueryData(queryKeys.auth.me(), authenticatedUser);
 		}
+	  }
+	},
+  });
+
+  const request = async (
+	endpoint: string,
+	body: Record<string, unknown>,
+  ): Promise<AuthResult> => {
+	try {
+	  const data = await authMutation.mutateAsync({ endpoint, body });
+
+	  return {
+		success: true,
+		user: data.userPublic,
+	  };
+	} catch (error) {
+	  return {
+		success: false,
+		message: error instanceof Error
+		  ? error.message
+		  : 'Network error, please try again.',
+	  };
+	}
+  };
+
+  const authWithSocial = (provider: AuthProvider) => {
+	window.location.href = `/api/auth/${provider}`;
+  };
+
+	const logout = async (): Promise<AuthResult> => {
+		const result = await request('logout', {});
+		
+		if (result.success) {
+			await queryClient.cancelQueries({
+				queryKey: queryKeys.users.all,
+			});
+
+			queryClient.removeQueries({
+				queryKey: queryKeys.users.all,
+			});
+		}
+		
+		return result;
 	};
 
-	const authWithSocial = (provider: AuthProvider) =>
-		(window.location.href = `/api/auth/${provider}`);
-
-	const login = (email: string, password: string) =>
-		request("login", { email, password });
-
-	const register = (username: string, email: string, password: string) =>
-		request("register", {username, email, password});
-
-	const forgotPassword = (email: string) =>
-		request("forgot-password", { email });
-
-	const resetPassword = (password: string, token?: string) =>
-		request("reset-password", { password, token });
-
-	const logout = () =>
-		request("logout", {}); 
-
-	return { loading, error, authWithSocial, login, register, forgotPassword, resetPassword, logout };
+  return {
+	loading: authMutation.isPending,
+	error: authMutation.error?.message ?? null,
+	authWithSocial,
+	login: (email, password) => request('login', { email, password }),
+	register: (username, email, password) =>
+	  request('register', { username, email, password }),
+	forgotPassword: (email) => request('forgot-password', { email }),
+	resetPassword: (password, token) =>
+	  request('reset-password', { password, token }),
+	logout,
+  };
 }
-
-// Résumé du flux
-// 1. L'utilisateur appelle une fonction (ex: login).
-// 2. La fonction request est appelée avec les bons paramètres.
-// 3. fetch envoie une requête POST à l'API.
-// 4. Si la réponse est OK → Retourne { success: true }.
-// 5. Si la réponse échoue → Met à jour error et retourne { success: false, message }.
-// 6. En cas d'erreur réseau → Met à jour error et retourne { success: false, message }.
-// 7. loading est désactivé dans tous les cas.

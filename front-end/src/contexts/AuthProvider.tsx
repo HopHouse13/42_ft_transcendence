@@ -1,57 +1,49 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AuthContext } from "./authContext";
+import { queryKeys } from "../queries/queryKeys";
 import type { AuthUser } from "../types/authTypes";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<AuthUser | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+	const queryClient = useQueryClient();
+	
+	const { data: user = null, isPending: loading } = useQuery<AuthUser | null>({
+		queryKey: queryKeys.auth.me(),
+		queryFn: async () => {
+			let res = await fetch('/api/auth/me', { credentials: 'include' });
 
-    useEffect(() => {
-        const fetchMe = async () => {
-            try {
-                let res = await fetch('/api/auth/me', { credentials: 'include' });
+			if (res.status === 401) {
+				const refreshRes = await fetch('/api/auth/refresh', {
+					method: "POST",
+					credentials: "include",
+				});
+	
+				if (refreshRes.ok) {
+					res = await fetch('/api/auth/me', { credentials: 'include' });
+				}
+			}
+			
+			if (res.ok) {
+				const data = await res.json();
+				return (data.userPublic ?? data);
+			}
 
-                if (res.status === 401) {
-                    const refreshRes = await fetch('/api/auth/refresh', {
-                        method: "POST",
-                        credentials: "include",
-                    });
+			if (res.status === 401) {
+				return null;
+			}
 
-                    if (refreshRes.ok) {
-                        res = await fetch('/api/auth/me', { credentials: 'include' });
-                    }
-                }
+			throw new Error(`Network error: ${res.status}`);
+		},
+		retry: false,
+		staleTime: 5 * 60 * 1000,
+	})
 
-                if (res.ok) {
-                    const data = await res.json();
-                    setUser(data.userPublic ?? data);
-                } else {
-                    setUser(null);
-                }
-            } catch {
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
-        };
+	const setUser = (newUser: AuthUser | null | ((prevUser: AuthUser | null ) => AuthUser | null)) => {
+		queryClient.setQueryData(queryKeys.auth.me(), newUser);
+	};
 
-        void fetchMe();
-    }, []);
-
-    const logout = async () => {
-        try {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            });
-        } finally {
-            setUser(null);
-        }
-    };
-
-    return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, setUser, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
+	return (
+		<AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, setUser }}>
+			{children}
+		</AuthContext.Provider>
+	);
 }

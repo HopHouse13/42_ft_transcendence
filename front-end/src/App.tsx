@@ -14,12 +14,14 @@ import PrivacyPolicy from './pages/privacyPolicy.tsx';
 import Layout from './components/Layout.tsx';
 import UserProfile from './pages/userProfile.tsx';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; {/*DEBUG*/}
+
+const queryClient = new QueryClient();
 
 
-
-const App =(): React.ReactElement => {
-	
-	return (
+const App = (): React.ReactElement =>(
+	<QueryClientProvider client={queryClient}>
 		<AuthProvider>
 			<BrowserRouter>
 				<Layout>
@@ -42,7 +44,8 @@ const App =(): React.ReactElement => {
 				</Layout>
 			</BrowserRouter>
 		</AuthProvider>
-	);
-};
+		<ReactQueryDevtools /> {/*DEBUG*/}
+	</QueryClientProvider>
+);
 
 export default App;
