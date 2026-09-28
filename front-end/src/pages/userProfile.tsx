@@ -12,25 +12,19 @@ import { Toast, type ToastType } from '../components/ui/Toast';
 export default function UserProfile(): React.JSX.Element {
   const { userId } = useParams<{ userId: string }>();
   const { profile, loading, error, isSelf, updateProfile } = useUserProfile(userId);
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
-  
-  // Toast state management
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const handleSaveProfile = async (formData: FormData) => {
     try {
       await updateProfile(formData);
-      setToast({
-        message: 'Profile updated successfully!',
-        type: 'success',
-      });
+      setToast({ message: 'Profile updated successfully!', type: 'success' });
     } catch (err) {
       setToast({
         message: err instanceof Error ? err.message : 'Failed to update profile.',
         type: 'error',
       });
-      throw err; // Re-throw to allow the modal to handle submitting state
+      throw err;
     }
   };
 
@@ -45,6 +39,7 @@ export default function UserProfile(): React.JSX.Element {
         isSelf={isSelf}
         onEditClick={() => setIsEditModalOpen(true)}
       />
+
       <ProfileStats stats={profile.stats} />
       <MatchHistory matches={profile.recentMatches} />
 
@@ -57,7 +52,6 @@ export default function UserProfile(): React.JSX.Element {
         />
       )}
 
-      {/* Render Toast notification when active */}
       {toast && (
         <Toast
           message={toast.message}
@@ -65,6 +59,7 @@ export default function UserProfile(): React.JSX.Element {
           onClose={() => setToast(null)}
         />
       )}
+      
     </div>
   );
 }

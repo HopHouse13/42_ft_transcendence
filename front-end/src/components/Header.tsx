@@ -56,9 +56,12 @@ const Header: FC = () => {
 									<label tabIndex={0} className="btn btn-ghost rounded-btn text-lg hover:bg-base-300">
 										{user?.username}
 									</label>
-									<ul tabIndex={0} className="menu dropdown-content mt-3 z-[1] p-2 shadow bg-base-200 rounded-box w-40">
+									<ul tabIndex={0} className="menu dropdown-content z-[1] mt-3 p-2 shadow bg-base-200 rounded-box w-40 gap-2">
 										<li>
-											<button onClick={handleLogout}>Log out</button>
+											<NavLink to="/profile" className="btn btn-ghost rounded-btn hover:bg-base-300">My Profile</NavLink>
+										</li>
+										<li>
+											<button onClick={handleLogout} className="btn btn-error rounded-btn hover:bg-base-300 hover:text-error">Log out</button>
 										</li>
 									</ul>
 								</div>

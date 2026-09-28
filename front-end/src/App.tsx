@@ -34,6 +34,7 @@ const App = (): React.ReactElement =>(
 							<Route path="/reset-password" element={<ResetPassword />} />
 							<Route path="/rules" element={<Rules />} />
 							<Route path="/profile" element={<UserProfile />} />
+							<Route path="/profile/:userId" element={<UserProfile />} />
 							<Route path="/leaderboard" element={<Leaderboard />} />
 							<Route path="/watch" element={<Watch />} />
 							<Route path="/aboutUs" element={<AboutUs />} />

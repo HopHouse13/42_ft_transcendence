@@ -112,7 +112,7 @@ export function EditProfileModal({
             required
             minLength={3}
             maxLength={50}
-            pattern="^[a-zA-Z0-9][a-zA-Z0-9_]{3,50}$"
+            pattern="^[a-zA-Z0-9][a-zA-Z0-9_]{2,49}$"
 			      hint="Must be 3-50 letters, digits or underscores. Can't start with an underscore"
           />
 
