@@ -1,9 +1,11 @@
 import type { FC } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 const Header: FC = () => {
-	const { user, isAuthenticated, loading, logout } = useAuthContext();
+	const { user, isAuthenticated, loading } = useAuthContext();
+	const { logout } = useAuth();
 	const navigate = useNavigate();
 
 	const navLinks = [
