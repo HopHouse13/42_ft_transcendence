@@ -19,8 +19,8 @@ export function ProfileHeader({
         <div className="avatar">
           <div className="w-20 rounded-full ring ring-success ring-offset-base-100 ring-offset-2">
             <img
-              src={user?.avatarUrl || '/default-avatar.png'}
-              alt={user?.username}
+              src={`/api${user?.avatarUrl || '/default.png'}`}
+              alt={`${user?.username} avatar`}
             />
           </div>
         </div>

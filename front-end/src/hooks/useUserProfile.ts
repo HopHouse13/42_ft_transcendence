@@ -107,15 +107,10 @@ export function useUserProfile(userId?: string): UseUserProfileReturn {
 				throw new Error('You must be authenticated to update your profile.');
 			}
 
-			const body = {
-				username: formData.get('username')?.toString(),
-			};
-
-			const res = await fetch(`/api/user/${user.id}`, {
+			const res = await fetch(`/api/user/${user.id}/profile`, {
 				method: 'PATCH',
 				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(body),
+				body: formData,
 			});
 
 			if (!res.ok) {

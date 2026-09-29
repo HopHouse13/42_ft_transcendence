@@ -33,8 +33,8 @@ export function EditProfileModal({
         setError('Selected file must be an image.');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must not exceed 5 MB.');
+      if (file.size > 2 * 1024 * 1024) {
+        setError('Image size must not exceed 2 MB.');
         return;
       }
 
