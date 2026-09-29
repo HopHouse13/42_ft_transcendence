@@ -1,7 +1,9 @@
 import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
 import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
 import { Prisma } from '@prisma/client'; // namespace Prisma pour obetenir la classe des exception a lever coté prisma
-import { UserPublic, UserPrivate, UserCreate, UserProfil, UserUpdate } from './interfaces/user.interface';
+import { UserPublic, UserPrivate, UserCreate, UserProfile, UserUpdate } from './interfaces/user.interface';
+import { basename, join } from 'path';
+import { unlink } from 'fs';
 
 @Injectable() // cette classe peut être injectée
 export class UserService
@@ -334,12 +336,32 @@ export class UserService
 
 	///
 
-	async update( id: string, data: UserUpdate ): Promise < UserPublic >
+	async updateProfile( id: string, data: UserUpdate ): Promise < UserPublic >
 	{
 		try
 		{
+			const	currentUser = await this.prisma.user.findUnique(
+			{
+				where:
+				{
+					id,
+					isDelete:	false
+				},
+				select:
+				{
+					avatarUrl:	true
+				}
+			});
+
+			if ( data.avatarUrl && currentUser && currentUser.avatarUrl != '/uploads/avatars/default.png' ) // si le user exite, si il a upload un nouveau avatar et si l'avatar est different de l'avatar default -> il faut supprimer le fichier
+			{
+				const	oldPathAvatar = join( __dirname, '..', '..', 'uploads', 'avatars', basename( currentUser.avatarUrl )); // génére le path absolu del avatar actuel
+				unlink( oldPathAvatar, () => {} ); // unlink fonctionne en async et un callback: la on n'utilise pas le callback (() => {}), on ignore le retour de unlink
+			}
+
 			const	updateUser: UserPublic = await this.prisma.user.update(
 			{
+
 				where:
 				{
 					id,
@@ -348,7 +370,6 @@ export class UserService
 				data:
 				{
 					username:	data.username,
-					email:		data.email,
 					avatarUrl:	data.avatarUrl
 				},
 				select:

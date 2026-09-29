@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ForbiddenException, Req, /*ValidationPipe, UsePipes*/ } from '@nestjs/common'; // import des décorateurs utiles à UserController
-import { UserService } from './user.service'; // import de la definition de la classe UserService de users.service
-import { UpdateUserDto, extractUserUpdate } from './dto/update-user.dto'; // import de la classe UpdateUserDto
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ForbiddenException, Req, UseInterceptors, UploadedFile, /*ValidationPipe, UsePipes*/ } from '@nestjs/common';
+import { UserService } from './user.service';
+import { UpdateUserDto, /*extractUserUpdate*/ } from './dto/update-user.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../common/guards/jwt.guard';
 import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { avatarUploadOptions } from './avatar-upload.config';
+import { UserUpdate } from './interfaces/user.interface';
 
 // @UsePipes( new ValidationPipe() ) // instancie ValidationPipe pour qu'il check les regles du DTO lors d'une requete (actuellement instancié dans le main)
 @UseGuards( JwtGuard ) // applique le guard 'JwtGuard'
@@ -30,13 +33,22 @@ export class UserController
 
 	///
 
-	@Patch( ':id' ) // méthode HTTP PATCH avec un arg (id) a récupérer avec @param
-	update( @Req() request, @Param( 'id', ParseUUIDPipe ) id: string, @Body() dto: UpdateUserDto ) // prends 2 params: id -> param recupéré sur url et DTO qui est instancié avec toutes la data du body de la requete
+	@Patch( ':id/profile' ) // méthode HTTP PATCH avec un arg (id) a récupérer avec @param
+	@UseInterceptors(FileInterceptor( 'avatar',  avatarUploadOptions )) // avatar est le nom de chaque partie du fichier envoyé par le protocole multipart (http)
+	updateProfile( @Req() request, @Param( 'id', ParseUUIDPipe ) id: string, @Body() dto: UpdateUserDto ) // prends 2 params: id -> param recupéré sur url et DTO qui est instancié avec toutes la data du body de la requete
 	{
 		if ( request.user.id !== id )
 			throw new ForbiddenException( 'you can only modify your own account' );
 
-		return( this.usersService.update( id, extractUserUpdate( dto ))); // retourne le resultat de update de usersService -> l'objet complet user qui a été modifié
+		const	file = request.file; // objet avec les metadonnées du fichier qui vient d'etre upload par FileInterceptor
+		const	newAvatarUrl = file ? `/uploads/avatars/${ request.file.filename }` : undefined;
+
+		const	data: UserUpdate =
+		{
+			username:	dto.username,
+			avatarUrl:	newAvatarUrl
+		}
+		return( this.usersService.updateProfile( id, data )); // retourne userPublic
 	}
 
 	///

@@ -24,7 +24,7 @@ export interface UserPrivate extends UserPublic
 	refreshTokenExpiresAt:	Date | null
 };
 
-export interface UserProfil extends UserPublic
+export interface UserProfile extends UserPublic
 {
 	email: 			string
 
@@ -46,6 +46,5 @@ export interface UserCreate
 export interface UserUpdate
 {
 	username?:		string
-	email?:			string
 	avatarUrl?:		string
 };

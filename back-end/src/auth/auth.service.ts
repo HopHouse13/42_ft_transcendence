@@ -151,7 +151,7 @@ export class AuthService
 		if( !user || !user.refreshTokenExpiresAt || new Date() > user.refreshTokenExpiresAt )
 			throw new UnauthorizedException( 'invalid or expired refresh token' );
 
-		return ( user );
+		return( user );
 	}
 
 	///
