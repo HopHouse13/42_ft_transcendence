@@ -1,9 +1,10 @@
 import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
 import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
 import { Prisma } from '@prisma/client'; // namespace Prisma pour obetenir la classe des exception a lever coté prisma
-import { UserPublic, UserPrivate, UserCreate, UserProfile, UserUpdate } from './interfaces/user.interface';
 import { basename, join } from 'path';
 import { unlink } from 'fs';
+import { UserPublic, UserPrivate, UserCreate, Match, UserProfile, UserUpdate } from './interfaces/user.interface';
+import { finished } from 'node:stream';
 
 @Injectable() // cette classe peut être injectée
 export class UserService
@@ -275,6 +276,109 @@ export class UserService
 			}
 		});
 		return( user );
+	}
+
+	///
+
+	async findProfile( id: string ): Promise < UserProfile >
+	{
+		const	user = await this.prisma.user.findUnique(
+		{
+			where:
+			{
+				id,
+				isDelete:	false
+			},
+			select:
+			{
+				id:			true,
+				username:	true,
+				avatarUrl:	true,
+				createdAt:	true,
+				updatedAt:	true,
+				elo:		true,
+			}
+		});
+
+		if ( !user )
+			throw ( new NotFoundException( `User ${ id } does not existe` ) );
+		
+		// findMany renvoit un tableau d'elements
+		const	games = await this.prisma.game.findMany(
+		{
+			where: // toutes les games que notre user a jouées
+			{
+				status: 'FINISHED', // Je pense que ABANDONED doit pas exister
+				OR: [{ blackPlayerId: id }, { whitePlayerId: id }]// OR -> tableau de conditions, si l'une des conditions du tableau est remplie, l'element est retenu.
+			},
+			orderBy: // tri les elements selon le champ et le 'mode': desc -> descendant; asc -> ascendant
+			{
+				createdAt: 'desc'
+			},
+			include: // include indique la relation entre plusieurs tables. Ici, c'est la relation entre Game et User via les champs blackPlayerId/whitePlayerId. On aura acces au donnée des 2 players
+			{
+				blackPlayer:
+				{
+					select:
+					{
+						id:		true,
+						elo:	true
+					}
+				},
+				whitePlayer:
+				{
+					select:
+					{
+						id:		true,
+						elo:	true
+					}
+				}
+			}
+		});
+
+		const	matchHistory: Match[] = games.map(( rawMatch ) =>
+		{
+			const	isBlack = rawMatch.blackPlayerId === id;
+			const	opponent = isBlack ? rawMatch.whitePlayer : rawMatch.blackPlayer;
+			
+			const	ownScore = ( isBlack ? rawMatch.blackScore : rawMatch.whiteScore ) ?? 0;
+			const	opponentScore = ( isBlack ? rawMatch.whiteScore : rawMatch.blackScore ) ?? 0;
+
+			let		result: 'WIN' | 'LOSS' | 'DRAW';
+
+			if( rawMatch.winnerId === null )
+				result = 'DRAW';
+			else if( rawMatch.winnerId === id )
+				result = 'WIN';
+			else
+				result = 'LOSS';
+
+			const	match: Match =
+			{
+				id :			rawMatch.id,
+				opponentId: 	opponent.id,
+				opponentElo: 	opponent.elo,
+    			result,
+    			score: [ ownScore , opponentScore ],
+    			date: rawMatch.createdAt
+			}
+
+			return( match );
+		});
+
+		const userProfile: UserProfile =
+		{
+			id:				user.id,
+			username:		user.username,
+			avatarUrl:		user.avatarUrl,
+			createdAt:		user.createdAt,
+			updatedAt:		user.updatedAt,
+
+			elo:			user.elo,
+			matchHistory
+		}
+
+		return( userProfile );
 	}
 
 	///

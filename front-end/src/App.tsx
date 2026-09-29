@@ -12,10 +12,16 @@ import AboutUs from './pages/aboutUs.tsx';
 import TermsOfUse from './pages/termsOfUse.tsx';
 import PrivacyPolicy from './pages/privacyPolicy.tsx';
 import Layout from './components/Layout.tsx';
+import UserProfile from './pages/userProfile.tsx';
 
-const App =(): React.ReactElement => {
-	
-	return (
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; {/*DEBUG*/}
+
+const queryClient = new QueryClient();
+
+
+const App = (): React.ReactElement =>(
+	<QueryClientProvider client={queryClient}>
 		<AuthProvider>
 			<BrowserRouter>
 				<Layout>
@@ -27,6 +33,8 @@ const App =(): React.ReactElement => {
 							<Route path="/forgot-password" element={<ForgotPassword />} />
 							<Route path="/reset-password" element={<ResetPassword />} />
 							<Route path="/rules" element={<Rules />} />
+							<Route path="/profile" element={<UserProfile />} />
+							<Route path="/profile/:userId" element={<UserProfile />} />
 							<Route path="/leaderboard" element={<Leaderboard />} />
 							<Route path="/watch" element={<Watch />} />
 							<Route path="/aboutUs" element={<AboutUs />} />
@@ -37,7 +45,8 @@ const App =(): React.ReactElement => {
 				</Layout>
 			</BrowserRouter>
 		</AuthProvider>
-	);
-};
+		<ReactQueryDevtools /> {/*DEBUG*/}
+	</QueryClientProvider>
+);
 
 export default App;

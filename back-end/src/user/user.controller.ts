@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, ForbiddenException, Req, UseInterceptors, UploadedFile, /*ValidationPipe, UsePipes*/ } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateUserDto, /*extractUserUpdate*/ } from './dto/update-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../common/guards/jwt.guard';
 import { Request } from 'express';
@@ -29,6 +29,14 @@ export class UserController
 	findOne( @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id ciblé depuis l'URL
 	{
 		return( this.usersService.findOne( id )); // relaie id au service, qui renvoie le user ou lève un 404 si introuvable
+	}
+
+	///
+
+	@Get( ':id/profile' )
+	profile( @Param( 'id', ParseUUIDPipe ) id: string )
+	{
+		return( this.usersService.findProfile( id ));
 	}
 
 	///

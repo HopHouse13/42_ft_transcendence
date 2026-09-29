@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import FormField from "./FormField";
+import FormField from "../ui/FormField";
 import AuthCard from "./AuthCard";
 import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT } from "../../constants/authConstants";
 import type { AuthMode } from "../../types/authTypes";
@@ -103,3 +103,4 @@ const AuthForm = ({
 };
 
 export default AuthForm;
+

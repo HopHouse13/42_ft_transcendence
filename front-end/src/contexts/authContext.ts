@@ -1,12 +1,11 @@
-import { createContext } from "react";
-import type { User } from "../types/authTypes";
+import { createContext, type Dispatch, type SetStateAction } from "react";
+import type { AuthUser } from "../types/authTypes";
 
 interface AuthContextValue {
-    user: User | null;
+    user: AuthUser | null;
     isAuthenticated: boolean;
     loading: boolean;
-    setUser: (user: User | null) => void;
-    logout: () => Promise<void>;
+    setUser: Dispatch<SetStateAction<AuthUser | null>>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

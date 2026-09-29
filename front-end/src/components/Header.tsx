@@ -1,9 +1,11 @@
 import type { FC } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuthContext } from "../hooks/useAuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 const Header: FC = () => {
-	const { user, isAuthenticated, loading, logout } = useAuthContext();
+	const { user, isAuthenticated, loading } = useAuthContext();
+	const { logout } = useAuth();
 	const navigate = useNavigate();
 
 	const navLinks = [
@@ -55,9 +57,12 @@ const Header: FC = () => {
 										<img src={`/api${user?.avatarUrl}`} alt="avatar" className="w-8 h-8 rounded-full" /> {/* MODIF DE PAB*/}
 										{user?.username}
 									</label>
-									<ul tabIndex={0} className="menu dropdown-content mt-3 z-[1] p-2 shadow bg-base-200 rounded-box w-40">
+									<ul tabIndex={0} className="menu dropdown-content z-[1] mt-3 p-2 shadow bg-base-200 rounded-box w-40 gap-2">
 										<li>
-											<button onClick={handleLogout}>Log out</button>
+											<NavLink to="/profile" className="btn btn-ghost rounded-btn hover:bg-base-300">My Profile</NavLink>
+										</li>
+										<li>
+											<button onClick={handleLogout} className="btn btn-error rounded-btn hover:bg-base-300 hover:text-error">Log out</button>
 										</li>
 									</ul>
 								</div>

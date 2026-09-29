@@ -1,4 +1,4 @@
-import type { BoardState, Position, Direction, Player, Pawn } from "../types/gameTypes";
+import type { BoardState, Position, Player, Pawn } from "../types/gameTypes";
 import { BOARD_SIZE, DIRECTIONS, TOTAL_CELLS } from "../constants/gameConstants";
 
 /**
@@ -76,10 +76,10 @@ export function getFlippedPawns(board: BoardState, newPawnPos: Position, current
 	const flipped: Position[] = [];
 
 	for (const [dr, dc] of DIRECTIONS) {
-		let checkedPos: Position = { ...newPawnPos };
+		const checkedPos: Position = { ...newPawnPos };
 		checkedPos.row += dr;
 		checkedPos.col += dc;
-		let toFlipInDirection: Position[] = [];
+		const toFlipInDirection: Position[] = [];
 
 		// Parcourt la direction tant qu'on trouve des pions adverses (non vides)
 		while (isOnBoard(checkedPos) &&
@@ -128,7 +128,7 @@ export function isValidMove(board: BoardState, pos: Position, currentPlayer: Pla
 export function hasValidMoves(board: BoardState, currentPlayer: Player): boolean {
 	for (let row = 0; row < BOARD_SIZE; row++) {
 		for (let col = 0; col < BOARD_SIZE; col++) {
-			let checkedPos: Position = { row, col };
+			const checkedPos: Position = { row, col };
 			if (isValidMove(board, checkedPos, currentPlayer))
 				return (true);
 		}
@@ -165,7 +165,7 @@ export function getAllValidMoves(board: BoardState, currentPlayer: Player): Posi
 	const validMoves: Position[] = [];
 	for (let row = 0; row < BOARD_SIZE; row++) {
 		for (let col = 0; col < BOARD_SIZE; col++) {
-			let checkedPos: Position = { row, col };
+			const checkedPos: Position = { row, col };
 			if (isValidMove(board, checkedPos, currentPlayer))
 				validMoves.push({ ...checkedPos });
 		}
@@ -217,10 +217,9 @@ export function getStatusText(board: BoardState, xIsNext: boolean, currentPlayer
 	const blackCount = getPawnCount(board, 'X');
 	const whiteCount = getPawnCount(board, 'O');
 	let status: string = "";
-	let score: string = "";
+	const score = `Black: ${blackCount} | ${whiteCount} White`;
 	let result: string = "";
 
-	score = `Black: ${blackCount} | ${whiteCount} White`;
 	if (!currentPlayerHasMoves) {
 		if (!opponentsHasMoves) {
 			status += `Game Over !`;

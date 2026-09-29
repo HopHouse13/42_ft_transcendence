@@ -1,5 +1,4 @@
-import { IsString, IsOptional, MaxLength, MinLength, IsUrl } from 'class-validator';
-import { UserUpdate } from '../interfaces/user.interface';
+import { IsString, IsOptional, MaxLength, MinLength } from 'class-validator';
 
 // IsOptional est un decorateur qui dit a nest: si la propriété est absente, c'est normal,ignore le reste des controles et passe au suivant.
 // '?' dit a typescript que cette propriété peut ne pas etre initialisée
@@ -11,14 +10,3 @@ export class UpdateUserDto
 	@MaxLength( 50 )
 	username?: string;
 }
-
-// fonction de mapping entre les données du dto et l'objet data
-//export function extractUserUpdate( dto: UpdateUserDto ): UserUpdate
-//{
-//	const	data: UserUpdate =
-//	{
-//		username:	dto.username
-//	};
-
-//	return ( data );
-//}

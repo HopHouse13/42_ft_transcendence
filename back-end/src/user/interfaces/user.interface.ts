@@ -24,13 +24,22 @@ export interface UserPrivate extends UserPublic
 	refreshTokenExpiresAt:	Date | null
 };
 
+export interface Match
+{
+	id:				string
+	opponentId:		string
+	opponentElo: 	number
+	result:			'WIN' | 'LOSS' | 'DRAW'
+	score:			[ number, number ]
+	date:			Date
+};
+
+
 export interface UserProfile extends UserPublic
 {
-	email: 			string
+	elo:			number
+	matchHistory:	Match[]
 
-	gamesAsBlack:	Game[]
-	gamesAswhite:	Game[]
-	gamesWon:		Game[]
 };
 
 export interface UserCreate
