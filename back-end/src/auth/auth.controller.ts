@@ -20,32 +20,6 @@ export class AuthController
 
 	///
 
-	// pose les cookies d'auth sans cookie.interceptor. Uniquement utilisé par les deux callbacks OAuth.
-	// Les callbacks se termine par un redirect() donc la reponse n'a pas le temps de passer par CookieInterceptor.
-	private setAuthCookies( res: Response, jwt: string, refreshToken: string )
-	{
-		const	expirationCookieJwt = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'JWT_EXPIRATION' ), 10 ));
-		const	expirationCookieRefreshToken = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 ));
-
-		res.cookie( 'access_token', jwt,
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-			maxAge:		expirationCookieJwt,
-		});
-
-		res.cookie( 'refresh_token', refreshToken,
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-			maxAge:		expirationCookieRefreshToken,
-		});
-	}
-
-	///
-
 	@Post( 'register' )
 	async register( @Body() dto: RegisterDto )
 	{
@@ -96,11 +70,11 @@ export class AuthController
 	@Get( 'google/callback' )
 	async googleCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
-		const	auth = await this.authService.login( request.user ); // stock le retour de login (les deux otken + le userPublic )
+		const	auth = await this.authService.login( request.user ); // stock le retour de login (les deux tokens + le userPublic )
 
-		this.setAuthCookies( res, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
+		this.authService.setAuthCookies( res, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
 
-		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` );
+		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` ); // cookiesInterceptor est interompu par la redirection -> on 
 	}
 
 	///
@@ -116,7 +90,7 @@ export class AuthController
 	{
 		const	auth = await this.authService.login( request.user );
 
-		this.setAuthCookies( res, auth.jwt, auth.refreshToken );
+		this.authService.setAuthCookies( res, auth.jwt, auth.refreshToken );
 
 		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` );
 	}

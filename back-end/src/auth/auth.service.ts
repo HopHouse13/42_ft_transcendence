@@ -6,6 +6,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { MailService } from '../mail/mail.service';
 import { ConfigService } from '@nestjs/config';
 import { UserPublic, UserPrivate, UserCreate } from '../user/interfaces/user.interface';
+import { Response } from 'express';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
 
@@ -159,5 +160,31 @@ export class AuthService
 	async logout( userId: string ): Promise< UserPublic >
 	{
 		return( await this.usersService.clearRefreshToken( userId ));
+	}
+
+	///
+
+	// pose les cookies d'auth sans cookie.interceptor. Uniquement utilisé par les deux callbacks OAuth.
+	// Les callbacks se termine par un redirect() donc la reponse n'a pas le temps de passer par CookieInterceptor.
+	setAuthCookies( res: Response, jwt: string, refreshToken: string )
+	{
+		const	expirationCookieJwt = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'JWT_EXPIRATION' ), 10 )); // formatage de la durée em millisecondes de la vie du cookies
+		const	expirationCookieRefreshToken = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 ));
+
+		res.cookie( 'access_token', jwt,
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
+			maxAge:		expirationCookieJwt,
+		});
+
+		res.cookie( 'refresh_token', refreshToken,
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
+			maxAge:		expirationCookieRefreshToken,
+		});
 	}
 };
