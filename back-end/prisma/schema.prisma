@@ -103,7 +103,6 @@ model Game {
 
 model Move {
 	gameId			String @db.Uuid @map( "game_id" )
-	moveNumber		Int @map( "move_number" )
 
 	Color			PlayerColor @map( "color_player" )
 	position		Int? // peut etre null si pass
@@ -114,7 +113,7 @@ model Move {
 
 	game			Game @relation( fields: [ gameId ], references: [ id ] ) // créer une contrainte entre la table Game et la table Move. Elle sont liées par gameId de Game et gameId de Move
 
-	@@id([ gameId, moveNumber ], name: "movesInGame" ) // genere une clé primaire composite a partir des champs renseignés
+	@@id([ gameId, createdAt ], name: "movesInGame" ) // genere une clé primaire composite a partir des champs renseignés
 	@@map( "moves" )
 }
 
