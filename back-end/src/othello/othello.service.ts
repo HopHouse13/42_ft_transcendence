@@ -52,6 +52,7 @@ export class    OthelloService {
  * map qui utilise gameID comme clée et lie a l'interface GameEntry
  */
     private readonly games = new Map<string, GameEntry>();
+    private readonly localPlayer: PlayerInfo = { userId: randomUUID(), color: 'BLACK', connected: true };
     
     constructor( private readonly computePlayerService: ComputePlayerService, private readonly prisma: PrismaService) {}
     
@@ -60,6 +61,54 @@ export class    OthelloService {
  * createGame init interface GameEntry and add in map games ( a first players is a BLACK and hostPlayers )
  * joinGame add a new player for a game ( all time a sceond player is a 'WHITE' )
  */
+    
+/* --------------------------------------------------------------------------- */
+    
+    createLocalGame(hostUserId: string): GameState {
+  
+        const gameId = randomUUID();
+        const gameEntry = this._initGameEntry(hostUserId,this.localPlayer.userId);
+        
+        this.games.set( gameId, gameEntry );
+
+                
+        return( this.buildGameState(gameId, gameEntry) );
+    }
+    
+//    playMove(gameId: string, userId: string, move: Move): MoveResult {
+//    
+//        const entry = this._getGameEntry(gameId);
+//        const engineMove: EngineMove = { row: move.row, col: move.col };
+//    
+//        const playerInfo = entry.players.find((p) => p.userId === userId);
+//        if (!playerInfo) {
+//      
+//            throw new BadRequestException( `Joueur ${userId} ne fait pas partie de cette partie` );
+//        }
+//        
+//        try {
+//      
+//            entry.engine.playMove(engineMove, playerInfo.color);
+//    
+//        } catch (err) {
+//    
+//            throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
+//        }
+//        
+//    
+//        const result = this._setMoveResult(entry);
+//    
+//        const gameOver = entry.engine.isGameOver();
+//        if (gameOver) {
+//
+//            result.result = this.toGameResult(entry.engine.returnResult());
+//        }
+//        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+//
+//        return( result );
+//  }
+/*    --------------------------------------------------------------------------- */
+    
     async createGame(hostUserId: string, VisitorUserId: string): Promise<GameState> {
   
         const gameId = randomUUID();

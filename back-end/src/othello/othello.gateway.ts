@@ -98,6 +98,23 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         this.server.to(gameId).emit('playerLeft', { userId });
     }
     
+    @SubscribeMessage('localGame')
+    async handlePlayVsComputer( @ConnectedSocket() client: Socket, @MessageBody() payload: { color: 'black' | 'white' } ) {
+      // 1. Création de la partie via le GameService
+      return (this.othelloService.createLocalGame(client.id));
+      
+      // 2. Envoi de l'état initial
+      //const gameState = await this.othelloService.getState(gameId);
+      //client.emit('game:started', gameState);
+//
+//      // 3. Règle critique : Noir commence. Si le joueur a choisi Blanc, le bot (Noir) doit jouer de suite
+//      if (payload.color === 'white') {
+//         client.emit('game:botThinking'); // Info pour le front
+//         // On déclenche le tour du bot sans bloquer (fire and forget côté gateway)
+//         this.othelloService.playBotTurn(gameId);
+//      }
+    }
+    
 }
 
 /* -------------------------------------------------------------------------- */
