@@ -350,6 +350,7 @@ export class    OthelloService {
             valid: true,
             board: this.serializeBoard(gameEntry.engine),
             nextPlayer: gameEntry.engine.getCurrentPlayer(),
+            validMove: gameEntry.engine.allValidMove(gameEntry.engine.getCurrentPlayer()),
             status: gameEntry.status,
         };
         

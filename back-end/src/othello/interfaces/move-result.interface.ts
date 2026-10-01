@@ -16,11 +16,13 @@ import type { GameResult } from './game-result.interface';
 
 export interface MoveResult {
 
-  valid:          boolean;              // le coup était-il légal ?
-  board?:         Cell[];               // plateau (64 cases) après le coup, si valide
-  flippedCells?:  Move[];               // pions retournés, pour l'animation côté front
-  nextPlayer?:    PlayerColor;          // qui doit jouer ensuite
-  status?:        GameStatus;           // partie en cours ou terminée ?
-  result?:        GameResult;           // rempli seulement si status === FINISHED
-  reason?:        string;              // message d'erreur si valid === false
+    valid:          boolean;              // le coup était-il légal ?
+    nextPlayer:     PlayerColor;          // qui doit jouer ensuite
+    validMove:       Move[];               // prochain coup valide
+    
+    board?:         Cell[];               // plateau (64 cases) après le coup, si valide
+    flippedCells?:  Move[];               // pions retournés, pour l'animation côté front
+    status?:        GameStatus;           // partie en cours ou terminée ?
+    result?:        GameResult;           // rempli seulement si status === FINISHED
+    reason?:        string;              // message d'erreur si valid === false
 }
