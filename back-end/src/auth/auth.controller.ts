@@ -72,7 +72,7 @@ export class AuthController
 	{
 		const	auth = await this.authService.login( request.user ); // stock le retour de login (les deux tokens + le userPublic )
 
-		this.authService.setAuthCookies( res, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
+		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
 
 		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` ); // cookiesInterceptor est interompu par la redirection -> on 
 	}
@@ -90,7 +90,7 @@ export class AuthController
 	{
 		const	auth = await this.authService.login( request.user );
 
-		this.authService.setAuthCookies( res, auth.jwt, auth.refreshToken );
+		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken );
 
 		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` );
 	}

@@ -22,7 +22,7 @@ export class CookieInterceptor implements NestInterceptor // `implements` c'est 
 				if( !jwt )
 					return ( result );
 
-				this.authService.setAuthCookies( res, jwt, refreshToken );
+				this.authService.setTokensCookies( res, jwt, refreshToken ); // pose deux cookies : acces_token et refresh_token dans la reponse de la requete
 
 				return({ userPublic }); // return le resultat de login sans le jwt, ni le refreshToken
 			})
