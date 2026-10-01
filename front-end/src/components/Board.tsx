@@ -1,8 +1,7 @@
 import React from "react";
-import type { BoardProps, Player, BoardState, Position } from "../types/gameTypes";
+import type { BoardProps, Position } from "../types/gameTypes";
 import Square from "./Square";
-import StatusBar from "./StatusBar";
-import { hasValidMoves, getAllValidMoves, isValidMove, flipPawns, getIndex } from "../logic/gameLogic";
+import { getIndex } from "../logic/gameLogic";
 
 /**
  * Composant Board - Gère le plateau de jeu Othello/Reversi.
@@ -12,25 +11,25 @@ import { hasValidMoves, getAllValidMoves, isValidMove, flipPawns, getIndex } fro
  * - Gère les clics sur les cases (validation des coups, retournement des pions).
  * - Affiche la barre de statut et le bouton "Pass" si nécessaire.
  *
- * @param xIsNext - True si c'est au tour du joueur 'X' (noir), false pour 'O' (blanc).
+ * @param xIsNext - True si c'est au tour du joueur 'BLACK' (noir), false pour 'WHITE' (blanc).
  * @param board - État actuel du plateau (tableau 1D de 64 cases).
  * @param onPlay - Callback appelée après un coup valide pour mettre à jour l'état du jeu.
  */
-export default function Board({xIsNext, board, onPlay}: BoardProps): React.ReactElement {
-	// Détermine le joueur actuel ('X' pour noir, 'O' pour blanc)
-	const currentPlayer: Player = xIsNext ? 'X' : 'O';
+export default function Board({ board, validMoves, onMove}: BoardProps): React.ReactElement {
+	// Détermine le joueur actuel ('BLACK' pour noir, 'WHITE' pour blanc)
+	// const currentPlayer: Player = xIsNext ? 'BLACK' : 'WHITE';
 
 	// Récupère toutes les positions où le joueur actuel peut jouer
-	const validMoves = getAllValidMoves(board, currentPlayer);
+	// const BoardValidMoves = getAllValidMoves(board, currentPlayer);
 
 	// Vérifie si le joueur actuel a au moins un coup valide
-	const currentPlayerHasMoves = validMoves.length > 0;
+	// const currentPlayerHasMoves = validMoves.length > 0;
 
 	// Détermine l'adversaire
-	const opponent: Player = xIsNext ? 'O' : 'X';
+	// const opponent: Player = xIsNext ? 'WHITE' : 'BLACK';
 
 	// Vérifie si l'adversaire a des coups valides (pour gérer le passage de tour)
-	const opponentHasMoves = hasValidMoves(board, opponent);
+	// const opponentHasMoves = hasValidMoves(board, opponent);
 
 	/**
 	 * Gère un clic sur une case du plateau.
@@ -44,22 +43,26 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 			return;
 
 		// Ignore si le coup n'est pas valide selon les règles du jeu
-		if (!isValidMove(board, pos, currentPlayer))
-			return;
+		// if (!isValidMove(board, pos, currentPlayer))
+			// return;
 
 		// Crée une copie du plateau pour éviter de modifier l'état directement
-		const nextBoard: BoardState = board.slice();
+		// const nextBoard: BoardState = board.slice();
 
 		// Place le pion du joueur actuel
-		nextBoard[getIndex(pos)] = currentPlayer;
+		// nextBoard[getIndex(pos)] = currentPlayer;
 
 		// Retourne les pions adverses et vérifie si au moins un pion a été retourné
-		const flipped = flipPawns(nextBoard, pos, currentPlayer);
-		if (!flipped)
-				return; // Si aucun pion retourné, le coup est invalide (ne devrait pas arriver si isValidMove est correct)
+		// const flipped = flipCells(nextBoard, pos, currentPlayer);
+		// if (!flipped)
+				// return; // Si aucun pion retourné, le coup est invalide (ne devrait pas arriver si isValidMove est correct)
 
 		// Transmet le nouvel état du plateau au parent via onPlay
-		onPlay(nextBoard);
+		// onPlay(nextBoard);
+
+		if (!validMoves.some(move => move.col === pos.col && move.row === pos.row ))
+			return;
+		onMove(pos);
 	}
 
 	/**
@@ -79,7 +82,7 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 							return (
 								<Square 
 									key={getIndex(cellPos)} // Clé unique pour chaque case
-									value={board[getIndex(cellPos)]} // Valeur de la case : 'X', 'O', ou null
+									value={board[getIndex(cellPos)]} // Valeur de la case : 'BLACK', 'WHITE', ou null
 									onSquareClick={() => handleClick(cellPos)} // Gestionnaire de clic avec la position
 									isPossibleMove={validMoves.some(move => move.row === cellPos.row && move.col === cellPos.col)} // True si cette case est un coup valide
 								/>
@@ -95,14 +98,14 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 		<div className="card bg-base-200 p-4 shadow-md">
 			<div className="flex flex-col items-center justify-center gap-4">
 				{/* Barre d'état : affiche le score et le statut du jeu */}
-				<StatusBar
+				{/* <StatusBar
 					board={board}
 					xIsNext={xIsNext}
 					currentPlayerHasMoves={currentPlayerHasMoves}
 					opponentHasMoves={opponentHasMoves}
-				/>
+				/> */}
 
-				{/* Bouton "Pass" - Apparaît si le joueur actuel ne peut pas jouer mais l'adversaire oui */}
+				{/* Bouton "Pass" - Apparaît si le joueur actuel ne peut pas jouer mais l'adversaire oui
 				{ !currentPlayerHasMoves && opponentHasMoves && (
 					<button
 						className="btn btn-warning mt-4"
@@ -114,8 +117,8 @@ export default function Board({xIsNext, board, onPlay}: BoardProps): React.React
 						}}
 					>
 						Pass turn
-					</button>
-				)}
+					</button> 
+				)} */}
 
 				{/* Conteneur du plateau de jeu */}
 				<div className="flex justify-center ">

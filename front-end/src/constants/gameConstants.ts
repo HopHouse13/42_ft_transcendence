@@ -22,10 +22,10 @@ export const INITIAL_BOARD: BoardState = (() => {
 	const centralRow1 = (center - 1) * BOARD_SIZE;
 	const centralRow2 = center * BOARD_SIZE;
 
-	board[centralRow1 + (center - 1)]	= 'O';
-	board[centralRow1 + center]			= 'X';
-	board[centralRow2 + (center - 1)]	= 'X';
-	board[centralRow2 + center]			= 'O';
+	board[centralRow1 + (center - 1)]	= 'WHITE';
+	board[centralRow1 + center]			= 'BLACK';
+	board[centralRow2 + (center - 1)]	= 'BLACK';
+	board[centralRow2 + center]			= 'WHITE';
 	
 	return board;
 })();

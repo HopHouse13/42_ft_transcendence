@@ -1,15 +1,15 @@
-import type { BoardState, Position, Player, Pawn } from "../types/gameTypes";
+import type { BoardState, Position, Player, Cell } from "../types/gameTypes";
 import { BOARD_SIZE, DIRECTIONS, TOTAL_CELLS } from "../constants/gameConstants";
 
 /**
  * Compte le nombre de pions d'un type donné sur le plateau.
  *
  * @param board - Le plateau de jeu (tableau 1D de 64 éléments)
- * @param pawn - Le pion à compter ('X' pour les noirs, 'O' pour les blancs)
+ * @param Cell - Le pion à compter ('BLACK' pour les noirs, 'WHITE' pour les blancs)
  * @returns Le nombre de pions du joueur donné sur le plateau
  */
-export function getPawnCount(board: BoardState, pawn: Player): number {
-	return (board.filter((s: Pawn) => s === pawn).length);
+export function getCellCount(board: BoardState, Cell: Player): number {
+	return (board.filter((s: Cell) => s === Cell).length);
 }
 
 /**
@@ -68,15 +68,15 @@ export function isOnBoard(pos: Position): boolean {
  * 3. Si un pion du joueur actuel est trouvé à la fin de la séquence, tous les pions accumulés sont retournables
  *
  * @param board - État actuel du plateau
- * @param newPawnPos - Position où le joueur veut poser son pion
- * @param currentPlayer - Joueur actuel ('X' ou 'O')
+ * @param newCellPos - Position où le joueur veut poser son pion
+ * @param currentPlayer - Joueur actuel ('BLACK' ou 'WHITE')
  * @returns Tableau des positions des pions à retourner
  */
-export function getFlippedPawns(board: BoardState, newPawnPos: Position, currentPlayer: Player): Position[] {
+export function getFlippedCells(board: BoardState, newCellPos: Position, currentPlayer: Player): Position[] {
 	const flipped: Position[] = [];
 
 	for (const [dr, dc] of DIRECTIONS) {
-		const checkedPos: Position = { ...newPawnPos };
+		const checkedPos: Position = { ...newCellPos };
 		checkedPos.row += dr;
 		checkedPos.col += dc;
 		const toFlipInDirection: Position[] = [];
@@ -108,13 +108,13 @@ export function getFlippedPawns(board: BoardState, newPawnPos: Position, current
  *
  * @param board - État actuel du plateau
  * @param pos - Position à vérifier
- * @param currentPlayer - Joueur actuel ('X' ou 'O')
+ * @param currentPlayer - Joueur actuel ('BLACK' ou 'WHITE')
  * @returns true si le coup est valide, false sinon
  */
 export function isValidMove(board: BoardState, pos: Position, currentPlayer: Player): boolean {
 	if (board[getIndex(pos)] !== null)
 		return (false);
-	return (getFlippedPawns(board, pos, currentPlayer).length > 0);
+	return (getFlippedCells(board, pos, currentPlayer).length > 0);
 }
 
 /**
@@ -122,7 +122,7 @@ export function isValidMove(board: BoardState, pos: Position, currentPlayer: Pla
  * Parcourt toutes les cases du plateau pour trouver un coup valide.
  *
  * @param board - État actuel du plateau
- * @param currentPlayer - Joueur actuel ('X' ou 'O')
+ * @param currentPlayer - Joueur actuel ('BLACK' ou 'WHITE')
  * @returns true si le joueur a au moins un coup valide, false sinon
  */
 export function hasValidMoves(board: BoardState, currentPlayer: Player): boolean {
@@ -141,12 +141,12 @@ export function hasValidMoves(board: BoardState, currentPlayer: Player): boolean
  * Modifie directement le plateau passé en paramètre.
  *
  * @param nextBoard - Nouveau état du plateau (sera modifié)
- * @param newPawnPos - Position où le coup a été joué
- * @param currentPlayer - Joueur qui a joué ('X' ou 'O')
+ * @param newCellPos - Position où le coup a été joué
+ * @param currentPlayer - Joueur qui a joué ('BLACK' ou 'WHITE')
  * @returns true si des pions ont été retournés, false sinon
  */
-export function flipPawns(nextBoard: BoardState, newPawnPos: Position, currentPlayer: Player): boolean {
-	const flipped = getFlippedPawns(nextBoard, newPawnPos, currentPlayer);
+export function flipCells(nextBoard: BoardState, newCellPos: Position, currentPlayer: Player): boolean {
+	const flipped = getFlippedCells(nextBoard, newCellPos, currentPlayer);
 	for (const pos of flipped) {
 		nextBoard[getIndex(pos)] = currentPlayer;
 	}
@@ -158,7 +158,7 @@ export function flipPawns(nextBoard: BoardState, newPawnPos: Position, currentPl
  * Utilisé pour mettre en surbrillance les coups possibles dans l'UI.
  *
  * @param board - État actuel du plateau
- * @param currentPlayer - Joueur actuel ('X' ou 'O')
+ * @param currentPlayer - Joueur actuel ('BLACK' ou 'WHITE')
  * @returns Tableau de toutes les positions valides
  */
 export function getAllValidMoves(board: BoardState, currentPlayer: Player): Position[] {
@@ -190,32 +190,32 @@ export function getMoveDescription(history: BoardState[], move: number): string 
 	const prevBoard = history[move - 1];
 	const player = move % 2 === 1 ? "Black" : "White";
 
-	let newPawnIndex = -1;
+	let newCellIndex = -1;
 	for (let i = 0; i < TOTAL_CELLS; i++) {
 		if (newBoard[i] !== prevBoard[i]) {
-			newPawnIndex = i;
+			newCellIndex = i;
 			break;
 		}
 	}
-	if (newPawnIndex < 0) {
+	if (newCellIndex < 0) {
 		return (`#${move} ${player} passed.`);
 	}
 
-	return (`#${move} ${player} played [${getPosition(newPawnIndex).row + 1}, ${getPosition(newPawnIndex).col + 1}]`);
+	return (`#${move} ${player} played [${getPosition(newCellIndex).row + 1}, ${getPosition(newCellIndex).col + 1}]`);
 }
 
 /**
  * Génère le texte de statut du jeu (score, tour actuel, résultat).
  *
  * @param board - État actuel du plateau
- * @param xIsNext - true si c'est au tour des noirs (X), false pour les blancs (O)
+ * @param xIsNext - true si c'est au tour des noirs (BLACK), false pour les blancs (WHITE)
  * @param currentPlayerHasMoves - true si le joueur actuel a des coups valides
  * @param opponentsHasMoves - true si l'adversaire a des coups valides
  * @returns Texte de statut formaté avec score, tour actuel et résultat
  */
 export function getStatusText(board: BoardState, xIsNext: boolean, currentPlayerHasMoves: boolean, opponentsHasMoves: boolean): string {
-	const blackCount = getPawnCount(board, 'X');
-	const whiteCount = getPawnCount(board, 'O');
+	const blackCount = getCellCount(board, 'BLACK');
+	const whiteCount = getCellCount(board, 'WHITE');
 	let status: string = "";
 	const score = `Black: ${blackCount} | ${whiteCount} White`;
 	let result: string = "";

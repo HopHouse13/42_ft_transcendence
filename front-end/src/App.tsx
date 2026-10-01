@@ -19,7 +19,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; {/*DEBUG*/}
 
 const queryClient = new QueryClient();
 
-
 const App = (): React.ReactElement =>(
 	<QueryClientProvider client={queryClient}>
 		<AuthProvider>
