@@ -71,42 +71,41 @@ export class    OthelloService {
         
         this.games.set( gameId, gameEntry );
 
-                
         return( this.buildGameState(gameId, gameEntry) );
     }
     
-//    playMove(gameId: string, userId: string, move: Move): MoveResult {
-//    
-//        const entry = this._getGameEntry(gameId);
-//        const engineMove: EngineMove = { row: move.row, col: move.col };
-//    
-//        const playerInfo = entry.players.find((p) => p.userId === userId);
-//        if (!playerInfo) {
-//      
-//            throw new BadRequestException( `Joueur ${userId} ne fait pas partie de cette partie` );
-//        }
-//        
-//        try {
-//      
-//            entry.engine.playMove(engineMove, playerInfo.color);
-//    
-//        } catch (err) {
-//    
-//            throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
-//        }
-//        
-//    
-//        const result = this._setMoveResult(entry);
-//    
-//        const gameOver = entry.engine.isGameOver();
-//        if (gameOver) {
-//
-//            result.result = this.toGameResult(entry.engine.returnResult());
-//        }
-//        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
-//
-//        return( result );
-//  }
+    playLocalMove(gameId: string, userId: string, move: Move): MoveResult {
+    
+        const entry = this._getGameEntry(gameId);
+        const engineMove: EngineMove = { row: move.row, col: move.col };
+    
+        const playerInfo = entry.players.find((p) => p.userId === userId);
+        if (!playerInfo) {
+      
+            throw new BadRequestException( `Joueur ${userId} ne fait pas partie de cette partie` );
+        }
+        
+        try {
+      
+            entry.engine.playMove(engineMove, playerInfo.color);
+    
+        } catch (err) {
+    
+            throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
+        }
+        
+    
+        const result = this._setMoveResult(entry);
+    
+        const gameOver = entry.engine.isGameOver();
+        if (gameOver) {
+
+            result.result = this.toGameResult(entry.engine.returnResult());
+        }
+        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+
+        return( result );
+  }
 /*    --------------------------------------------------------------------------- */
     
     async createGame(hostUserId: string, VisitorUserId: string): Promise<GameState> {
@@ -320,11 +319,12 @@ export class    OthelloService {
         }
  */
     async playBotTurn(gameId: string) {
+        
         const game = this.games.get(gameId);
         if (!game) return;
 
         // Identification du Bot avec userId
-        const botPlayer = game.players.find(p => p.userId === 'bot_1');
+        const botPlayer = game.players.find(p => p.userId === this.localPlayer.userId);
         if (!botPlayer) return;
         
         const botColor = botPlayer.color;

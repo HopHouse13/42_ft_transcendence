@@ -99,10 +99,11 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
     
     @SubscribeMessage('localGame')
-    async handlePlayVsComputer( @ConnectedSocket() client: Socket, @MessageBody() payload: { color: 'black' | 'white' } ) {
-      // 1. Création de la partie via le GameService
-      return (this.othelloService.createLocalGame(client.id));
+    async handleCreateLoc( @ConnectedSocket() client: Socket, @MessageBody() payload: { color: 'black' | 'white' } ) {
       
+        // 1. Création de la partie via le GameService
+        const state = this.othelloService.createLocalGame(client.id);
+        this.server.to(state.gameId).emit('gameState', state);
       // 2. Envoi de l'état initial
       //const gameState = await this.othelloService.getState(gameId);
       //client.emit('game:started', gameState);
@@ -114,6 +115,32 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
 //         this.othelloService.playBotTurn(gameId);
 //      }
     }
+    
+        @SubscribeMessage('playBotGame') @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+        async handlePlayMoveLoc( @MessageBody() payload: PlayMovePayload, @ConnectedSocket() client: Socket )    {
+ 
+            const { gameId, userId, move } = payload;
+            try {
+              
+                const result = this.othelloService.playMove(gameId, userId, move);
+                this.server.to(gameId).emit('moveResult', result); // Diffuse le résultat à tous les joueurs de la partie
+
+            } catch (err) {
+
+                // N'envoie l'erreur qu'à celui qui a joué le coup invalide,
+                // pas à toute la room
+                client.emit('moveError', { message: err.message });
+            }
+            
+            const gameState = await this.othelloService.getState(gameId);
+            
+            // 3. Règle critique : Noir commence. Si le joueur a choisi Blanc, le bot (Noir) doit jouer de suite
+            client.emit('game:botThinking'); // Info pour le front
+            const state = this.othelloService.playBotTurn(gameId);
+            this.server.to(gameId).emit('gameState', state);
+        }
+      
+    
     
 }
 
