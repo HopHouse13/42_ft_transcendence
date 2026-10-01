@@ -1,11 +1,13 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({ // decorateur Module permet de definir les metadonnées qui vont regir ce module
-	imports: [ ServeStaticModule.forRoot({ // importe et configure une instance qui gere des ressources statiques
+	imports: [ forwardRef( () => AuthModule ),
+		ServeStaticModule.forRoot({ // importe et configure une instance qui gere des ressources statiques
 		rootPath: join( __dirname, '..', '..', 'uploads' ), // constitue le path du repertoire où se trouve la ressource statique
 		serveRoot: '/uploads' // defini le prefixe de l'url qui sera catché pour renvoyer la ressource statique
 	}) ],

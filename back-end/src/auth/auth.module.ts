@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
@@ -12,7 +12,7 @@ import { MailService } from '../mail/mail.service';
 
 @Module({
 	imports: [
-		UserModule, // pour accéder a `usersService.create` de register()
+		forwardRef( () => UserModule ), // pour accéder a `usersService.create` de register()
 		ConfigModule, // permet de lire dynamiquement les variables du .env
 		PassportModule,  // active le système générique de stratégies d'authentification
 		JwtModule.registerAsync({ // pour signer (générer les jwt) pour la reponse de la requéte
@@ -27,6 +27,6 @@ import { MailService } from '../mail/mail.service';
 	],
 	controllers: [ AuthController ],
 	providers: [ AuthService, JwtStrategy, GoogleStrategy, GitStrategy, MailService ],
-	exports: [ JwtModule ] // rend JwtService disponible pour les modules qui importeront AuthModule
+	exports: [ JwtModule, AuthService ] // rend JwtService disponible pour les modules qui importeront AuthModule
 })
 export class AuthModule {}
