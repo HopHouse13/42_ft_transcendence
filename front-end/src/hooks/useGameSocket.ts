@@ -27,6 +27,7 @@ interface MoveAppliedPayload {
 	status?: GameStatus;
 	result?: GameResult;
 	reason?: string;
+    validMove: Move[],
 }
 
 function useGameSocket(enabled: boolean): UseGameSocketResult {
@@ -105,6 +106,7 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
 				return {
 					...previousGameState,
 					cells: payload.board,
+                    validMoves: payload.validMove,
 					currentPlayer: payload.nextPlayer ?? previousGameState.currentPlayer,
 					status: payload.status ?? previousGameState.status,
 					result: payload.result,
