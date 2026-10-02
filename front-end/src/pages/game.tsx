@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Board from "../components/Board";
 import GameInfo from "../components/GameInfo";
-import  Chat  from "../components/Chat";
+import Chat from "../components/Chat";
 import type { BoardState, Position } from "../types/gameTypes";
 import { INITIAL_BOARD } from "../constants/gameConstants";
 
@@ -15,16 +15,12 @@ const Game = (): React.ReactElement => {
     const [history, setHistory] = useState<BoardState[]>([INITIAL_BOARD]);
     const [currentMove, setCurrentMove] = useState<number>(0);
 
-    // 2. Nouvel état pour gérer l'onglet actif ('history' par défaut)
     const [activeTab, setActiveTab] = useState<'history' | 'chat'>('history');
 
     const currentBoard: BoardState = history[currentMove];
 
     function handlePlay(nextMove: Position) {
-        void nextMove;
-        void setHistory;
         playMove(nextMove);
-        return;
     }
 
     function jumpTo(nextMove: number): void {
@@ -32,7 +28,9 @@ const Game = (): React.ReactElement => {
     }
 
     const { mode, selectMode } = useCreateGame();
-    const { isConnected, error, findMatch, waiting, gameState, playMove } = useGameSocket(mode === "ONLINE");
+    
+    //  AJOUT DE `socket` ICI
+    const { socket, isConnected, error, findMatch, waiting, gameState, playMove } = useGameSocket(mode === "ONLINE");
 
     const displayedBoard = gameState
         ? gameState.cells.map(toClientCell)
@@ -58,9 +56,9 @@ const Game = (): React.ReactElement => {
                     </span>
                 </div>
 
-                {/* Colonne latérale : Historique / Chat */}
+                {/* Colonne latérale */}
                 <div className="flex flex-col gap-4">
-                    {/* Boutons de bascule (Onglets) */}
+                    {/* Navigation Onglets */}
                     <div className="flex bg-gray-100 p-1 rounded-lg border border-gray-200">
                         <button
                             type="button"
@@ -96,7 +94,13 @@ const Game = (): React.ReactElement => {
                             onJumpTo={jumpTo}
                         />
                     ) : (
-                        <Chat />
+                        socket && gameState.gameId ? (
+                            <Chat socket={socket} gameId={gameState.gameId} />
+                        ) : (
+                            <div className="p-4 text-center text-gray-500">
+                                Connexion au tchat...
+                            </div>
+                        )
                     )}
                 </div>
             </div>

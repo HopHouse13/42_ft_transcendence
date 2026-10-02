@@ -4,151 +4,152 @@ import { io } from "socket.io-client";
 import { useAuthContext } from "./useAuthContext";
 import type { GameResult, GameState, GameStatus, Move, PlayerColor, ServerCell } from "../types/gameTypes";
 
-
-interface UseGameSocketResult {
-	isConnected: boolean;
-	error: string | null;
-	socketRef: React.RefObject<Socket | null>;
-	findMatch: () => void;
-	waiting: string | null;
-	gameState: GameState | null;
-	playMove: (position: Move) => void;
+export interface UseGameSocketResult {
+  socket: Socket | null;
+  gameId: string | null;
+  isConnected: boolean;
+  error: string | null;
+  findMatch: () => void;
+  waiting: string | null;
+  gameState: GameState | null;
+  playMove: (position: Move) => void;
 }
 
-interface WaitingPayload{
-	roomId: string;
+interface WaitingPayload {
+  roomId: string;
 }
 
 interface MoveAppliedPayload {
-	valid: boolean;
-	board?: ServerCell[];
-	flippedCells?: Move[];
-	nextPlayer?: PlayerColor;
-	status?: GameStatus;
-	result?: GameResult;
-	reason?: string;
-    validMove: Move[],
+  valid: boolean;
+  board?: ServerCell[];
+  flippedCells?: Move[];
+  nextPlayer?: PlayerColor;
+  status?: GameStatus;
+  result?: GameResult;
+  reason?: string;
+  validMove: Move[];
 }
 
 function useGameSocket(enabled: boolean): UseGameSocketResult {
-	const [isConnected, setIsConnected] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const socketRef = useRef<Socket | null>(null);
-	const { user, loading } = useAuthContext();
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const { user, loading } = useAuthContext();
 
-	const [waiting , setWaiting] = useState<string | null>(null);
-	const [gameState, setGameState] =useState<GameState | null>(null);
+  const [waiting, setWaiting] = useState<string | null>(null);
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-	function findMatch() {
-		const socket = socketRef.current;
+  function findMatch() {
+    const currentSocket = socketRef.current;
 
-		if (!isConnected || !socket?.connected || !user?.id )
-			return;
-		setError(null);
-		setWaiting(null);
-		setGameState(null);
-		socket.emit("findMatch", {userId: user.id})
-	};
+    if (!isConnected || !currentSocket?.connected || !user?.id) return;
+    setError(null);
+    setWaiting(null);
+    setGameState(null);
+    currentSocket.emit("findMatch", { userId: user.id });
+  }
 
-	function playMove(position: Move) {
-		const socket = socketRef.current;
-		if (!isConnected || !socket?.connected || !user?.id || !gameState?.gameId)
-			return;
-		socket.emit("playMove", {gameId: gameState.gameId, userId: user.id, move: position})
-	}
+  function playMove(position: Move) {
+    const currentSocket = socketRef.current;
+    if (!isConnected || !currentSocket?.connected || !user?.id || !gameState?.gameId) return;
+    currentSocket.emit("playMove", { gameId: gameState.gameId, userId: user.id, move: position });
+  }
 
-	useEffect(() => {
-		if (!enabled || loading || !user?.id) {
-			return;
-		}
+  useEffect(() => {
+    if (!enabled || loading || !user?.id) {
+      return;
+    }
 
-		const socket = io(window.location.origin, {
-			autoConnect: false,
-			query: {userId: user?.id},
-			withCredentials: true,
-		});
-		socketRef.current = socket;
+    const newSocket = io(window.location.origin, {
+      autoConnect: false,
+      query: { userId: user?.id },
+      withCredentials: true,
+    });
 
-		function onConnect() {
-			setIsConnected(true);
-			setError(null);
-		}
+    socketRef.current = newSocket;
+    setSocket(newSocket);
 
-		function onDisconnect() {
-			setIsConnected(false);
-		}
+    function onConnect() {
+      setIsConnected(true);
+      setError(null);
+    }
 
-		function onConnectError(connectionError: Error) {
-			setIsConnected(false);
-			setError(connectionError.message);
-		}
+    function onDisconnect() {
+      setIsConnected(false);
+    }
 
-		function onWaiting(payload: WaitingPayload) {
-			setWaiting(payload.roomId);
-		}
+    function onConnectError(connectionError: Error) {
+      setIsConnected(false);
+      setError(connectionError.message);
+    }
 
-		function onFinding(data: GameState) {
-			setGameState(data);
-		}
+    function onWaiting(payload: WaitingPayload) {
+      setWaiting(payload.roomId);
+    }
 
-		function onMoveRejected(payload: {message: string}) {
-			setError(payload.message);
-		}
+    function onFinding(data: GameState) {
+      setGameState(data);
+    }
 
-		// function onMoveApplied(data: GameState) {
-			// setGameState(data);
-		function onMoveApplied(payload: MoveAppliedPayload) {
-			setGameState((previousGameState) => {
-				if (!previousGameState || !payload.board){
-					return previousGameState;
-				}
+    function onMoveRejected(payload: { message: string }) {
+      setError(payload.message);
+    }
 
-				return {
-					...previousGameState,
-					cells: payload.board,
-                    validMoves: payload.validMove,
-					currentPlayer: payload.nextPlayer ?? previousGameState.currentPlayer,
-					status: payload.status ?? previousGameState.status,
-					result: payload.result,
-				}
-			})
-		}
+    function onMoveApplied(payload: MoveAppliedPayload) {
+      setGameState((previousGameState) => {
+        if (!previousGameState || !payload.board) {
+          return previousGameState;
+        }
 
-		socket.on("connect", onConnect);
-		socket.on("disconnect", onDisconnect);
-		socket.on("connect_error", onConnectError);
+        return {
+          ...previousGameState,
+          cells: payload.board,
+          validMoves: payload.validMove,
+          currentPlayer: payload.nextPlayer ?? previousGameState.currentPlayer,
+          status: payload.status ?? previousGameState.status,
+          result: payload.result,
+        };
+      });
+    }
 
-		socket.on("waiting", onWaiting);
-		socket.on("matchFound", onFinding);
-		socket.on("moveApplied", onMoveApplied)
-		socket.on("moveRejected", onMoveRejected )
+    newSocket.on("connect", onConnect);
+    newSocket.on("disconnect", onDisconnect);
+    newSocket.on("connect_error", onConnectError);
 
-		socket.connect();
+    newSocket.on("waiting", onWaiting);
+    newSocket.on("matchFound", onFinding);
+    newSocket.on("moveApplied", onMoveApplied);
+    newSocket.on("moveRejected", onMoveRejected);
 
-		return () => {
-			socket.disconnect();
-			socket.off("connect", onConnect);
-			socket.off("disconnect", onDisconnect);
-			socket.off("connect_error", onConnectError);
-			socket.off("waiting", onWaiting);
-			socket.off("matchFound", onFinding);
-			socket.off("moveApplied", onMoveApplied)
-			socket.off("moveRejected", onMoveRejected )
-			if (socketRef.current === socket) {
-				socketRef.current = null;
-			}
-		};
-	}, [loading, user?.id, enabled]);
+    newSocket.connect();
 
-	return {
-		isConnected,
-		error,
-		socketRef,
-		findMatch,
-		waiting,
-		gameState,
-		playMove
-	};
+    return () => {
+      newSocket.disconnect();
+      newSocket.off("connect", onConnect);
+      newSocket.off("disconnect", onDisconnect);
+      newSocket.off("connect_error", onConnectError);
+      newSocket.off("waiting", onWaiting);
+      newSocket.off("matchFound", onFinding);
+      newSocket.off("moveApplied", onMoveApplied);
+      newSocket.off("moveRejected", onMoveRejected);
+      if (socketRef.current === newSocket) {
+        socketRef.current = null;
+      }
+      setSocket(null);
+    };
+  }, [loading, user?.id, enabled]);
+
+  return {
+    socket,
+    gameId: gameState?.gameId ?? null,
+    isConnected,
+    error,
+    findMatch,
+    waiting,
+    gameState,
+    playMove,
+  };
 }
 
 export default useGameSocket;

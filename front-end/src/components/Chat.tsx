@@ -1,79 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Socket } from "socket.io-client";
 
 interface Message {
   id: number;
   text: string;
-  sender: "user" | "other";
-  type?: string;
+  senderId: string;
 }
 
-const Chat = (): React.ReactElement => {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "What kind of nonsense is this", sender: "other", type: "primary" },
-    { id: 2, text: "Put me on the Council and not make me a Master!??", sender: "other", type: "secondary" },
-    { id: 3, text: "That's never been done in the history of the Jedi.", sender: "other", type: "accent" },
-    { id: 4, text: "It's insulting!", sender: "other", type: "neutral" },
-    
-  ]);
+interface ChatProps {
+  socket: Socket;
+  gameId: string;
+}
 
+const Chat: React.FC<ChatProps> = ({ socket, gameId }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputVal, setInputVal] = useState("");
 
+  useEffect(() => {
+    if (!socket) return;
+
+    // 1. Rejoindre la room de la partie courante
+    socket.emit("joinGame", gameId);
+
+    // 2. Recevoir l'historique de la partie
+    socket.on("allMessages", (history: Message[]) => {
+      setMessages(history);
+    });
+
+    // 3. Écouter les nouveaux messages de la partie
+    socket.on("newMessage", (message: Message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+
+    return () => {
+      socket.off("allMessages");
+      socket.off("newMessage");
+    };
+  }, [socket, gameId]);
+
   const handleSend = () => {
-    if (!inputVal.trim()) return;
+    if (!inputVal.trim() || !socket) return;
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        text: inputVal,
-        sender: "user",
-        type: "warning",
-      },
-    ]);
-
-    setInputVal(""); // Réinitialise le champ après envoi
+    // Envoyer le message avec le gameId
+    socket.emit("sendMessage", { gameId, text: inputVal });
+    setInputVal("");
   };
 
   return (
-    <div className="card bg-base-200 p-4 shadow-md overflow-y-auto max-h-130">
-      <div className="flex-1 overflow-y-auto text-sm text-gray-500 mb-2 ">
-        <div className="aura aura-glow ">
-          <div className="card bg-base-100">
-            <div className="card-body">
-              {/* Avatars */}
-          <div className="avatar avatar-online avatar-placeholder">
-            <div className="bg-neutral text-neutral-content w-12 rounded-full">
-              <span>SY</span>
+    <div className="card bg-base-200 p-4 shadow-md">
+      <div className="flex flex-col gap-2 max-h-80 overflow-y-auto mb-4">
+        {messages.map((msg) => {
+          const isMe = msg.senderId === socket.id;
+          return (
+            <div key={msg.id} className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
+              <div className={`chat-bubble ${isMe ? "chat-bubble-primary" : "chat-bubble-secondary"}`}>
+                {msg.text}
+              </div>
             </div>
-          </div>
-     
+          );
+        })}
+      </div>
 
-              {/* Rendu dynamique des messages */}
-              {messages.map((msg) => (
-                <div key={msg.id} className={`chat ${msg.sender === "user" ? "chat-end" : "chat-start"}`}>
-                  <div className={`chat-bubble chat-bubble-${msg.type || "primary"}`}>{msg.text}</div>
-                </div>
-              ))}
-
-              {/* Champ de saisie et bouton d'envoi */}
-              <fieldset className="fieldset mt-4 sticky bottom-2">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Type here"
-                    className="input"
-                    value={inputVal}
-                    onChange={(e) => setInputVal(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  />
-                  <button className="btn btn-soft btn-secondary" onClick={handleSend}>
-                    Envoyer
-                  </button>
-                </div>
-              </fieldset>
-            </div>
-          </div>
-        </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          className="input input-bordered w-full"
+          value={inputVal}
+          onChange={(e) => setInputVal(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          placeholder="Chat de la partie..."
+        />
+        <button className="btn btn-secondary" onClick={handleSend}>
+          Envoyer
+        </button>
       </div>
     </div>
   );
