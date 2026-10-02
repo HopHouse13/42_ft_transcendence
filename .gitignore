@@ -50,6 +50,5 @@ Thumbs.db
 ######################
 .obsidian/
 **/node_modules
-
 # Environnement : .env est privé et local, .env.example reste commité (template)
 .env

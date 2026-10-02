@@ -1,83 +1,82 @@
-// src/components/Chat.tsx
-const Chat = (): React.ReactElement => {
-    return (
+import React, { useState } from "react";
 
-        <div className="card bg-base-200 p-4 shadow-md">
-            <div className="flex-1 overflow-y-auto text-sm text-gray-500 mb-2">
-            
-            <div class="aura aura-glow">
-                <div class="card bg-base-100">
-                    <div class="card-body">
-            <div className="avatar-group -space-x-6">
-                <div className="avatar">
-                    <div className="w-12">
-                        <img alt="Tailwind-CSS-Avatar-component" src="https://img.daisyui.com/images/profile/demo/batperson@192.webp" />
-                    </div>
-                </div>
-                <div className="avatar">
-                    <div className="w-12">
-                        <img alt="Tailwind-CSS-Avatar-component" src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
-                    </div>
-                </div>
-                <div className="avatar">
-                    <div className="w-12">
-                        <img alt="Tailwind-CSS-Avatar-component" src="https://img.daisyui.com/images/profile/demo/averagebulk@192.webp" />
-                    </div>
-                </div>
-                <div className="avatar avatar-placeholder">
-                    <div className="bg-neutral text-neutral-content w-12">
-                    <span>+99</span>
-                    </div>
-                </div>
-                </div>
-            
-                    <div className="chat chat-start">
-                        <div className="chat-bubble chat-bubble-primary">What kind of nonsense is this</div>
-                    </div>
-                    <div className="chat chat-start">
-                        <div className="chat-bubble chat-bubble-secondary">
-                            Put me on the Council and not make me a Master!??
-                        </div>
-                    </div>
-                    <div className="chat chat-start">
-                      <div className="chat-bubble chat-bubble-accent">
-                        That's never been done in the history of the Jedi.
-                      </div>
-                    </div>
-                    <div className="chat chat-start">
-                      <div className="chat-bubble chat-bubble-neutral">It's insulting!</div>
-                    </div>
-                    <div className="chat chat-end">
-                      <div className="chat-bubble chat-bubble-info">Calm down, Anakin.</div>
-                    </div>
-                    <div className="chat chat-end">
-                      <div className="chat-bubble chat-bubble-success">You have been given a great honor.</div>
-                    </div>
-                    <div className="chat chat-end">
-                      <div className="chat-bubble chat-bubble-warning">To be on the Council at your age.</div>
-                    </div>
-                    <div className="chat chat-end">
-                      <div className="chat-bubble chat-bubble-error">It's never happened before.</div>
-                    </div>
-                    <div className="chat chat-start">
-                    <div className="chat-bubble chat-bubble-info">
-                        <span className="loading loading-dots loading-xl"></span>
-                    </div>
-                    </div>
-            
-                <fieldset className="fieldset">
-                    <div className="flex gap-2">
-                        <input type="text" placeholder="Type here" className="input" />
-            <button className="btn btn-soft btn-secondary" onClick={()=>{ return} } >Envoyer</button>
-                    </div>
-                </fieldset>
-            
-                  </div>
-                </div>
+interface Message {
+  id: number;
+  text: string;
+  sender: "user" | "other";
+  type?: string;
+}
+
+const Chat = (): React.ReactElement => {
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 1, text: "What kind of nonsense is this", sender: "other", type: "primary" },
+    { id: 2, text: "Put me on the Council and not make me a Master!??", sender: "other", type: "secondary" },
+    { id: 3, text: "That's never been done in the history of the Jedi.", sender: "other", type: "accent" },
+    { id: 4, text: "It's insulting!", sender: "other", type: "neutral" },
+    
+  ]);
+
+  const [inputVal, setInputVal] = useState("");
+
+  const handleSend = () => {
+    if (!inputVal.trim()) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        text: inputVal,
+        sender: "user",
+        type: "warning",
+      },
+    ]);
+
+    setInputVal(""); // Réinitialise le champ après envoi
+  };
+
+  return (
+    <div className="card bg-base-200 p-4 shadow-md overflow-y-auto max-h-130">
+      <div className="flex-1 overflow-y-auto text-sm text-gray-500 mb-2 ">
+        <div className="aura aura-glow ">
+          <div className="card bg-base-100">
+            <div className="card-body">
+              {/* Avatars */}
+          <div className="avatar avatar-online avatar-placeholder">
+            <div className="bg-neutral text-neutral-content w-12 rounded-full">
+              <span>SY</span>
             </div>
+          </div>
+     
+
+              {/* Rendu dynamique des messages */}
+              {messages.map((msg) => (
+                <div key={msg.id} className={`chat ${msg.sender === "user" ? "chat-end" : "chat-start"}`}>
+                  <div className={`chat-bubble chat-bubble-${msg.type || "primary"}`}>{msg.text}</div>
+                </div>
+              ))}
+
+              {/* Champ de saisie et bouton d'envoi */}
+              <fieldset className="fieldset mt-4 sticky bottom-2">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Type here"
+                    className="input"
+                    value={inputVal}
+                    onChange={(e) => setInputVal(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                  />
+                  <button className="btn btn-soft btn-secondary" onClick={handleSend}>
+                    Envoyer
+                  </button>
+                </div>
+              </fieldset>
             </div>
+          </div>
         </div>
-            
-    );
+      </div>
+    </div>
+  );
 };
+
 export default Chat;
