@@ -4,20 +4,22 @@
   "metadata": {
     "name": "ad84wt6",
     "namespace": "default",
-    "uid": "f79733dd-95ba-4350-9496-fef1f9a01f8e",
-    "resourceVersion": "1790950115093980",
-    "generation": 1,
-    "creationTimestamp": "2026-10-02T14:08:35Z",
+    "uid": "0358f12d-f4f2-4ef8-b95f-e63f3af11d82",
+    "resourceVersion": "1790966339192985",
+    "generation": 2,
+    "creationTimestamp": "2026-10-02T18:09:09Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "2842516009283584"
+      "grafana.app/deprecatedInternalID": "2903057838309376"
     },
     "annotations": {
       "grafana.app/createdBy": "access-policy:service",
       "grafana.app/managedBy": "classic-file-provisioning",
       "grafana.app/managerId": "Transcendence Dashboards",
-      "grafana.app/sourceChecksum": "ef4b0e4aacdd1ccc8d5afccdec8969af",
+      "grafana.app/sourceChecksum": "a1fece19d9301e3522f78efbdcdafc2c",
       "grafana.app/sourcePath": "/etc/grafana/provisioning/dashboards/global-dashboard.json",
-      "grafana.app/sourceTimestamp": "1790623260000",
+      "grafana.app/sourceTimestamp": "1790966334000",
+      "grafana.app/updatedBy": "access-policy:service",
+      "grafana.app/updatedTimestamp": "2026-10-02T18:38:59Z",
       "grafana.app/folder": ""
     }
   },
@@ -79,7 +81,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Total non-idle CPU utilization across all host CPU cores, calculated from node-exporter idle counters.",
           "id": 1,
           "links": [],
           "title": "Host CPU Load (%)",
@@ -183,7 +185,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Total Resident Set Size (RSS) memory consumed by the NestJS container against a 512 MiB maximum operational limit.",
           "id": 10,
           "links": [],
           "title": "Backend RAM Used (%)",
@@ -252,6 +254,369 @@
           }
         }
       },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "rate(nginx_http_requests_total[1m])",
+                        "legendFormat": "Requests / sec",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Ingress HTTP request throughput processed by the Nginx reverse proxy, calculated over a 1-minute rate.",
+          "id": 11,
+          "links": [],
+          "title": "HTTP Requests / Second",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "axisSoftMax": 50,
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "reqps"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.3"
+          }
+        }
+      },
+      "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "nginx_connections_active",
+                        "legendFormat": "Users",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Total live TCP connections actively handled by Nginx, including active WebSocket streams and HTTP client sessions.",
+          "id": 12,
+          "links": [],
+          "title": "Active Connections",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "#ad46ff",
+                    "mode": "thresholds"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "blue",
+                        "value": 0
+                      },
+                      {
+                        "color": "#EAB839",
+                        "value": 250
+                      },
+                      {
+                        "color": "red",
+                        "value": 500
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.3"
+          }
+        }
+      },
+      "panel-13": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "nginx_connections_reading",
+                        "legendFormat": "Reading",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "nginx_connections_writing",
+                        "instant": false,
+                        "legendFormat": "Writing",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "nginx_connections_waiting",
+                        "instant": false,
+                        "legendFormat": "Waiting",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Breakdown of Nginx connection lifecycles: Reading (request headers), Writing (payload return), and Waiting (keep-alive idle).",
+          "id": 13,
+          "links": [],
+          "title": "Proxy Connection States",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "showValues": false,
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.3"
+          }
+        }
+      },
       "panel-2": {
         "kind": "Panel",
         "spec": {
@@ -285,7 +650,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Percentage of host physical memory actively occupied, evaluated using MemAvailable relative to MemTotal.",
           "id": 2,
           "links": [],
           "title": "Host RAM Used (%)",
@@ -514,7 +879,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "P99 execution latency of the Node.js event loop tracked via perf_hooks. Spikes above 50 ms indicate blocking synchronous operations.",
           "id": 6,
           "links": [],
           "title": "NestJS Event Loop Lag (ms)",
@@ -633,13 +998,35 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
+                        "expr": "nginx_up",
+                        "instant": false,
+                        "legendFormat": "nginx",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "PBFA97CFB590B2093"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
                         "expr": "up{job=~\"backend\"}",
                         "legendFormat": "{{job}}",
                         "range": true
                       },
                       "version": "v0"
                     },
-                    "refId": "A"
+                    "refId": "B"
                   }
                 },
                 {
@@ -661,7 +1048,7 @@
                       },
                       "version": "v0"
                     },
-                    "refId": "B"
+                    "refId": "C"
                   }
                 }
               ],
@@ -669,7 +1056,7 @@
               "transformations": []
             }
           },
-          "description": "Instantly turns red if backend crashes or db locks up.",
+          "description": "Service availability health checks (nginx_up, backend probe, and pg_up). Turns red immediately if any core service stops responding.",
           "id": 7,
           "links": [],
           "title": "Services Online Status",
@@ -718,9 +1105,9 @@
                 "overrides": []
               },
               "options": {
-                "colorMode": "background_solid",
-                "graphMode": "none",
-                "justifyMode": "center",
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
                 "orientation": "auto",
                 "percentChangeColorMode": "standard",
                 "reduceOptions": {
@@ -732,7 +1119,7 @@
                 },
                 "showPercentChange": false,
                 "text": {},
-                "textMode": "value_and_name",
+                "textMode": "auto",
                 "wideLayout": true
               }
             },
@@ -915,7 +1302,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "CPU core saturation of the single-threaded NestJS Node.js process over a 1-minute rate.",
           "id": 9,
           "links": [],
           "title": "Backend CPU Load (%)",
@@ -998,11 +1385,24 @@
             "spec": {
               "element": {
                 "kind": "ElementReference",
+                "name": "panel-12"
+              },
+              "height": 8,
+              "width": 6,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
                 "name": "panel-1"
               },
-              "height": 6,
-              "width": 7,
-              "x": 0,
+              "height": 8,
+              "width": 6,
+              "x": 6,
               "y": 0
             }
           },
@@ -1013,9 +1413,9 @@
                 "kind": "ElementReference",
                 "name": "panel-2"
               },
-              "height": 6,
-              "width": 7,
-              "x": 7,
+              "height": 8,
+              "width": 6,
+              "x": 12,
               "y": 0
             }
           },
@@ -1026,10 +1426,36 @@
                 "kind": "ElementReference",
                 "name": "panel-7"
               },
-              "height": 6,
-              "width": 10,
-              "x": 14,
+              "height": 8,
+              "width": 6,
+              "x": 18,
               "y": 0
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-11"
+              },
+              "height": 9,
+              "width": 24,
+              "x": 0,
+              "y": 8
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-13"
+              },
+              "height": 9,
+              "width": 24,
+              "x": 0,
+              "y": 17
             }
           },
           {
@@ -1039,10 +1465,10 @@
                 "kind": "ElementReference",
                 "name": "panel-9"
               },
-              "height": 8,
-              "width": 12,
+              "height": 6,
+              "width": 11,
               "x": 0,
-              "y": 6
+              "y": 26
             }
           },
           {
@@ -1052,36 +1478,10 @@
                 "kind": "ElementReference",
                 "name": "panel-10"
               },
-              "height": 8,
-              "width": 12,
-              "x": 12,
-              "y": 6
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-3"
-              },
-              "height": 8,
-              "width": 12,
-              "x": 0,
-              "y": 14
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-8"
-              },
-              "height": 8,
-              "width": 12,
-              "x": 12,
-              "y": 14
+              "height": 6,
+              "width": 13,
+              "x": 11,
+              "y": 26
             }
           },
           {
@@ -1091,10 +1491,36 @@
                 "kind": "ElementReference",
                 "name": "panel-6"
               },
-              "height": 9,
+              "height": 11,
               "width": 24,
               "x": 0,
-              "y": 22
+              "y": 32
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              },
+              "height": 10,
+              "width": 24,
+              "x": 0,
+              "y": 43
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-8"
+              },
+              "height": 10,
+              "width": 24,
+              "x": 0,
+              "y": 53
             }
           }
         ]
