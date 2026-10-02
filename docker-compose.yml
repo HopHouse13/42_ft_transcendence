@@ -70,7 +70,7 @@ services:
       - ft_transcendence_network
 
   grafana:
-    image: docker.io/grafana/grafana:latest
+    image: docker.io/grafana/grafana:13.2.3
     container_name: grafana
     depends_on:
       - database
@@ -90,7 +90,7 @@ services:
       - "3000"
 
   prometheus:
-    image: docker.io/prom/prometheus:latest
+    image: docker.io/prom/prometheus:v3.13.3
     container_name: prometheus
     depends_on:
       - backend
@@ -113,7 +113,7 @@ services:
       - "--web.route-prefix=/" # added for prometheus interface through proxy
 
   postgres-exporter:
-    image: docker.io/prometheuscommunity/postgres-exporter:latest
+    image: docker.io/prometheuscommunity/postgres-exporter:v0.20.1
     container_name: postgres-exporter
     env_file:
       - .env
@@ -131,7 +131,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
-    image: docker.io/prom/node-exporter:latest
+    image: docker.io/prom/node-exporter:v1.12.1
     container_name: node-exporter
     command:
       - '--path.rootfs=/host'
