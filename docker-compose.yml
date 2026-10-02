@@ -144,6 +144,16 @@ services:
     volumes:
       - '/:/host:ro,rslave'
 
+  nginx-exporter:
+    image: docker.io/nginx/nginx-prometheus-exporter:1.3
+    container_name: nginx-exporter
+    command:
+      - -nginx.scrape-uri=http://proxy/stub_status
+    networks:
+      - ft_transcendence_network
+    restart: unless-stopped
+
+
 # Réseau dédié pour que les conteneurs communiquent
 networks:
   ft_transcendence_network:
