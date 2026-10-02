@@ -1,6 +1,5 @@
 import React from "react";
 import type { GameMode } from "../types/gameTypes";
-// import { useCreateGame } from "../hooks/useCreateGame";
 
 interface GameProps {
     mode: GameMode;
@@ -24,13 +23,13 @@ interface GameProps {
          onSubmit={onSubmit}
          >
             <div className="flex flex-col items-center justify-center gap-4">
-                {/* <h1 className="text-4xl font-bold text-center mb-4">Choose Your game Mode</h1> */}
                 <div role="tablist" className="tabs tabs-box tabs-lg border-base-300 font-semibold">
                     <input
                         type="radio"
                         name="game_tab"
                         className="tab checked:tab-active"
                         aria-label="Local"
+                        disabled
                         checked={mode === "LOCAL"}
                         onChange={() => selectMode("LOCAL")}
                     />
@@ -51,7 +50,7 @@ interface GameProps {
                         onChange={() => selectMode("ONLINE")}
                     />
                 </div>
-                {mode === "ONLINE" && (
+                {mode === "ONLINE" || mode === "BOT" ? (
                     <div>
                         {isConnected ? (
                             <div className="inline-grid *:[grid-area:1/1]">
@@ -75,10 +74,18 @@ interface GameProps {
                             }
                         </span>
                     </div>
+                ) : (
+                    <span>
+                        Available soon...
+                    </span>
                 )}
-                {waiting 
+                {waiting && mode === "ONLINE"
                     ? <span>Room ID : {waiting}</span>
-                    : <button type="submit" className="btn btn-lg btn-soft btn-success">Play</button>
+                    : <button type="submit"
+                            disabled={!isConnected || mode === 'LOCAL'}
+                            className="btn btn-lg btn-soft btn-success ">
+                        {mode === "BOT" ? "Play bot" : "Find match"}
+                    </button>
                 }
             </div>
         </form>

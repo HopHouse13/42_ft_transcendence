@@ -95,15 +95,13 @@ export class    OthelloService {
         }
         
     
-        const result = this._setMoveResult(entry);
-    
         const gameOver = entry.engine.isGameOver();
+        entry.status = gameOver ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+        const result = this._setMoveResult(entry);
         if (gameOver) {
 
             result.result = this.toGameResult(entry.engine.returnResult());
         }
-        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
-
         return( result );
   }
 /*    --------------------------------------------------------------------------- */
@@ -318,7 +316,18 @@ export class    OthelloService {
             return( restored) ;
         }
  */
-    async playBotTurn(gameId: string) {
+    isBotTurn(gameId: string): boolean {
+
+        const game = this.games.get(gameId);
+        if (!game) return false;
+
+        const botPlayer = game.players.find(p => p.userId === this.localPlayer.userId);
+        return !!botPlayer
+            && game.engine.getCurrentPlayer() === botPlayer.color
+            && !game.engine.isGameOver();
+    }
+
+    async playBotTurn(gameId: string): Promise<GameState | undefined> {
         
         const game = this.games.get(gameId);
         if (!game) return;
@@ -357,8 +366,11 @@ export class    OthelloService {
 
             // 4. Boucle au cas où l'humain n'a pas de coup valide
             if (engine.getCurrentPlayer() === botColor && !engine.isGameOver()) {
-                await this.playBotTurn(gameId);
+                return await this.playBotTurn(gameId);
             }
+
+            game.status = engine.isGameOver() ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+            return this.buildGameState(gameId, game);
       }
     
 /**

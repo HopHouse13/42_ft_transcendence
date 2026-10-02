@@ -42,6 +42,8 @@ export interface BoardProps {
 	validMoves: Position[];
 
 	onMove: (position: Position) => void;
+
+	disabled: boolean;
 }
 
 /** Props pour le composant GameInfo */

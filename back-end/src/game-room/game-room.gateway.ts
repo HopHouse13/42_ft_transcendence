@@ -15,6 +15,7 @@ import { GameRoomService } from '../game-room/game-room.service';
 import type { PlayerRoom } from '../game-room/interfaces/player-room.interface';
 import { OthelloService } from '../othello/othello.service';
 import type { GameState } from '../othello/interfaces/game-state.interface';
+import type { MoveResult } from '../othello/interfaces/move-result.interface';
 import type { Move } from '../othello/types/move.type';
 
 /* -------------------------------------------------------------------------- */
@@ -94,6 +95,21 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
         this._onMatchFound(result);
     }
 
+    @SubscribeMessage('createBotGame')
+    onCreateBotGame( @ConnectedSocket() client: Socket, @MessageBody() body: { userId: string } ) {
+
+        if (this.connectedUsers.get(body.userId) !== client.id) {
+            client.emit('gameError', { message: 'Utilisateur non authentifié pour cette connexion' });
+            return;
+        }
+
+        const gameState = this.othelloService.createLocalGame(body.userId);
+        const room = `game:${gameState.gameId}`;
+        client.join(room);
+        this.activeGameByUser.set(body.userId, gameState.gameId);
+        client.emit('matchFound', gameState);
+    }
+
     /* -------------------------------------------------------------------------- */
     /*  Invitation (équivalent WS de POST /game-room/invit)                       */
     /* -------------------------------------------------------------------------- */
@@ -143,16 +159,35 @@ export class GameRoomGateway implements OnGatewayConnection, OnGatewayDisconnect
     @SubscribeMessage('playMove')
     async onPlayMove( @MessageBody() body: { gameId: string; userId: string; move: Move } ) {
 
+        let result: MoveResult;
         try {
-
-            const result = this.othelloService.playMove(body.gameId, body.userId, body.move);
-            this.server.to(`game:${body.gameId}`).emit('moveApplied', { userId: body.userId, ...result });
+            result = this.othelloService.playMove(body.gameId, body.userId, body.move);
 
         } catch (err) {
 
             const socketId = this.connectedUsers.get(body.userId);
             const socket = socketId ? this.server.sockets.sockets.get(socketId) : undefined;
-            socket?.emit('moveRejected', { message: err.message ?? 'Coup invalide' });
+            socket?.emit('moveRejected', {
+                message: err instanceof Error ? err.message : 'Coup invalide',
+            });
+            return;
+        }
+
+        const room = this.server.to(`game:${body.gameId}`);
+        room.emit('moveApplied', { userId: body.userId, ...result });
+
+        if (this.othelloService.isBotTurn(body.gameId)) {
+            room.emit('botThinking');
+            try {
+                const gameState = await this.othelloService.playBotTurn(body.gameId);
+                if (gameState) {
+                    this.server.to(`game:${body.gameId}`).emit('gameState', gameState);
+                }
+            } catch (err) {
+                this.server.to(`game:${body.gameId}`).emit('botError', {
+                    message: err instanceof Error ? err.message : 'Le bot n’a pas pu jouer',
+                });
+            }
         }
     }
     
