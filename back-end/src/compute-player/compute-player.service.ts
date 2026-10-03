@@ -6,6 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { BotStrategy, Position } from './interfaces/compute-strategy.interface';
 import { RandomBotStrategy } from './strategies/random-bot.strategy';
+import { MinmaxBotStrategy } from './strategies/minmax-bot.strategy';
 
 import { Cell } from '../othello/types/cell.type';
 import { Player } from '../othello/types/player.type';
@@ -21,8 +22,8 @@ import { Move } from '../othello/types/move.type';
 @Injectable()
 export class ComputePlayerService {
 
-    constructor(private readonly strategy: RandomBotStrategy) {}
-    // constructor(private readonly strategy: MinmaxBotStrategy) {}
+    //constructor(private readonly strategy: RandomBotStrategy) {}
+    constructor(private readonly strategy: MinmaxBotStrategy) {}
 
 
     async requestMove(cells: Cell[], color: Player, legalMoves: Move[]): Promise<Move | null> {
