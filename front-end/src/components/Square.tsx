@@ -1,23 +1,26 @@
 import React from "react";
 import type { SquareProps } from "../types/gameTypes";
 
-export default function Square({value, onSquareClick, isPossibleMove}: SquareProps): React.ReactElement {
+export default function Square({pos, value, onSquareClick, isPossibleMove}: SquareProps): React.ReactElement {
 	const hasCell = (value !== null) ;
 	const CellClass = (value === 'BLACK') ? 'black-Cell' :
 						(value === 'WHITE') ? 'white-Cell' : '';
 
 	return (
 		<div
-			className={`h-16 w-16 btn btn-xl btn-primary p-0 m-0`}
+			className={`btn btn-lg ${(pos.col % 2) === (pos.row % 2)  ? "btn-primary" : "btn-secondary"} rounded-none justify-center aspect-square h-auto w-full`}
 			onClick={onSquareClick}
 			aria-label={value === 'BLACK' ? 'black Cell' :
 				value === 'WHITE' ? 'white Cell' :
 				isPossibleMove ? 'possible move' : 'empty square'}
 		>
 			{hasCell ? (
-				<span className={`h-6 w-6 rounded-full ${CellClass === 'black-Cell' ? 'bg-black' : 'bg-white'}`} />
+				<div className={`h-[60%] aspect-square rounded-full 
+					${CellClass === 'black-Cell' 
+					? 'bg-[#1d1d1d] shadow-lg shadow-black/40 inset-shadow-sm inset-shadow-white/20' 
+					: 'bg-[#f0ede8] shadow-lg shadow-black/40 inset-shadow-sm inset-shadow-black'}`} />
 			 ) : isPossibleMove && (
-				<span className="h-6 w-6 rounded-full bg-[#ffff0080]" />
+				<div className="h-[30%] aspect-square animate-pulse bg-[#ffff0080] rounded-full " />
 			 )}
 		</div>
 	);

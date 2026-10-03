@@ -22,6 +22,7 @@ export interface Position {
 
 /** Props pour le composant Square */
 export interface SquareProps {
+	pos: Position;
 	/** Valeur de la case : 'BLACK' (noir), 'WHITE' (blanc) ou null (vide) */
 	value: Cell;
 	/** Fonction appelée lors du clic sur la case */
