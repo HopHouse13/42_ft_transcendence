@@ -6,7 +6,6 @@ contactPoints:
         - uid: dg050i1wfvchsd
           type: discord
           settings:
-            url: https://discord.com/api/webhooks/1550538676499644486/K7Ywtg7amgY1RmRyZFOQ4UwN3S6u-knHDMN-ExbNLgwwky-AUlLChC9YODnxonInlFBb
-            use_discord_username: false
+            url: $DISCORD_WEBHOOK_URL
             use_embed_description: false
           disableResolveMessage: false
