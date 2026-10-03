@@ -100,3 +100,25 @@ export interface GameState {
   result?:        GameResult;
   createdAt:      string;
 }
+
+/** Props pour le composant PlayerCard */
+export interface PlayerCardProps {
+	player: PlayerInfo;
+	isTurn: boolean;
+	side: 'left' | 'right';
+	username: string;
+	elo: number | null;
+	avatarUrl: string | null;
+}
+
+/** Props pour le composant ScoreCard */
+export interface ScoreCardProps {
+	leftScore: number;
+	rightScore: number;
+}
+
+/** Props pour le composant GameHeader */
+export interface GameHeaderProps {
+	gameState: GameState;
+	mode: GameMode;
+}

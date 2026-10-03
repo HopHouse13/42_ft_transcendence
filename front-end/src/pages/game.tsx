@@ -5,6 +5,7 @@ import { useCreateGame } from '../hooks/useCreateGame';
 import Lobby from '../components/Lobby';
 import useGameSocket from '../hooks/useGameSocket';
 import { toClientCell } from '../utils/cellConverter';
+import GameHeader from "../components/GameHeader";
 
 const Game =(): React.ReactElement => {
 
@@ -31,13 +32,9 @@ const Game =(): React.ReactElement => {
 		) : (
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 ">
 				<div className="lg:col-span-2">
-					<div className="font-semibold">
-						{ gameState.result 
-							? `Game Over: ${gameState.result.winner} ${gameState.result.winner === "DRAW" ? '' : 'wins'}`
-							: `Turn: ${gameState.currentPlayer}`
-						}
+					<div className="w-full mb-2">
+						<GameHeader gameState={gameState} mode={mode}/>
 					</div>
-					{isBotThinking && <p aria-live="polite">Bot is thinking...</p>}
 					<Board board={gameState.cells.map(toClientCell)} validMoves={gameState.validMoves} onMove={handlePlay} disabled={isMovePending || isBotThinking} />
 					<div role="alert" className="flex justify-center mt-4 text-error text-lg font-semibold">
 						{

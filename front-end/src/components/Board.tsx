@@ -15,7 +15,7 @@ export default function Board({ board, validMoves, onMove, disabled}: BoardProps
 	}
 //  
 	return (
-		<div className="grid grid-cols-8 bg-[url(/wood2.svg)] rounded-lg shadow-xl p-3">
+		<div className="grid grid-cols-8 bg-[url(/wood.svg)] rounded-lg shadow-xl p-3">
 			{Array(8).fill(null).map((_, row: number) => (
 					Array(8).fill(null).map((_, col: number) => {
 						const index = getIndex({row, col});

@@ -20,7 +20,7 @@ export default function Square({pos, value, onSquareClick, isPossibleMove}: Squa
 					? 'bg-[#1d1d1d] shadow-lg shadow-black/40 inset-shadow-sm inset-shadow-white/20' 
 					: 'bg-[#f0ede8] shadow-lg shadow-black/40 inset-shadow-sm inset-shadow-black'}`} />
 			 ) : isPossibleMove && (
-				<div className="h-[30%] aspect-square animate-pulse bg-[#ffff0080] rounded-full " />
+				<div className="h-[20%] aspect-square animate-pulse bg-[#1f1f1f50] rounded-full " />
 			 )}
 		</div>
 	);
