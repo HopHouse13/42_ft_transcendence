@@ -49,7 +49,7 @@ const GameHeader = ({ gameState, mode }: GameHeaderProps): React.ReactElement =>
     }
 
     return (
-        <div className="flex flex-row grow gap-4 w-full items-center">
+        <div className="flex flex-row grow gap-4 w-full items-center mb-2">
             <div className="flex min-w-0 flex-1">
                 <PlayerCard
                     player={mePlayer ?? { userId: '', color: 'BLACK', connected: false }}

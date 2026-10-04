@@ -55,7 +55,7 @@ const Header: FC = () => {
 								<div className="dropdown dropdown-end">
 									<label tabIndex={0} className="btn btn-ghost rounded-btn text-lg hover:bg-base-300">
 										<img src={`/api${user?.avatarUrl}`} alt="avatar" className="w-8 h-8 rounded-full" /> {/* MODIF DE PAB*/}
-										{user?.username}
+										<p className="truncate w-max-20">{user?.username}</p>
 									</label>
 									<ul tabIndex={0} className="menu dropdown-content z-[1] mt-3 p-2 shadow bg-base-200 rounded-box w-40 gap-2">
 										<li>

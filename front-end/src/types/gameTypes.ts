@@ -101,6 +101,32 @@ export interface GameState {
   createdAt:      string;
 }
 
+/** Entrée de l'historique des coups */
+export interface MoveHistoryEntry {
+	/** État du plateau après le coup */
+	board: BoardState;
+	/** Joueur qui a joué le coup (null pour l'état initial) */
+	player: Player | null;
+	/** Position du pion posé (null pour une passe ou l'état initial) */
+	position: Position | null;
+	/** Nombre de pions retournés par le coup */
+	flippedCount: number;
+	/** True si l'entrée correspond à une passe */
+	passed: boolean;
+}
+
+/** Props pour le composant History */
+export interface HistoryProps {
+	/** Historique des coups (index 0 = état initial du plateau) */
+	history: MoveHistoryEntry[];
+	/** Couleur affichée dans la colonne de gauche (celle du joueur local, cf. GameHeader) */
+	leftColor: PlayerColor;
+	/** True pour afficher le coup le plus récent en premier */
+	showLatestFirst: boolean;
+	/** Fonction appelée lors du clic sur le bouton Reverse */
+	onReverse: () => void;
+}
+
 /** Props pour le composant PlayerCard */
 export interface PlayerCardProps {
 	player: PlayerInfo;
