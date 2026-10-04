@@ -29,7 +29,6 @@ interface GameProps {
                         name="game_tab"
                         className="tab checked:tab-active"
                         aria-label="Local"
-                        disabled
                         checked={mode === "LOCAL"}
                         onChange={() => selectMode("LOCAL")}
                     />
@@ -75,16 +74,16 @@ interface GameProps {
                         </span>
                     </div>
                 ) : (
-                    <span>
-                        Available soon...
-                    </span>
+                     <span>
+                        Two players on the same screen
+                     </span>
                 )}
                 {waiting && mode === "ONLINE"
                     ? <span>Room ID : {waiting}</span>
                     : <button type="submit"
-                            disabled={!isConnected || mode === 'LOCAL'}
-                            className="btn btn-lg btn-soft btn-success ">
-                        {mode === "BOT" ? "Play bot" : "Find match"}
+                        disabled={mode !== "LOCAL" && !isConnected}
+                        className="btn btn-lg btn-soft btn-success ">
+                        {mode === "BOT" ? "Play bot" : mode === "LOCAL" ? "Play local" : "Find match"}
                     </button>
                 }
             </div>

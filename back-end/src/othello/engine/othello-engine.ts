@@ -31,6 +31,21 @@ export class OthelloEngine  {
     this._currentPlayer = 'BLACK';
   }
 
+    clone(): OthelloEngine {
+        
+      const copy = new OthelloEngine();
+      copy._board = this._board.clone();
+      copy._currentPlayer = this._currentPlayer;
+      return copy;
+    }
+
+    static fromState(cells: Cell[], currentPlayer: Player): OthelloEngine {
+        
+      const e = new OthelloEngine();
+      e._board = new OthelloBoard([...cells]);
+      e._currentPlayer = currentPlayer;
+      return e;
+    }
 /*        Methode GET for champs            */
 
   getBoard(): OthelloBoard  {
