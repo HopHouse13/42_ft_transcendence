@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { BoardState, Player, Position } from "../types/gameTypes";
 import { BOARD_SIZE } from "../constants/gameConstants";
 import {
@@ -9,6 +9,43 @@ import {
     hasValidMoves,
     isValidMove,
 } from "../logic/gameLogic";
+
+const STORAGE_KEY = "othello:local-game";
+
+interface SavedLocalGame {
+    board: BoardState;
+    currentPlayer: Player;
+    started: boolean;
+    notice: string | null;
+}
+
+/** Relit la partie sauvegardée (null si absente ou invalide). */
+export function loadSavedLocalGame(): SavedLocalGame | null {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw)
+            return null;
+
+        const data = JSON.parse(raw);
+        const validBoard =
+            Array.isArray(data.board) &&
+            data.board.length === BOARD_SIZE * BOARD_SIZE &&
+            data.board.every((c: unknown) => c === null || c === "BLACK" || c === "WHITE");
+        const validPlayer = data.currentPlayer === "BLACK" || data.currentPlayer === "WHITE";
+
+        if (!validBoard || !validPlayer || data.started !== true)
+            return null;
+
+        return {
+            board: data.board,
+            currentPlayer: data.currentPlayer,
+            started: true,
+            notice: typeof data.notice === "string" ? data.notice : null,
+        };
+    } catch {
+        return null;
+    }
+}
 
 function createInitialBoard(): BoardState {
     const board: BoardState = Array(BOARD_SIZE * BOARD_SIZE).fill(null);
@@ -23,10 +60,28 @@ function createInitialBoard(): BoardState {
 const opponentOf = (p: Player): Player => (p === "BLACK" ? "WHITE" : "BLACK");
 
 export function useLocalGame() {
-    const [board, setBoard] = useState<BoardState>(createInitialBoard);
-    const [currentPlayer, setCurrentPlayer] = useState<Player>("BLACK");
-    const [started, setStarted] = useState(false);
-    const [notice, setNotice] = useState<string | null>(null);
+    const [saved] = useState(loadSavedLocalGame);
+
+    const [board, setBoard] = useState<BoardState>(() => saved?.board ?? createInitialBoard());
+    const [currentPlayer, setCurrentPlayer] = useState<Player>(saved?.currentPlayer ?? "BLACK");
+    const [started, setStarted] = useState(saved?.started ?? false);
+    const [notice, setNotice] = useState<string | null>(saved?.notice ?? null);
+
+    // Sauvegarde automatique à chaque changement
+    useEffect(() => {
+        try {
+            if (started) {
+                localStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify({ board, currentPlayer, started, notice }),
+                );
+            } else {
+                localStorage.removeItem(STORAGE_KEY);
+            }
+        } catch {
+            // localStorage indisponible (navigation privée, quota...) : on ignore
+        }
+    }, [board, currentPlayer, started, notice]);
 
     const validMoves = useMemo(
         () => getAllValidMoves(board, currentPlayer),
@@ -74,12 +129,10 @@ export function useLocalGame() {
         let message: string | null = null;
 
         if (!hasValidMoves(nextBoard, opponent)) {
-            // L'adversaire passe son tour si le joueur courant peut encore jouer
             if (hasValidMoves(nextBoard, currentPlayer)) {
                 next = currentPlayer;
                 message = `${opponent === "BLACK" ? "Black" : "White"} has no valid moves and passes.`;
             }
-            // sinon : fin de partie (détectée par isFinished)
         }
 
         setBoard(nextBoard);

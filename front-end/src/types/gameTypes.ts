@@ -91,14 +91,16 @@ export interface GameResult {
 }
 
 export interface GameState {
-  gameId:         string;
-  cells:          ServerCell[];
-  status:         GameStatus;
-  players:        PlayerInfo[];
-  currentPlayer:  PlayerColor;
-  validMoves:     Move[];
-  result?:        GameResult;
-  createdAt:      string;
+    
+    gameId:         string;
+    mode:           'BOT' | 'ONLINE';
+    cells:          ServerCell[];
+    status:         GameStatus;
+    players:        PlayerInfo[];
+    currentPlayer:  PlayerColor;
+    validMoves:     Move[];
+    result?:        GameResult;
+    createdAt:      string;
 }
 
 /** Props pour le composant PlayerCard */
