@@ -4,27 +4,52 @@ import type { Position } from "../types/gameTypes";
 import { useCreateGame } from '../hooks/useCreateGame';
 import Lobby from '../components/Lobby';
 import useGameSocket from '../hooks/useGameSocket';
+import { useLocalGame } from '../hooks/useLocalGame';
 import { toClientCell } from '../utils/cellConverter';
 import GameHeader from "../components/GameHeader";
+import LocalGame from "../components/LocalGame";
 
-const Game =(): React.ReactElement => {
-
+const Game = (): React.ReactElement => {
     const { mode, selectMode } = useCreateGame();
     const { isConnected, error, findMatch, startBotGame, waiting, gameState, playMove, isMovePending, isBotThinking } = useGameSocket(mode !== "LOCAL");
+    const local = useLocalGame();
 
-    function handlePlay( nextMove: Position ) {
+    function handlePlay(nextMove: Position) {
         if (isMovePending)
             return;
-
         playMove(nextMove);
     }
 
+    function handleStart() {
+        if (mode === "LOCAL") local.start();
+        else if (mode === "BOT") startBotGame();
+        else findMatch();
+    }
+
+    if (mode === "LOCAL" && local.started) {
+        return (
+            <LocalGame
+                board={local.board}
+                currentPlayer={local.currentPlayer}
+                validMoves={local.validMoves}
+                blackScore={local.blackScore}
+                whiteScore={local.whiteScore}
+                isFinished={local.isFinished}
+                winner={local.winner}
+                notice={local.notice}
+                onMove={local.playMove}
+                onRestart={local.start}
+                onQuit={local.quit}
+            />
+        );
+    }
+
     return (
-        (!gameState) ? (
+        (!gameState || mode === "LOCAL") ? (
             <Lobby
                 mode={mode}
                 selectMode={selectMode}
-                onStart={mode === "BOT" ? startBotGame : findMatch}
+                onStart={handleStart}
                 isConnected={isConnected}
                 connectionError={error}
                 waiting={waiting}
@@ -37,9 +62,7 @@ const Game =(): React.ReactElement => {
                     </div>
                     <Board board={gameState.cells.map(toClientCell)} validMoves={gameState.validMoves} onMove={handlePlay} disabled={isMovePending || isBotThinking} />
                     <div role="alert" className="flex justify-center mt-4 text-error text-lg font-semibold">
-                        {
-                            error
-                        }
+                        {error}
                     </div>
                 </div>
             </div>
