@@ -1,0 +1,14 @@
+apiVersion: 1
+policies:
+  - orgId: 1
+    receiver: empty
+    group_by:
+      - grafana_folder
+      - alertname
+    routes:
+      - receiver: empty
+        object_matchers:
+          - ['__grafana_receiver__', '=', 'empty']
+      - receiver: discord-bot
+        object_matchers:
+          - ['__grafana_receiver__', '=', 'discord-bot']

@@ -1,0 +1,27 @@
+global:
+  scrape_interval: 15s # How often Prometheus asks for data
+
+scrape_configs:
+  # Prometheus monitoring its own internal health
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Prometheus scraping the Node Exporter container
+  - job_name: 'backend'
+    static_configs:
+      - targets: ['backend:3000']
+
+  # Prometheus scraping the database container through the postgres-exporter
+  - job_name: 'database'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # scraping node-exporter to access host machine CPU/RAM usage
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']

@@ -1,0 +1,11 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: discord-bot
+      receivers:
+        - uid: dg050i1wfvchsd
+          type: discord
+          settings:
+            url: $DISCORD_WEBHOOK_URL
+            use_embed_description: false
+          disableResolveMessage: false
