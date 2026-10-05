@@ -35,12 +35,16 @@ import { ComputePlayerService } from '../compute-player/compute-player.service';
  * status -> enum GameStatus Waiting || ingame || finshed
  * createdAt -> date de la creatation de la partie
  */
-interface GameEntry {
+type GameMode = 'BOT' | 'ONLINE';
 
-    engine:     OthelloEngine;
-    players:    PlayerInfo[];
-    status:     GameStatus;
-    createdAt:  Date;
+interface GameEntry {
+    gameId:         string;
+    mode:           GameMode;
+    engine:         OthelloEngine;
+    players:        PlayerInfo[];
+    status:         GameStatus;
+    createdAt:      Date;
+    forfeitWinner?: Player;   // renseigné si un joueur abandonne / se déconnecte trop longtemps
 }
 
 /* ========================================================================== */
@@ -53,6 +57,8 @@ export class    OthelloService {
  */
     private readonly games = new Map<string, GameEntry>();
     private readonly localPlayer: PlayerInfo = { userId: randomUUID(), color: 'BLACK', connected: true };
+    // userId -> gameId pour retrouver vite la partie d'un joueur
+    private readonly gameByUser = new Map<string, string>();
     
     constructor( private readonly computePlayerService: ComputePlayerService, private readonly prisma: PrismaService) {}
     
@@ -64,135 +70,95 @@ export class    OthelloService {
     
 /* --------------------------------------------------------------------------- */
     
+    
     createLocalGame(hostUserId: string): GameState {
-  
+
         const gameId = randomUUID();
-        const gameEntry = this._initGameEntry(hostUserId,this.localPlayer.userId);
-        
-        this.games.set( gameId, gameEntry );
+        const gameEntry = this._initGameEntry(gameId, 'BOT', hostUserId, this.localPlayer.userId);
 
-        return( this.buildGameState(gameId, gameEntry) );
+        this.games.set(gameId, gameEntry);
+        this.registerPlayers(gameEntry);
+
+        return this.buildGameState(gameId, gameEntry);
     }
-    
-    playLocalMove(gameId: string, userId: string, move: Move): MoveResult {
-    
-        const entry = this._getGameEntry(gameId);
-        const engineMove: EngineMove = { row: move.row, col: move.col };
-    
-        const playerInfo = entry.players.find((p) => p.userId === userId);
-        if (!playerInfo) {
-      
-            throw new BadRequestException( `Joueur ${userId} ne fait pas partie de cette partie` );
-        }
-        
-        try {
-      
-            entry.engine.playMove(engineMove, playerInfo.color);
-    
-        } catch (err) {
-    
-            throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
-        }
-        
-    
-        const gameOver = entry.engine.isGameOver();
-        entry.status = gameOver ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
-        const result = this._setMoveResult(entry);
-        if (gameOver) {
-
-            result.result = this.toGameResult(entry.engine.returnResult());
-        }
-        return( result );
-  }
+ 
 /*    --------------------------------------------------------------------------- */
-    
-    async createGame(hostUserId: string, VisitorUserId: string): Promise<GameState> {
-  
-        const gameId = randomUUID();
-        const gameEntry = this._initGameEntry(hostUserId, VisitorUserId);
-        
-        this.games.set( gameId, gameEntry );
-        //gameEntry.players.push( { VisitorUserId, color: 'WHITE', connected: true } );
-        //gameEntry.status = GameStatus.IN_PROGRESS;
-        
-        await this.prisma.game.create({ data: { id: gameId, status:'IN_PROGRESS',  blackPlayerId : hostUserId, whitePlayerId : VisitorUserId} });
-        
-        return( this.buildGameState(gameId, gameEntry) );
-    }
 
+
+    async createGame(hostUserId: string, visitorUserId: string): Promise<GameState> {
+
+        const gameId = randomUUID();
+        const gameEntry = this._initGameEntry(gameId, 'ONLINE', hostUserId, visitorUserId);
+
+        await this.prisma.game.create({
+            data: { id: gameId, status: 'IN_PROGRESS', blackPlayerId: hostUserId, whitePlayerId: visitorUserId },
+        });
+
+        // On n'enregistre en mémoire qu'après le succès de la base
+        this.games.set(gameId, gameEntry);
+        this.registerPlayers(gameEntry);
+
+        return this.buildGameState(gameId, gameEntry);
+    }
 
     async joinGame(gameId: string, userId: string): Promise<GameState> {
 
-    const gameEntry = this._getGameEntry(gameId);
-    if (gameEntry.players.length >= 2)  {
-    
-      throw new BadRequestException(`La partie ${gameId} est déjà complète`);
+        const gameEntry = this._getGameEntry(gameId);
+        if (gameEntry.players.length >= 2) {
+            throw new BadRequestException(`La partie ${gameId} est déjà complète`);
+        }
+
+        gameEntry.players.push({ userId, color: 'WHITE', connected: true });
+        gameEntry.status = GameStatus.IN_PROGRESS;
+        this.registerPlayers(gameEntry);
+
+        await this.prisma.game.update({
+            where: { id: gameId },
+            data: { whitePlayerId: userId, status: 'IN_PROGRESS' },
+        });
+
+        return this.buildGameState(gameId, gameEntry);
     }
-
-    gameEntry.players.push( { userId, color: 'WHITE', connected: true } );
-    gameEntry.status = GameStatus.IN_PROGRESS;
-
-      await this.prisma.game.update({ where: { id: gameId }, data: { whitePlayerId: userId, status: 'IN_PROGRESS' } });
-      
-    return( this.buildGameState(gameId, gameEntry) );
-  }
     
 /**
  *
  *
  */
     
+    playLocalMove(gameId: string, userId: string, move: Move): MoveResult {
+        return this._applyMove(gameId, userId, move);
+    }
+
     playMove(gameId: string, userId: string, move: Move): MoveResult {
-    
+        return this._applyMove(gameId, userId, move);
+    }
+
+    private _applyMove(gameId: string, userId: string, move: Move): MoveResult {
+
         const entry = this._getGameEntry(gameId);
-        const engineMove: EngineMove = { row: move.row, col: move.col };
-    
+        if (entry.status !== GameStatus.IN_PROGRESS) {
+            throw new BadRequestException(`La partie ${gameId} n'est pas en cours`);
+        }
+
         const playerInfo = entry.players.find((p) => p.userId === userId);
         if (!playerInfo) {
-      
-            throw new BadRequestException( `Joueur ${userId} ne fait pas partie de cette partie` );
+            throw new BadRequestException(`Joueur ${userId} ne fait pas partie de cette partie`);
         }
-        
+
         try {
-      
-            entry.engine.playMove(engineMove, playerInfo.color);
-    
-        } catch (err) {
-    
+            entry.engine.playMove({ row: move.row, col: move.col }, playerInfo.color);
+        } catch {
             throw new BadRequestException(`Coup invalide en (${move.row}, ${move.col})`);
         }
-        
-        //-- >> await this.prisma.move.create({ data: { gameId, player: playerInfo.color, row: move.row, col: move.col} });
-    
-        const result = this._setMoveResult(entry);
-    
-        const gameOver = entry.engine.isGameOver();
+
+        //-- >> await this.prisma.move.create(...)  (à adapter à ton nouveau modèle Move)
+
+        const gameOver = this._updateStatus(entry);   // d'abord le status...
+        const result = this._setMoveResult(entry);    // ...puis le résultat
         if (gameOver) {
-
-            result.result = this.toGameResult(entry.engine.returnResult());
-            //-- >> await this.prisma.game.update({ where: { id: gameId }, data: { status: 'FINISHED', winner: (engineResult.winner === 'BLACK' || engineResult.winner === 'WHITE') ? engineResult.winner : null, blackCount: engineResult.blackCount, whiteCount: engineResult.whiteCount } });
+            result.result = this._buildResult(entry);
         }
-        entry.status = (gameOver)? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
-
-        return( result );
-  }
-    
-    async remove(gameId: string): Promise<Game> {
-        try {
-            const deleted = await this.prisma.$transaction(async (tx) => {
-                await tx.move.deleteMany({ where: { gameId } });
-                return tx.game.delete({ where: { id: gameId } });
-            });
-
-            this.games.delete(gameId); // nettoyage du cache
-
-            return deleted;
-        } catch (error) {
-            if (error.code === 'P2025') {
-                throw new NotFoundException(`Partie ${gameId} introuvable`);
-            }
-            throw error;
-        }
+        return result;
     }
     
     async findAll(): Promise<Game[]> {
@@ -262,14 +228,17 @@ export class    OthelloService {
     //        { userId: dbGame.whitePlayerId, color: 'WHITE', connected: false },
     //    ];
 
-    //    const restored: GameEntry = {
-    //        engine,
-    //        players,
-    //        status: dbGame.status as GameStatus,
-    //        createdAt: dbGame.createdAt,
-    //    };
+        const restored: GameEntry = {
+            gameId,
+            mode: 'ONLINE',          // la base ne stocke que les parties en ligne
+            engine,
+            players,
+            status: dbGame.status as GameStatus,
+            createdAt: dbGame.createdAt,
+        };
 
-    //    this.games.set(gameId, restored);
+        this.games.set(gameId, restored);
+        if (restored.status === GameStatus.IN_PROGRESS) this.registerPlayers(restored);
 
     //    return restored;
     //}
@@ -328,80 +297,106 @@ export class    OthelloService {
     }
 
     async playBotTurn(gameId: string): Promise<GameState | undefined> {
-        
-        const game = this.games.get(gameId);
-        if (!game) return;
 
-        // Identification du Bot avec userId
-        const botPlayer = game.players.find(p => p.userId === this.localPlayer.userId);
+        const game = this.games.get(gameId);
+        if (!game || game.mode !== 'BOT') return;
+
+        const botPlayer = game.players.find((p) => p.userId === this.localPlayer.userId);
         if (!botPlayer) return;
-        
+
         const botColor = botPlayer.color;
         const engine = game.engine;
 
-        // Vérification que c'est bien au tour du bot
-        if (engine.getCurrentPlayer() !== botColor || engine.isGameOver()) {
-            return;
+        // Boucle : le bot rejoue tant que l'humain n'a aucun coup valide
+        while (game.status === GameStatus.IN_PROGRESS
+            && engine.getCurrentPlayer() === botColor
+            && !engine.isGameOver()) {
+
+            const legalMoves = engine.allValidMove(botColor);
+            const move = await this.computePlayerService.requestMove(
+                this.serializeBoard(engine), botColor, legalMoves,
+            );
+
+            if (!move) break;   // évite la boucle infinie si le bot ne répond pas
+            engine.playMove(move, botColor);
         }
 
-        const legalMoves = engine.allValidMove(botColor);
-
-            /// 1. Génération du tableau plat (64 cases) à la volée depuis le moteur pour le bot
-        const board = engine.getBoard();
-        const cellsParams: EngineCell[] = []; // <-- Remplacer Cell[] par EngineCell[]
-        for (let r = 0; r < 8; r++) {
-          for (let c = 0; c < 8; c++) {
-            cellsParams.push(board.getCell(r, c));
-          }
-        }
-
-            // 2. On envoie ce tableau généré au service du bot
-            const move = await this.computePlayerService.requestMove(cellsParams, botColor, legalMoves);
-
-            if (move) {
-              // 3. Application du coup. L'engine met à jour son propre OthelloBoard interne[cite: 9].
-              // Plus besoin de boucler pour mettre à jour game.cells manuellement.
-              engine.playMove(move, botColor);
-            }
-
-            // 4. Boucle au cas où l'humain n'a pas de coup valide
-            if (engine.getCurrentPlayer() === botColor && !engine.isGameOver()) {
-                return await this.playBotTurn(gameId);
-            }
-
-            game.status = engine.isGameOver() ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
-            return this.buildGameState(gameId, game);
-      }
+        this._updateStatus(game);
+        return this.buildGameState(gameId, game);
+    }
     
+    /** État de la partie en cours de ce joueur, ou null s'il n'en a pas. */
+    getActiveGameState(userId: string): GameState | null {
+
+        const gameId = this.gameByUser.get(userId);
+        if (!gameId) return null;
+
+        const entry = this.games.get(gameId);
+        if (!entry || entry.status !== GameStatus.IN_PROGRESS) {
+            this.gameByUser.delete(userId);
+            return null;
+        }
+        return this.buildGameState(gameId, entry);
+    }
+
+    markConnected(gameId: string, userId: string): void {
+        const player = this.games.get(gameId)?.players.find((p) => p.userId === userId);
+        if (player) player.connected = true;
+    }
+
+    // markDisconnected reste inchangée
+
+    /** Abandon (ou délai de reconnexion dépassé) : l'adversaire gagne. */
+    forfeit(gameId: string, userId: string): GameState | undefined {
+
+        const entry = this.games.get(gameId);
+        if (!entry || entry.status !== GameStatus.IN_PROGRESS) return;
+
+        const loser = entry.players.find((p) => p.userId === userId);
+        if (!loser) return;
+
+        entry.forfeitWinner = loser.color === 'BLACK' ? 'WHITE' : 'BLACK';
+        entry.status = GameStatus.FINISHED;
+        this.unregisterPlayers(entry);
+
+        return this.buildGameState(gameId, entry);
+    }
+    
+    async remove(gameId: string): Promise<Game> {
+        try {
+            const deleted = await this.prisma.$transaction(async (tx) => {
+                await tx.move.deleteMany({ where: { gameId } });
+                return tx.game.delete({ where: { id: gameId } });
+            });
+
+            const entry = this.games.get(gameId);
+            if (entry) this.unregisterPlayers(entry);
+            this.games.delete(gameId);
+
+            return deleted;
+        } catch (error) {
+            if (error.code === 'P2025') {
+                throw new NotFoundException(`Partie ${gameId} introuvable`);
+            }
+            throw error;
+        }
+    }
 /**
  * Private Methode _initGameEntry and _getGameEntry for use a interface GameEntry
  *
  * _initGameEntry -> set a new engine, first player(host player) in black, set Status and set a Date
  * _getGameEntry  -> return all interface or up Exeption if bad gameId or GameEntry no existe
  */
-    private _initGameEntry( hostUserId: string, VisitorUserId: string ): GameEntry   {
-        
-        const newEntry: GameEntry = {
-          
-            engine:      new OthelloEngine(),
-            players:     [{ userId: hostUserId,    color: 'BLACK', connected: true },
-                          { userId: VisitorUserId, color: 'WHITE', connected: true }],
-            status:      GameStatus.IN_PROGRESS,
-            createdAt:   new Date(),
-        };
+    /* --------------------------------------------------------------------------- */
 
-        return( newEntry );
-    }
-    
     private _getGameEntry(gameId: string): GameEntry {
 
         const gameEntry = this.games.get(gameId);
         if (!gameEntry) {
-            
             throw new NotFoundException(`Partie ${gameId} introuvable`);
         }
-    
-        return( gameEntry );
+
+        return gameEntry;
     }
 
     private _setMoveResult(gameEntry: GameEntry):  MoveResult {
@@ -422,22 +417,65 @@ export class    OthelloService {
  * Private Methode buildGameState: retourne un interface GameState construite a partir de games( Map<gameId, GameEntry> )
  *
  */
-    private buildGameState(gameId: string, gameEntry: GameEntry): GameState   {
-        
-        const currentPlayer = gameEntry.engine.getCurrentPlayer();
-        
+    private registerPlayers(entry: GameEntry): void {
+        for (const p of entry.players) {
+            if (p.userId !== this.localPlayer.userId) {
+                this.gameByUser.set(p.userId, entry.gameId);
+            }
+        }
+    }
+
+    private unregisterPlayers(entry: GameEntry): void {
+        for (const p of entry.players) {
+            // ne supprime que si l'entrée pointe encore vers CETTE partie
+            if (this.gameByUser.get(p.userId) === entry.gameId) {
+                this.gameByUser.delete(p.userId);
+            }
+        }
+    }
+
+    /** Met à jour le status depuis le moteur ; libère les joueurs si la partie est finie. */
+    private _updateStatus(entry: GameEntry): boolean {
+        const over = entry.engine.isGameOver();
+        entry.status = over ? GameStatus.FINISHED : GameStatus.IN_PROGRESS;
+        if (over) this.unregisterPlayers(entry);
+        return over;
+    }
+
+    private _buildResult(entry: GameEntry): GameResult | undefined {
+        if (entry.status !== GameStatus.FINISHED) return undefined;
+
+        const result = this.toGameResult(entry.engine.returnResult());
+        return entry.forfeitWinner ? { ...result, winner: entry.forfeitWinner } : result;
+    }
+
+    private _initGameEntry(gameId: string, mode: GameMode, hostUserId: string, visitorUserId: string): GameEntry {
         return {
-    
             gameId,
+            mode,
+            engine:    new OthelloEngine(),
+            players:   [{ userId: hostUserId,    color: 'BLACK', connected: true },
+                        { userId: visitorUserId, color: 'WHITE', connected: true }],
+            status:    GameStatus.IN_PROGRESS,
+            createdAt: new Date(),
+        };
+    }
+
+    private buildGameState(gameId: string, gameEntry: GameEntry): GameState {
+
+        const currentPlayer = gameEntry.engine.getCurrentPlayer();
+
+        return {
+            gameId,
+            mode: gameEntry.mode,                       // <-- ajouté
             cells: this.serializeBoard(gameEntry.engine),
             status: gameEntry.status,
             players: gameEntry.players,
             currentPlayer,
             validMoves: gameEntry.engine.allValidMove(currentPlayer),
-            result: ( gameEntry.status === GameStatus.FINISHED )? this.toGameResult(gameEntry.engine.returnResult()) : undefined,
+            result: this._buildResult(gameEntry),       // <-- gère aussi les abandons
             createdAt: gameEntry.createdAt,
         };
-        
     }
 /**
  * Private Methode serializeBoard: fait une copy du plateaux du moteur de jeux dans un tableaux unidirectionel EngineCell[]
