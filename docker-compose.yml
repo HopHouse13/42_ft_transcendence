@@ -135,7 +135,10 @@ services:
     image: docker.io/prom/node-exporter:v1.12.1
     container_name: node-exporter
     command:
-      - '--path.rootfs=/host'
+      # - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc' # "Read CPU and RAM data
+      - '--path.rootfs=/rootfs'    # "Read disk space data
+      - '--path.sysfs=/host/sys'   # "Read hardware and network data
     pid: host
     networks:
       - ft_transcendence_network
@@ -143,7 +146,10 @@ services:
       - "9100"
     restart: unless-stopped
     volumes:
-      - '/:/host:ro,rslave'
+      # - '/:/host:ro,rslave' # rslave doesnt work on docker-desktop (macos/windows)
+      - /proc:/host/proc:ro
+      - /:/rootfs:ro
+      - /sys:/host/sys:ro
 
   nginx-exporter:
     image: docker.io/nginx/nginx-prometheus-exporter:1.3
