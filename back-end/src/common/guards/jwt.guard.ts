@@ -28,7 +28,7 @@ export class JwtGuard extends AuthGuard( 'jwtStrategy' )
 		const	refreshTokenRaw = req.cookies?.refresh_token;
 
 		if ( !refreshTokenRaw )
-			throw ( new UnauthorizedException( 'no refresh token provided' ) ); // refresh_token n'existe pas dnas les cookies del a request
+			throw ( new UnauthorizedException( 'session expired' ) ); // refresh_token n'existe pas dnas les cookies del a request
 
 		// le cas ou acces_token est expiré est isolé -> nous pouvons tenté de le regenerer
 		const	refreshedTokens = await this.authService.validateRefreshToken( refreshTokenRaw ); // verification de refresh_token

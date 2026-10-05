@@ -150,7 +150,7 @@ export class AuthService
 		const	user = await this.usersService.findByRefreshToken( refreshTokenHash );
 
 		if( !user || !user.refreshTokenExpiresAt || new Date() > user.refreshTokenExpiresAt )
-			throw new UnauthorizedException( 'invalid or expired refresh token' );
+			throw new UnauthorizedException( 'session expired' );
 
 		return( user );
 	}

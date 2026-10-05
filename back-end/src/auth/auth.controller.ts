@@ -119,7 +119,7 @@ export class AuthController
 		const	refreshTokenRaw = request.cookies?.refresh_token;
 
 		if ( !refreshTokenRaw )
-			throw new UnauthorizedException( 'no refresh token provided' );
+			throw new UnauthorizedException( 'session expired' );
 
 		return( this.authService.login( await this.authService.validateRefreshToken( refreshTokenRaw )));
 	}
