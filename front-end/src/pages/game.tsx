@@ -12,6 +12,7 @@ import { toClientCell } from "../utils/cellConverter";
 import GameHeader from "../components/GameHeader";
 import History from "../components/History";
 import LocalGame from "../components/LocalGame";
+// import Chat from "../components/Chat";
 
 // const COL_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
@@ -42,7 +43,7 @@ function ChatPanel({
         className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-3 min-h-0"
         aria-live="polite"
       >
-        <div className="text-center text-xs" style={{ color: "#6b6865" }}>
+        <div className="text-center text-xs text-[#6b6865]">
           Les messages sont visibles par les joueurs de la partie.
         </div>
         {messages.map((message) => (
@@ -54,29 +55,22 @@ function ChatPanel({
           >
             <div className="flex items-center gap-1.5 px-1">
               <span
-                className="text-xs font-medium"
-                style={{ color: message.own ? "#81b64c" : "#9e9b97" }}
+                className={`text-xs font-medium ${
+                  message.own ? "text-[#81b64c]" : "text-[#9e9b97]"
+                }`}
               >
                 {message.own ? "Vous" : message.author}
               </span>
-              <span
-                className="text-xs"
-                style={{
-                  color: "#6b6865",
-                  fontFamily: "'DM Mono', monospace",
-                }}
-              >
+              <span className="text-xs text-[#6b6865] font-['DM_Mono']">
                 {message.time}
               </span>
             </div>
             <div
-              className="max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed chat-message"
-              style={{
-                background: message.own ? "#4a7c59" : "#302e2b",
-                color: "#e8e6e3",
-                borderBottomRightRadius: message.own ? "4px" : undefined,
-                borderBottomLeftRadius: message.own ? undefined : "4px",
-              }}
+              className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed chat-message text-[#e8e6e3] ${
+                message.own
+                  ? "bg-[#4a7c59] rounded-br-[4px]"
+                  : "bg-[#302e2b] rounded-bl-[4px]"
+              }`}
             >
               {message.text}
             </div>
@@ -87,8 +81,7 @@ function ChatPanel({
 
       <form
         onSubmit={onSubmit}
-        className="p-3 flex gap-2 shrink-0"
-        style={{ borderTop: "1px solid #3d3a36" }}
+        className="flex shrink-0 gap-2 border-t border-[#3d3a36] p-3"
       >
         <label htmlFor="match-chat" className="sr-only">
           Votre message
@@ -100,24 +93,13 @@ function ChatPanel({
           maxLength={180}
           placeholder="Écrire un message…"
           autoComplete="off"
-          className="min-w-0 flex-1 rounded-lg px-3 py-2 text-xs outline-none"
-          style={{
-            background: "#1f1e1c",
-            color: "#e8e6e3",
-            border: "1px solid #3d3a36",
-          }}
+          className="min-w-0 flex-1 rounded-lg border border-[#3d3a36] bg-[#1f1e1c] px-3 py-2 text-xs text-[#e8e6e3] outline-none"
         />
         <button
           type="submit"
           disabled={!value.trim()}
           aria-label="Envoyer le message"
-          className="rounded-lg px-3 text-xs font-semibold transition-all disabled:opacity-40"
-          style={{
-            background: "#81b64c",
-            color: "#fff",
-            border: "none",
-            cursor: value.trim() ? "pointer" : "default",
-          }}
+          className="cursor-pointer rounded-lg border-none bg-[#81b64c] px-3 text-xs font-semibold text-white transition-all disabled:cursor-default disabled:opacity-40"
         >
           Envoyer
         </button>
@@ -211,8 +193,8 @@ const Game = (): React.ReactElement => {  const { mode, selectMode } = useCreate
       waiting={waiting}
     />
   ) : (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 items-stretch">
-      <div className="lg:col-span-2 flex flex-col">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 max-h-9/10">
+      <div className="flex flex-col lg:col-span-2 lg:max-h-xl">
         <div className="w-full mb-2">
           <GameHeader gameState={gameState} mode={gameState.mode} />
         </div>
@@ -235,27 +217,19 @@ const Game = (): React.ReactElement => {  const { mode, selectMode } = useCreate
       </div>
 
       <div className="flex justify-center lg:justify-start h-full">
-        <div
-          className="w-full max-w-sm h-full flex flex-col rounded-xl overflow-hidden min-h-[400px]"
-          style={{ background: "#262421", border: "1px solid #3d3a36" }}
-        >
-          <div
-            className="flex p-1.5 gap-1 shrink-0"
-            style={{ borderBottom: "1px solid #3d3a36" }}
-          >
+        <div className="w-full max-w-sm h-full flex flex-col rounded-xl overflow-y-auto min-h-[400px] border border-[#3d3a36] bg-base-100">
+          <div className="flex shrink-0 gap-1 border-b border-[#3d3a36] p-2">
             {(["chat", "history"] as const).map((panel) => (
               <button
                 key={panel}
                 onClick={() => setRightPanel(panel)}
-                className="flex-1 py-2 rounded-lg text-xs font-medium transition-all"
-                style={{
-                  background: rightPanel === panel ? "#3d3a36" : "transparent",
-                  color: rightPanel === panel ? "#e8e6e3" : "#6b6865",
-                  border: "none",
-                  cursor: "pointer",
-                }}
+                className={`btn btn-lg btn-ghost flex-1 cursor-pointer rounded-lg border-none py-2 text-xs font-medium transition-all ${
+                  rightPanel === panel
+                    ? "bg-base-200"
+                    : "bg-transparent text-[#6b6865]"
+                }`}
               >
-                {panel === "chat" ? "Discussion" : `Coups · ${history.length}`}
+                {panel === "chat" ? "Chat" : `Move History · ${history.length}`}
               </button>
             ))}
           </div>
@@ -270,11 +244,11 @@ const Game = (): React.ReactElement => {  const { mode, selectMode } = useCreate
             />
           ) : (
             <History
-				history={history}
-				leftColor={leftColor}
-				showLatestFirst={showLatestFirst}
-				onReverse={toggleOrder}
-			/>
+              history={history}
+              leftColor={leftColor}
+              showLatestFirst={showLatestFirst}
+              onReverse={toggleOrder}
+            />
           )}
         </div>
       </div>

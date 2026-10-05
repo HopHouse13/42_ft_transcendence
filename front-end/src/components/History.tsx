@@ -22,7 +22,7 @@ function getMoveLabel(entry: MoveHistoryEntry | undefined): string {
 	if (!entry)
 		return ("");
 	if (entry.passed || !entry.position)
-		return ("passed");
+		return ("Skipped");
 	return (getSquare(entry.position));
 }
 
@@ -81,12 +81,7 @@ export default function History({ history, leftColor, showLatestFirst, onReverse
 	}
 
 	return (
-		<div className="card bg-base-200 p-4 shadow-md">
-			{/* Titre reprenant le style du GameHeader (card-md bg-base-100, cf. ScoreCard) */}
-			<div className="card card-md bg-base-100 flex flex-row justify-center items-center p-2 mb-4">
-				<h2 className="text-xl font-bold">Moves history</h2>
-			</div>
-
+		<div className="flex w-full min-h-0 flex-col p-4">
 			<button className="btn btn-soft btn-info btn-sm w-full gap-2" onClick={onReverse}>
 				{showLatestFirst ? (
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -100,7 +95,7 @@ export default function History({ history, leftColor, showLatestFirst, onReverse
 				{showLatestFirst ? "Show Latest First" : "Show Oldest First"}
 			</button>
 
-			<div className="flex flex-col overflow-y-auto max-h-128">
+			<div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
 				<div className="grid grid-cols-[auto_1fr_1fr] gap-2 items-center">
 					<div />
 					<div className="flex justify-center my-4">{renderColorIndicator(leftColor === 'BLACK')}</div>
