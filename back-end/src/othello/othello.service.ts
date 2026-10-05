@@ -172,8 +172,8 @@ export class    OthelloService {
 
     async getState(gameId: string): Promise<GameState>   {
         
-        const gameEntry = this._getGameEntry(gameId);
-    //   const gameEntry = await this._getOrRestoreGameEntry(gameId);
+        //const gameEntry = this._getGameEntry(gameId);
+       const gameEntry = await this._getOrRestoreGameEntry(gameId);
         
         return( this.buildGameState(gameId, gameEntry) );
     }
@@ -196,37 +196,37 @@ export class    OthelloService {
     }
 
 // ~~ private Method: _initGameEntry | _getGameEntry | buildGameState | serializeBoard | toGameResult ~~ //
-    //private async _getOrRestoreGameEntry(gameId: string): Promise<GameEntry> {
+    private async _getOrRestoreGameEntry(gameId: string): Promise<GameEntry> {
 
-    //    const cached = this.games.get(gameId);
-    //    if (cached) {
-    //        return cached;
-    //    }
+        const cached = this.games.get(gameId);
+        if (cached) {
+            return cached;
+        }
 
-    //    const dbGame = await this.prisma.game.findUnique({
-    //        where: { id: gameId },
-    //        include: { moves: { orderBy: { moveNumber: 'asc' } } },
-    //    });
+        const dbGame = await this.prisma.game.findUnique({
+            where: { id: gameId },
+            include: { moves: { orderBy: { moveNumber: 'asc' } } },
+        });
 
-    //    if (!dbGame) {
-    //        throw new NotFoundException(`Partie ${gameId} introuvable`);
-    //    }
+        if (!dbGame) {
+            throw new NotFoundException(`Partie ${gameId} introuvable`);
+        }
 
-    //    const engine = new OthelloEngine();
+        const engine = new OthelloEngine();
 
-    //    for (const m of dbGame.moves) {
-    //        if (m.position === null) continue; // pass
+        for (const m of dbGame.moves) {
+            if (m.position === null) continue; // pass
 
-    //        const row = Math.floor(m.position / 8);
-    //        const col = m.position % 8;
+            const row = Math.floor(m.position / 8);
+            const col = m.position % 8;
 
-    //        engine.playMove({ row, col }, m.Color as Player);
-    //    }
+            engine.playMove({ row, col }, m.Color as Player);
+        }
 
-    //    const players: PlayerInfo[] = [
-    //        { userId: dbGame.blackPlayerId, color: 'BLACK', connected: false },
-    //        { userId: dbGame.whitePlayerId, color: 'WHITE', connected: false },
-    //    ];
+        const players: PlayerInfo[] = [
+            { userId: dbGame.blackPlayerId, color: 'BLACK', connected: false },
+            { userId: dbGame.whitePlayerId, color: 'WHITE', connected: false },
+        ];
 
         const restored: GameEntry = {
             gameId,
@@ -240,8 +240,8 @@ export class    OthelloService {
         this.games.set(gameId, restored);
         if (restored.status === GameStatus.IN_PROGRESS) this.registerPlayers(restored);
 
-    //    return restored;
-    //}
+        return restored;
+    }
 /*
     private async _getOrRestoreGameEntry(gameId: string): Promise<GameEntry>    {
 
