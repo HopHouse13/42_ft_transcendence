@@ -17,6 +17,7 @@ import { PlayerInfo } from './player-info.interface';
 export interface GameState {
 
   gameId:         string;
+  mode:           'BOT' | 'ONLINE';
   cells:          Cell[];                 // snapshot du plateau (64 cases), pas l'instance OthelloBoard
   status:         GameStatus;
   players:        PlayerInfo[];

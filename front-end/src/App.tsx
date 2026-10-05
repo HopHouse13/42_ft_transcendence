@@ -1,6 +1,7 @@
 import React from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthProvider.tsx';
+import Home from './pages/home.tsx';
 import Game from './pages/game.tsx';
 import Connect from './pages/connect.tsx';
 import ForgotPassword from './pages/forgotPassword.tsx';
@@ -15,7 +16,8 @@ import Layout from './components/Layout.tsx';
 import UserProfile from './pages/userProfile.tsx';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'; {/*DEBUG*/}
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+ {/*DEBUG*/}
 
 const queryClient = new QueryClient();
 
@@ -26,7 +28,7 @@ const App = (): React.ReactElement =>(
 				<Layout>
 					<main className="flex flex-col flex-grow items-center justify-center bg-base-100 py-2">
 						<Routes>
-							<Route path="/" element={<Game />} />
+							<Route path="/" element={<Home />} />
 							<Route path="/game" element={<Game />} />
 							<Route path="/connect" element={<Connect />} />
 							<Route path="/forgot-password" element={<ForgotPassword />} />
