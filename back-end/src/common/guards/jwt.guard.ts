@@ -19,7 +19,8 @@ export class JwtGuard extends AuthGuard( 'jwtStrategy' )
 	{
 		if ( user ) // token validé la callback renvoit le user 
 			return ( user );
-		else if ( info.name !== 'TokenExpiredError' )
+
+		if ( !info || ( info.name !== 'TokenExpiredError' && info.message !== 'No auth token' )) // laisse une tentative de refreshToken si le token est expiré ou si le navigateur aurait supprimer le cookie(expiration MaxAge) avec les accesToken
 			throw ( err || new UnauthorizedException() );
 		
 		// Cas où le fail de l'authentification est du a l'expiration du token
@@ -35,7 +36,7 @@ export class JwtGuard extends AuthGuard( 'jwtStrategy' )
 		
 		const	res = context.switchToHttp().getResponse();
 		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken ); // genere deux cookies avec les tokens et les pose dans le header de la reponse (res)
-		console.log( 'HANDLE_REQUEST' ); // aSupp
+
 		return ( auth.userPublic );
 	}
 

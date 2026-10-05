@@ -164,19 +164,18 @@ export class AuthService
 
 	///
 
-	// pose les cookies d'auth sans cookie.interceptor. Uniquement utilisé par les deux callbacks OAuth.
+	// pose les cookies d'auth. Utilisé par les deux callbacks OAuth et dans cookiesInterceptor
 	// Les callbacks se termine par un redirect() donc la reponse n'a pas le temps de passer par CookieInterceptor.
 	setTokensCookies( res: Response, jwt: string, refreshToken: string )
 	{
-		const	expirationCookieJwt = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'JWT_EXPIRATION' ), 10 )); // formatage de la durée em millisecondes de la vie du cookies
-		const	expirationCookieRefreshToken = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 ));
+		const	expirationCookies = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 ));
 
 		res.cookie( 'access_token', jwt,
 		{
 			httpOnly:	true,
 			secure:		true,
 			sameSite:	'lax',
-			maxAge:		expirationCookieJwt,
+			maxAge:		expirationCookies,
 		});
 
 		res.cookie( 'refresh_token', refreshToken,
@@ -184,7 +183,7 @@ export class AuthService
 			httpOnly:	true,
 			secure:		true,
 			sameSite:	'lax',
-			maxAge:		expirationCookieRefreshToken,
+			maxAge:		expirationCookies,
 		});
 	}
 };
