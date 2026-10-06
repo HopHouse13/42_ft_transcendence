@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Board from "../components/Board";
 import type { PlayerColor, Position } from "../types/gameTypes";
 
@@ -37,6 +37,11 @@ function ChatPanel({
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   endRef: React.RefObject<HTMLDivElement | null>;
 }) {
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({behavior: "smooth", block: "nearest" });
+  }, [messages, endRef])
+
   return (
     <>
       <div
@@ -193,8 +198,8 @@ const Game = (): React.ReactElement => {  const { mode, selectMode } = useCreate
       waiting={waiting}
     />
   ) : (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4 max-h-9/10">
-      <div className="flex flex-col lg:col-span-2 lg:max-h-xl">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-4">
+      <div className="flex flex-col lg:col-span-2 lg:max-h-[800px]">
         <div className="w-full mb-2">
           <GameHeader gameState={gameState} mode={gameState.mode} />
         </div>
@@ -216,7 +221,7 @@ const Game = (): React.ReactElement => {  const { mode, selectMode } = useCreate
         </div>
       </div>
 
-      <div className="flex justify-center lg:justify-start h-full">
+      <div className="flex justify-center max-h-[800px] lg:justify-start ">
         <div className="w-full max-w-sm h-full flex flex-col rounded-xl overflow-y-auto min-h-[400px] border border-[#3d3a36] bg-base-100">
           <div className="flex shrink-0 gap-1 border-b border-[#3d3a36] p-2">
             {(["chat", "history"] as const).map((panel) => (
