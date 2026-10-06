@@ -10,7 +10,7 @@ import Rules from './pages/rules.tsx';
 import Leaderboard from './pages/leaderboard.tsx';
 import Watch from './pages/watch.tsx';
 import AboutUs from './pages/aboutUs.tsx';
-import TermsOfUse from './pages/termsOfUse.tsx';
+import TermsOfService from './pages/termsOfService.tsx';
 import PrivacyPolicy from './pages/privacyPolicy.tsx';
 import Layout from './components/Layout.tsx';
 import UserProfile from './pages/userProfile.tsx';
@@ -39,7 +39,7 @@ const App = (): React.ReactElement =>(
 							<Route path="/leaderboard" element={<Leaderboard />} />
 							<Route path="/watch" element={<Watch />} />
 							<Route path="/aboutUs" element={<AboutUs />} />
-							<Route path="/termsOfUse" element={<TermsOfUse />} />
+							<Route path="/termsOfService" element={<TermsOfService />} />
 							<Route path="/privacyPolicy" element={<PrivacyPolicy />} />
 						</Routes>
 					</main>
