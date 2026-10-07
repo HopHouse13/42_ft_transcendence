@@ -102,8 +102,9 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         // Partie bot : elle reste en attente, pas de forfait
         if (state.mode === 'BOT') return;
 
-        const timer = setTimeout(() => {
-            const finalState = this.othelloService.forfeit(state.gameId, userId);
+        // Dans handleDisconnect (othello.gateway.ts)
+        const timer = setTimeout(async () => {
+            const finalState = await this.othelloService.forfeit(state.gameId, userId);
             if (finalState) this.server.to(state.gameId).emit('gameState', finalState);
             this.disconnectTimers.delete(userId);
         }, 30_000);
@@ -199,6 +200,26 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         client.join(active.gameId);
         client.emit('gameState', active);
         return true;
+    }
+
+    /** Si un jouer decide de give up */
+    @SubscribeMessage('forfeit')
+    async handleForfeit( @MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket ) { 
+        
+        const userId = client.data.userId as string;
+        const { gameId } = payload;
+
+        try {
+        
+            const finalState = await this.othelloService.forfeit(gameId, userId);
+            if (finalState) {
+
+                this.server.to(gameId).emit('gameState', finalState);
+            }
+        
+        } catch (err) {
+            client.emit('gameError', { message: err.message });
+        }
     }
 
     /* -------------------------------------------------------------------------- */

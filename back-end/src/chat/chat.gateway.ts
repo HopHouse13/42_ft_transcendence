@@ -16,38 +16,43 @@ import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway {
-  @WebSocketServer()
-  server: Server;
+  @WebSocketServer() server: Server;
 
   constructor(private readonly chatService: ChatService) {}
 
-  // 1. Le joueur rejoint le salon de sa partie
+  // 1. Accepte gameId sous forme de string OU d'objet { gameId }
   @SubscribeMessage('joinGame')
   handleJoinGame(
-    @MessageBody() gameId: string,
+    @MessageBody() payload: string | { gameId: string },
     @ConnectedSocket() client: Socket,
   ): void {
-    client.join(gameId); // Socket.IO ajoute ce client à la room
-    
-    // Envoyer l'historique de CETTE partie uniquement à ce joueur
+    const gameId = typeof payload === 'string' ? payload : payload?.gameId;
+    if (!gameId) return;
+
+    client.join(gameId);
+
+    // Envoyer l'historique de cette partie uniquement
     const history = this.chatService.getMessages(gameId);
     client.emit('allMessages', history);
   }
 
-  // 2. Envoi de message ciblé sur la room
+  // 2. Transmet le senderId (userId de l'utilisateur ou client.id en secours)
   @SubscribeMessage('sendMessage')
   handleMessage(
-    @MessageBody() payload: { gameId: string; text: string },
+    @MessageBody() payload: { gameId: string; text: string; senderId?: string },
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(' Message reçu sur le serveur :', payload);
+    if (!payload || !payload.gameId || !payload.text) return;
+
+    const senderId = payload.senderId || client.id;
+
     const newMessage = this.chatService.newMessage(
       payload.gameId,
       payload.text,
-      client.id,
+      senderId,
     );
 
-    // Diffuser le message UNIQUEMENT aux joueurs présents dans la room "gameId"
+    // Diffusion à tous les membres de la room gameId
     this.server.to(payload.gameId).emit('newMessage', newMessage);
   }
 }

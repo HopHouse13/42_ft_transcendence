@@ -381,6 +381,35 @@ export class    OthelloService {
             throw error;
         }
     }
+
+    /** Abandon d'un joueur : l'adversaire gagne. */
+    async forfeit(gameId: string, userId: string): Promise<GameState | undefined> {
+        const entry = this.games.get(gameId);
+        if (!entry || entry.status !== GameStatus.IN_PROGRESS) return;
+
+        const loser = entry.players.find((p) => p.userId === userId);
+        if (!loser) return;
+
+        // Définir le gagnant (couleur opposée)
+        const winnerColor = loser.color === 'BLACK' ? 'WHITE' : 'BLACK';
+        entry.forfeitWinner = winnerColor;
+        entry.status = GameStatus.FINISHED;
+        this.unregisterPlayers(entry);
+
+        // Si c'est une partie ONLINE, on met à jour la BDD
+        if (entry.mode === 'ONLINE') {
+            const winnerPlayer = entry.players.find((p) => p.color === winnerColor);
+            await this.prisma.game.update({
+                where: { id: gameId },
+                data: {
+                    status: 'FINISHED',
+                    winnerId: winnerPlayer ? winnerPlayer.userId : null,
+                },
+            });
+        }
+
+        return this.buildGameState(gameId, entry);
+    }
 /**
  * Private Methode _initGameEntry and _getGameEntry for use a interface GameEntry
  *
