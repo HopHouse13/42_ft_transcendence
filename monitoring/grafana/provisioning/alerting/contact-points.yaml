@@ -5,7 +5,7 @@ contactPoints:
       receivers:
         - uid: dg050i1wfvchsd
           type: discord
+          disableResolveMessage: false
           settings:
             url: $DISCORD_WEBHOOK_URL
-            use_embed_description: false
-          disableResolveMessage: false
+            use_embed_description: true
