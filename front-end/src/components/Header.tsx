@@ -55,6 +55,15 @@ const Header = () => {
 				</NavLink>
 			</li>
 			<li>
+				<NavLink
+					to="/friends"
+					onClick={closeMobileMenu}
+					className={NAV_BUTTON_CLASS}
+				>
+					Friends
+				</NavLink>
+			</li>
+			<li>
 				<button
 					onClick={handleLogout}
 					className="btn btn-error rounded-btn text-lg hover:bg-base-300 hover:text-error"
@@ -62,6 +71,7 @@ const Header = () => {
 					Log out
 				</button>
 			</li>
+
 		</>
 	) : (
 		<li>

@@ -14,6 +14,8 @@ import TermsOfUse from './pages/termsOfUse.tsx';
 import PrivacyPolicy from './pages/privacyPolicy.tsx';
 import Layout from './components/Layout.tsx';
 import UserProfile from './pages/userProfile.tsx';
+import Friends from './pages/friends.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -41,6 +43,8 @@ const App = (): React.ReactElement =>(
 							<Route path="/aboutUs" element={<AboutUs />} />
 							<Route path="/termsOfUse" element={<TermsOfUse />} />
 							<Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+							<Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+
 						</Routes>
 					</main>
 				</Layout>
