@@ -129,6 +129,9 @@ const Game = (): React.ReactElement => {
   const { user } = useAuthContext();
   const { history, showLatestFirst, toggleOrder } = useMoveHistory(gameState);
 
+  // Détection du mode BOT
+  const isBotMode = gameState?.mode === "BOT" || mode === "BOT";
+
   const leftColor: PlayerColor = gameState?.players.find((player) => player.userId === user?.id)?.color
     ?? gameState?.players[0]?.color
     ?? 'BLACK';
@@ -138,6 +141,13 @@ const Game = (): React.ReactElement => {
   const [chatInput, setChatInput] = useState("");
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Si on est en mode BOT, on force l'affichage de l'historique
+  useEffect(() => {
+    if (isBotMode) {
+      setRightPanel("history");
+    }
+  }, [isBotMode]);
 
   const formattedChatMessages: ChatMessage[] = rawChatMessages.map((msg) => {
     const isMe = msg.senderId === user?.id;
@@ -180,7 +190,7 @@ const Game = (): React.ReactElement => {
         isFinished={local.isFinished}
         winner={local.winner}
         notice={local.notice}
-        moveHistory={local.moveHistory} // Passé ici à LocalGame
+        moveHistory={local.moveHistory}
         onMove={local.playMove}
         onRestart={local.start}
         onQuit={local.quit}
@@ -237,22 +247,34 @@ const Game = (): React.ReactElement => {
       <div className="flex justify-center max-h-[800px] lg:justify-start ">
         <div className="w-full max-w-sm h-full flex flex-col rounded-xl overflow-y-auto min-h-[400px] border border-[#3d3a36] bg-base-100">
           <div className="flex shrink-0 gap-1 border-b border-[#3d3a36] p-2">
-            {(["chat", "history"] as const).map((panel) => (
+            {/* Si c'est le mode BOT, on masque l'onglet du Chat */}
+            {!isBotMode && (
               <button
-                key={panel}
-                onClick={() => setRightPanel(panel)}
+                onClick={() => setRightPanel("chat")}
                 className={`btn btn-lg btn-ghost flex-1 cursor-pointer rounded-lg border-none py-2 text-xs font-medium transition-all ${
-                  rightPanel === panel
+                  rightPanel === "chat"
                     ? "bg-base-200"
                     : "bg-transparent text-[#6b6865]"
                 }`}
               >
-                {panel === "chat" ? "Chat" : `Move History · ${history.length}`}
+                Chat
               </button>
-            ))}
+            )}
+
+            <button
+              onClick={() => setRightPanel("history")}
+              className={`btn btn-lg btn-ghost flex-1 cursor-pointer rounded-lg border-none py-2 text-xs font-medium transition-all ${
+                rightPanel === "history" || isBotMode
+                  ? "bg-base-200"
+                  : "bg-transparent text-[#6b6865]"
+              }`}
+            >
+              Move History · {history.length}
+            </button>
           </div>
 
-          {rightPanel === "chat" ? (
+          {/* Rendu conditionnel selon le mode */}
+          {rightPanel === "chat" && !isBotMode ? (
             <ChatPanel
               messages={formattedChatMessages}
               value={chatInput}
