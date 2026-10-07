@@ -344,44 +344,6 @@ export class    OthelloService {
         if (player) player.connected = true;
     }
 
-    // markDisconnected reste inchangée
-
-    /** Abandon (ou délai de reconnexion dépassé) : l'adversaire gagne. */
-    forfeit(gameId: string, userId: string): GameState | undefined {
-
-        const entry = this.games.get(gameId);
-        if (!entry || entry.status !== GameStatus.IN_PROGRESS) return;
-
-        const loser = entry.players.find((p) => p.userId === userId);
-        if (!loser) return;
-
-        entry.forfeitWinner = loser.color === 'BLACK' ? 'WHITE' : 'BLACK';
-        entry.status = GameStatus.FINISHED;
-        this.unregisterPlayers(entry);
-
-        return this.buildGameState(gameId, entry);
-    }
-    
-    async remove(gameId: string): Promise<Game> {
-        try {
-            const deleted = await this.prisma.$transaction(async (tx) => {
-                await tx.move.deleteMany({ where: { gameId } });
-                return tx.game.delete({ where: { id: gameId } });
-            });
-
-            const entry = this.games.get(gameId);
-            if (entry) this.unregisterPlayers(entry);
-            this.games.delete(gameId);
-
-            return deleted;
-        } catch (error) {
-            if (error.code === 'P2025') {
-                throw new NotFoundException(`Partie ${gameId} introuvable`);
-            }
-            throw error;
-        }
-    }
-
     /** Abandon d'un joueur : l'adversaire gagne. */
     async forfeit(gameId: string, userId: string): Promise<GameState | undefined> {
         const entry = this.games.get(gameId);
@@ -410,6 +372,28 @@ export class    OthelloService {
 
         return this.buildGameState(gameId, entry);
     }
+
+    async remove(gameId: string): Promise<Game> {
+        try {
+            const deleted = await this.prisma.$transaction(async (tx) => {
+                await tx.move.deleteMany({ where: { gameId } });
+                return tx.game.delete({ where: { id: gameId } });
+            });
+
+            const entry = this.games.get(gameId);
+            if (entry) this.unregisterPlayers(entry);
+            this.games.delete(gameId);
+
+            return deleted;
+        } catch (error) {
+            if (error.code === 'P2025') {
+                throw new NotFoundException(`Partie ${gameId} introuvable`);
+            }
+            throw error;
+        }
+    }
+
+
 /**
  * Private Methode _initGameEntry and _getGameEntry for use a interface GameEntry
  *
