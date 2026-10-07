@@ -178,9 +178,16 @@ const Game = (): React.ReactElement => {
     setChatInput("");
   }
 
+  // Extrait les scores depuis le résultat officiel NestJS ou compte les cellules
   const isGameFinished = gameState?.status === "FINISHED";
-  const blackScore = gameState?.cells.filter((c) => c.color === "BLACK").length ?? 0;
-  const whiteScore = gameState?.cells.filter((c) => c.color === "WHITE").length ?? 0;
+  const blackScore =
+    gameState?.result?.blackCount ??
+    gameState?.cells.filter((c) => c.color === "BLACK" || (c as unknown as number) === 1).length ??
+    0;
+  const whiteScore =
+    gameState?.result?.whiteCount ??
+    gameState?.cells.filter((c) => c.color === "WHITE" || (c as unknown as number) === 2).length ??
+    0;
 
   if (mode === "LOCAL" && local.started) {
     return (
