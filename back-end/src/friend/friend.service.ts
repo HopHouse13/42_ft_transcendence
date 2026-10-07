@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { FriendUser } from "./interfaces/friendship.interface";
+import { PrismaService } from "../prisma/prisma.service"; 
+import { FriendUser } from "./interfaces/friendUser.interface";
 import { StatusFriendship } from "@prisma/client";
 import { sensitiveHeaders } from "http2";
 
