@@ -120,7 +120,7 @@ const Game = (): React.ReactElement => {
     gameState,
     playMove,
     sendMessage,
-    forfeit,            // <--- Récupération de forfeit
+    forfeit,
     chatMessages: rawChatMessages,
     isMovePending,
     isBotThinking,
@@ -180,6 +180,7 @@ const Game = (): React.ReactElement => {
         isFinished={local.isFinished}
         winner={local.winner}
         notice={local.notice}
+        moveHistory={local.moveHistory} // Passé ici à LocalGame
         onMove={local.playMove}
         onRestart={local.start}
         onQuit={local.quit}
@@ -211,7 +212,6 @@ const Game = (): React.ReactElement => {
             disabled={isMovePending || isBotThinking || gameState.status === "FINISHED"}
           />
           
-          {/* Bouton Abandonner affiché en jeu */}
           {gameState.status === "IN_PROGRESS" && (
             <div className="flex justify-center mt-4">
               <button
