@@ -4,6 +4,13 @@ import { io } from "socket.io-client";
 import { useAuthContext } from "./useAuthContext";
 import type { GameResult, GameState, GameStatus, Move, PlayerColor, ServerCell } from "../types/gameTypes";
 
+export interface SocketChatMessage {
+  id: string | number;
+  text: string;
+  senderId: string;
+  author?: string;
+  time?: string;
+}
 
 interface UseGameSocketResult {
     isConnected: boolean;
@@ -14,11 +21,14 @@ interface UseGameSocketResult {
     waiting: string | null;
     gameState: GameState | null;
     playMove: (position: Move) => void;
+    sendMessage: (text: string) => void;
+    forfeit: () => void;
+    chatMessages: SocketChatMessage[];
     isMovePending: boolean;
     isBotThinking: boolean;
 }
 
-interface WaitingPayload{
+interface WaitingPayload {
     roomId: string;
 }
 
@@ -30,7 +40,7 @@ interface MoveAppliedPayload {
     status?: GameStatus;
     result?: GameResult;
     reason?: string;
-    validMove: Move[],
+    validMove: Move[];
 }
 
 function useGameSocket(enabled: boolean): UseGameSocketResult {
@@ -39,56 +49,68 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
     const socketRef = useRef<Socket | null>(null);
     const { user, loading } = useAuthContext();
 
-    const [waiting , setWaiting] = useState<string | null>(null);
+    const [waiting, setWaiting] = useState<string | null>(null);
     const [gameState, setGameState] = useState<GameState | null>(null);
     const [isMovePending, setIsMovePending] = useState(false);
     const [isBotThinking, setIsBotThinking] = useState(false);
+    const [chatMessages, setChatMessages] = useState<SocketChatMessage[]>([]);
 
     function resetGame() {
         const socket = socketRef.current;
+        if (!isConnected || !socket?.connected || !user?.id) return null;
 
-        if (!isConnected || !socket?.connected || !user?.id )
-            return null;
         setError(null);
         setWaiting(null);
         setGameState(null);
+        setChatMessages([]);
         setIsBotThinking(false);
         return socket;
     }
 
     function findMatch() {
         const socket = resetGame();
-        if (!socket || !user?.id)
-            return;
-        socket.emit("findMatch", {userId: user.id})
-    };
+        if (!socket || !user?.id) return;
+        socket.emit("findMatch", { userId: user.id });
+    }
 
     function startBotGame() {
         const socket = resetGame();
-        if (!socket || !user?.id)
-            return;
-        socket.emit("createBotGame", {userId: user.id});
+        if (!socket || !user?.id) return;
+        socket.emit("createBotGame", { userId: user.id });
     }
 
     function playMove(position: Move) {
         const socket = socketRef.current;
-        if (!isConnected || !socket?.connected
-            || !user?.id || !gameState?.gameId
-            || isMovePending
-        )
-            return;
+        if (!isConnected || !socket?.connected || !user?.id || !gameState?.gameId || isMovePending) return;
+
         setIsMovePending(true);
-        socket.emit("playMove", {gameId: gameState.gameId, userId: user.id, move: position})
+        socket.emit("playMove", { gameId: gameState.gameId, userId: user.id, move: position });
+    }
+
+    function sendMessage(text: string) {
+        const socket = socketRef.current;
+        if (!isConnected || !socket?.connected || !gameState?.gameId) return;
+
+        socket.emit("sendMessage", {
+            gameId: gameState.gameId,
+            text,
+            senderId: user?.id,
+        });
+    }
+
+    function forfeit() {
+        const socket = socketRef.current;
+        if (!isConnected || !socket?.connected || !gameState?.gameId) return;
+
+        socket.emit("forfeit", { gameId: gameState.gameId });
     }
 
     useEffect(() => {
-        if (!enabled || loading || !user?.id) {
-            return;
-        }
+        if (!enabled || loading || !user?.id) return;
 
         const socket = io(window.location.origin, {
             autoConnect: false,
-            query: {userId: user?.id},
+            query: { userId: user?.id },
             withCredentials: true,
         });
         socketRef.current = socket;
@@ -99,8 +121,6 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
         }
 
         function onDisconnect(reason: string) {
-            console.log(reason); //[DEBUG]
-            
             setIsMovePending(false);
             setIsConnected(false);
         }
@@ -118,20 +138,17 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
         function onFinding(data: GameState) {
             setGameState(data);
             setIsBotThinking(false);
+            socket.emit("joinGame", data.gameId);
         }
 
-        function onMoveRejected(payload: {message: string}) {
+        function onMoveRejected(payload: { message: string }) {
             setError(payload.message);
             setIsMovePending(false);
         }
 
-        // function onMoveApplied(data: GameState) {
-            // setGameState(data);
         function onMoveApplied(payload: MoveAppliedPayload) {
             setGameState((previousGameState) => {
-                if (!previousGameState || !payload.board){
-                    return previousGameState;
-                }
+                if (!previousGameState || !payload.board) return previousGameState;
 
                 return {
                     ...previousGameState,
@@ -140,7 +157,7 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
                     currentPlayer: payload.nextPlayer ?? previousGameState.currentPlayer,
                     status: payload.status ?? previousGameState.status,
                     result: payload.result,
-                }
+                };
             });
             setIsMovePending(false);
             setError(null);
@@ -151,6 +168,7 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
             setIsBotThinking(false);
             setIsMovePending(false);
             setError(null);
+            socket.emit("joinGame", data.gameId);
         }
 
         function onGameError(payload: { message: string }) {
@@ -166,18 +184,29 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
             setError(payload.message);
         }
 
+        function onAllMessages(history: SocketChatMessage[]) {
+            setChatMessages(history);
+        }
+
+        function onNewMessage(message: SocketChatMessage) {
+            setChatMessages((prev) => [...prev, message]);
+        }
+
         socket.on("connect", onConnect);
         socket.on("disconnect", onDisconnect);
         socket.on("connect_error", onConnectError);
 
         socket.on("waiting", onWaiting);
         socket.on("matchFound", onFinding);
-        socket.on("moveApplied", onMoveApplied)
-        socket.on("moveRejected", onMoveRejected )
+        socket.on("moveApplied", onMoveApplied);
+        socket.on("moveRejected", onMoveRejected);
         socket.on("gameState", onGameState);
         socket.on("gameError", onGameError);
         socket.on("botThinking", onBotThinking);
         socket.on("botError", onBotError);
+
+        socket.on("allMessages", onAllMessages);
+        socket.on("newMessage", onNewMessage);
 
         socket.connect();
 
@@ -188,12 +217,15 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
             socket.off("connect_error", onConnectError);
             socket.off("waiting", onWaiting);
             socket.off("matchFound", onFinding);
-            socket.off("moveApplied", onMoveApplied)
-            socket.off("moveRejected", onMoveRejected )
+            socket.off("moveApplied", onMoveApplied);
+            socket.off("moveRejected", onMoveRejected);
             socket.off("gameState", onGameState);
             socket.off("gameError", onGameError);
             socket.off("botThinking", onBotThinking);
             socket.off("botError", onBotError);
+            socket.off("allMessages", onAllMessages);
+            socket.off("newMessage", onNewMessage);
+
             if (socketRef.current === socket) {
                 socketRef.current = null;
             }
@@ -209,8 +241,11 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
         waiting,
         gameState,
         playMove,
+        sendMessage,
+        forfeit,
+        chatMessages,
         isMovePending,
-        isBotThinking
+        isBotThinking,
     };
 }
 
