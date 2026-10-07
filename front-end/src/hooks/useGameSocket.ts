@@ -55,6 +55,10 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
     const [isBotThinking, setIsBotThinking] = useState(false);
     const [chatMessages, setChatMessages] = useState<SocketChatMessage[]>([]);
 
+    // Références pour éviter les boucles joinGame et gérer les retries
+    const joinedGameIdRef = useRef<string | null>(null);
+    const joinRetryRef = useRef(0);
+
     function resetGame() {
         const socket = socketRef.current;
         if (!isConnected || !socket?.connected || !user?.id) return null;
@@ -64,6 +68,9 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
         setGameState(null);
         setChatMessages([]);
         setIsBotThinking(false);
+        
+        joinedGameIdRef.current = null;
+        joinRetryRef.current = 0;
         return socket;
     }
 
@@ -115,12 +122,20 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
         });
         socketRef.current = socket;
 
+        // Fonction d'aide pour éviter d'émettre joinGame en boucle
+        function joinGameRoom(gameId: string) {
+            if (joinedGameIdRef.current === gameId) return;
+            joinedGameIdRef.current = gameId;
+            socket.emit("joinGame", { gameId });
+        }
+
         function onConnect() {
             setIsConnected(true);
             setError(null);
         }
 
         function onDisconnect(reason: string) {
+            joinedGameIdRef.current = null;
             setIsMovePending(false);
             setIsConnected(false);
         }
@@ -138,7 +153,8 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
         function onFinding(data: GameState) {
             setGameState(data);
             setIsBotThinking(false);
-            socket.emit("joinGame", data.gameId);
+            setError(null);
+            joinGameRoom(data.gameId);
         }
 
         function onMoveRejected(payload: { message: string }) {
@@ -168,10 +184,17 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
             setIsBotThinking(false);
             setIsMovePending(false);
             setError(null);
-            socket.emit("joinGame", data.gameId);
+            joinRetryRef.current = 0;
+            joinGameRoom(data.gameId);
         }
 
         function onGameError(payload: { message: string }) {
+            const gameId = joinedGameIdRef.current;
+            if (gameId && joinRetryRef.current < 2 && /introuvable|not found/i.test(payload.message)) {
+                joinRetryRef.current++;
+                setTimeout(() => socket.emit("joinGame", { gameId }), 300);
+                return;
+            }
             setError(payload.message);
         }
 

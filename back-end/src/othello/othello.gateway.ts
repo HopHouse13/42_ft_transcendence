@@ -233,12 +233,23 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     @SubscribeMessage('joinGame')
-    async handleJoinGame(@MessageBody() payload: JoinGamePayload, @ConnectedSocket() client: Socket) {
-        const { gameId } = payload;
+    async handleJoinGame( @MessageBody() payload: string | JoinGamePayload, @ConnectedSocket() client: Socket ) { 
+        
+        const gameId = typeof payload === 'string' ? payload : payload?.gameId;
+        if (!gameId) return;
+
+        const isAlreadyInRoom = client.rooms.has(gameId);
         client.join(gameId);
 
-        const state = await this.othelloService.getState(gameId);
-        this.server.to(gameId).emit('gameState', state);
+        // Ne renvoie le gameState que si la socket n'était PAS encore dans la room
+        if (!isAlreadyInRoom) {
+            try {
+                const state = await this.othelloService.getState(gameId);
+                client.emit('gameState', state);
+            } catch (err) {
+                client.emit('gameError', { message: err.message });
+            }
+        }
     }
 
     @SubscribeMessage('leaveGame')
