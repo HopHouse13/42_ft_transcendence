@@ -12,6 +12,7 @@ import { toClientCell } from "../utils/cellConverter";
 import GameHeader from "../components/GameHeader";
 import History from "../components/History";
 import LocalGame from "../components/LocalGame";
+import GameEndModal from "../components/GameEndModal";
 
 interface ChatMessage {
   id: string | number;
@@ -129,7 +130,6 @@ const Game = (): React.ReactElement => {
   const { user } = useAuthContext();
   const { history, showLatestFirst, toggleOrder } = useMoveHistory(gameState);
 
-  // Détection du mode BOT
   const isBotMode = gameState?.mode === "BOT" || mode === "BOT";
 
   const leftColor: PlayerColor = gameState?.players.find((player) => player.userId === user?.id)?.color
@@ -142,7 +142,6 @@ const Game = (): React.ReactElement => {
 
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Si on est en mode BOT, on force l'affichage de l'historique
   useEffect(() => {
     if (isBotMode) {
       setRightPanel("history");
@@ -178,6 +177,10 @@ const Game = (): React.ReactElement => {
     sendMessage(chatInput);
     setChatInput("");
   }
+
+  const isGameFinished = gameState?.status === "FINISHED";
+  const blackScore = gameState?.cells.filter((c) => c.color === "BLACK").length ?? 0;
+  const whiteScore = gameState?.cells.filter((c) => c.color === "WHITE").length ?? 0;
 
   if (mode === "LOCAL" && local.started) {
     return (
@@ -247,7 +250,6 @@ const Game = (): React.ReactElement => {
       <div className="flex justify-center max-h-[800px] lg:justify-start ">
         <div className="w-full max-w-sm h-full flex flex-col rounded-xl overflow-y-auto min-h-[400px] border border-[#3d3a36] bg-base-100">
           <div className="flex shrink-0 gap-1 border-b border-[#3d3a36] p-2">
-            {/* Si c'est le mode BOT, on masque l'onglet du Chat */}
             {!isBotMode && (
               <button
                 onClick={() => setRightPanel("chat")}
@@ -273,7 +275,6 @@ const Game = (): React.ReactElement => {
             </button>
           </div>
 
-          {/* Rendu conditionnel selon le mode */}
           {rightPanel === "chat" && !isBotMode ? (
             <ChatPanel
               messages={formattedChatMessages}
@@ -292,6 +293,17 @@ const Game = (): React.ReactElement => {
           )}
         </div>
       </div>
+
+      {/* Modale de fin de partie pour BOT & ONLINE */}
+      <GameEndModal
+        isOpen={isGameFinished}
+        winner={gameState.result?.winner ?? null}
+        userColor={leftColor}
+        blackScore={blackScore}
+        whiteScore={whiteScore}
+        onRestartOrRematch={handleStart}
+        onQuit={() => selectMode("LOCAL")}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import Board from "./Board";
 import PlayerCard from "./PlayerCard";
 import ScoreCard from "./ScoreCard";
 import History from "./History";
+import GameEndModal from "./GameEndModal";
 import type { Player, BoardState, Position, MoveHistoryEntry } from "../types/gameTypes";
 import type { LocalMoveHistoryEntry } from "../hooks/useLocalGame";
 import { BOARD_SIZE } from "../constants/gameConstants";
@@ -39,7 +40,6 @@ const LocalGame = ({
 }: LocalGameProps): React.ReactElement => {
     const [showLatestFirst, setShowLatestFirst] = useState(true);
 
-    // Représentation initiale à l'index 0
     const initialEntry: MoveHistoryEntry = {
         board: createInitialBoard(),
         player: null,
@@ -48,7 +48,6 @@ const LocalGame = ({
         passed: false,
     };
 
-    // Assemblage de l'historique lisible par History.tsx
     const formattedHistory: MoveHistoryEntry[] = [
         initialEntry,
         ...moveHistory.map((entry) => ({
@@ -103,7 +102,7 @@ const LocalGame = ({
                 </div>
             </div>
 
-            {/* Panneau latéral de l'historique */}
+            {/* Panneau latéral d'historique */}
             <div className="flex justify-center max-h-[800px] lg:justify-start">
                 <div className="w-full max-w-sm h-full flex flex-col rounded-xl overflow-y-auto min-h-[400px] border border-[#3d3a36] bg-base-100 p-2">
                     <div className="border-b border-[#3d3a36] p-2 mb-2 text-xs font-semibold text-[#e8e6e3]">
@@ -117,6 +116,16 @@ const LocalGame = ({
                     />
                 </div>
             </div>
+
+            {/* Modale de fin de partie */}
+            <GameEndModal
+                isOpen={isFinished}
+                winner={winner}
+                blackScore={blackScore}
+                whiteScore={whiteScore}
+                onRestartOrRematch={onRestart}
+                onQuit={onQuit}
+            />
         </div>
     );
 };
