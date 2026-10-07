@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 
 const Footer: FC = () => {
 	const navLinks = [
