@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service"; 
+import { PrismaService } from "../prisma/prisma.service";
 import { FriendLists, FriendUser, FriendshipRaw } from "./interfaces/friend.interface";
-import { StatusFriendship } from "@prisma/client";
+import { Prisma, StatusFriendship } from "@prisma/client";
 import { friendUserSelect } from "./friendUser.select"; 
 
 @Injectable()
@@ -51,22 +51,33 @@ export class FriendService
 		// si aucune friendship existe
 		if ( !friendshipExisting )
 		{
-			await this.prisma.friendship.create(
+			try
 			{
-				data:
+				await this.prisma.friendship.create(
 				{
-					senderId:	sender,
-					receiverId:	receiverFound.id
-				}
-			});
+					data:
+					{
+						senderId:	sender,
+						receiverId:	receiverFound.id
+					}
+				});
+			}
+			catch ( err )
+			{
+				if ( err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002' ) // erreur d'unicité -> la demande a deja ete faite
+					return;
+				throw ( err ); // re throw les autres erreurs catch
+			}
 		}
 		else if ( friendshipExisting.status === StatusFriendship.WAITING && friendshipExisting.senderId === receiverFound.id ) // acceptation automatique car une demande de userB -> userA etait deja en attente
 		{
-			await this.prisma.friendship.update(
+			await this.prisma.friendship.updateMany( // les methodes ...Many ne renvoient pas d'erreur si zero l'element trouvé, elles renvoient un objet avec zero element.
 			{
 				where:
 				{
-					friendshipId:	{ senderId: receiverFound.id, receiverId: sender }
+					senderId:		receiverFound.id,
+					receiverId:		sender,
+					status:			StatusFriendship.WAITING
 				},
 				data:
 				{
@@ -77,7 +88,7 @@ export class FriendService
 		else // cas ou deja amis ou demande deja faite
 			return;
 
-		//return ( receiverFound ); a voir si mael veut un retour ou pas si demande envoyé
+		//return ( receiverFound ); a voir si le front veut un retour ou pas si demande envoyé
 	}
 
 	///
@@ -145,7 +156,7 @@ export class FriendService
 		});
 
 		const	friends:	FriendUser[] = [];
-		const 	send:		FriendUser[] = [];
+		const 	sent:		FriendUser[] = [];
 		const 	received:	FriendUser[] = [];
 
 		for ( let i = 0; i < friendsRaws.length; i++ ) //  for( const <objet> of <tableau> ) <- plus simple mais j'aime pas
@@ -156,27 +167,40 @@ export class FriendService
 			if ( friendsRaws[i].status === StatusFriendship.ACCEPTED )
 				friends.push( other );
 			else if ( isSender )
-				send.push( other );
+				sent.push( other );
 			else
 				received.push( other );
-
-			//if ( sender && friendsRaws[i].status === StatusFriendship.ACCEPTED )
-			//	friends.push( friendsRaws[i].receiver );
-			//else if ( !sender && friendsRaws[i].status === StatusFriendship.ACCEPTED )
-			//	friends.push( friendsRaws[i].sender );
-			//else if ( sender && friendsRaws[i].status === StatusFriendship.WAITING )
-			//	send.push( friendsRaws[i].receiver );
-			//else if ( !sender && friendsRaws[i].status === StatusFriendship.WAITING )
-			//	received.push( friendsRaws[i].sender );
 		}
 
 		const	friendLists: FriendLists =
 		{
 			friends,
-			send,
+			sent,
 			received
 		}
 
 		return( friendLists );
+	}
+
+	///
+
+	async search( userId: string, searchName?: string ): Promise<FriendUser[]>
+	{
+		if ( !searchName )
+			return ( [] );
+
+		const	suggestion: FriendUser[] = await this.prisma.user.findMany(
+		{
+			where:
+			{
+				isDelete:	false, // pas de compte supprimé
+				username:	{ contains: searchName, mode: 'insensitive' }, // recherche partiel a partir de searchName, recherche insensible a la case
+				id:			{ not: userId } // pour ne pas retourner lui meme
+			},
+			take:			5,
+			select:			friendUserSelect
+		});
+
+		return( suggestion );
 	}
 };

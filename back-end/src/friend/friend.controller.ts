@@ -1,8 +1,9 @@
-import { Controller, UseGuards, Get, Post, Param, ParseUUIDPipe, Req, Patch, Delete } from "@nestjs/common";
+import { Controller, UseGuards, Get, Post, Param, ParseUUIDPipe, Req, Patch, Delete, Query } from "@nestjs/common";
 import { JwtGuard } from "../common/guards/jwt.guard";
 import { FriendService } from "./friend.service"; 
 import { HttpCode } from "@nestjs/common";
 import { FriendLists } from "./interfaces/friend.interface";
+import { SearchDto }  from "./dto/search.dto";
 
 @UseGuards( JwtGuard )
 @Controller( 'friend' )
@@ -12,7 +13,7 @@ export class FriendController
 
 	@Post( ':receiverId' )
 	@HttpCode( 204 ) // status de reussite mais rien a envoyer
-	sendRequest( @Req() req, @Param( "receiverId", ParseUUIDPipe ) receiverId: string )
+	sendRequest( @Req() req: any, @Param( "receiverId", ParseUUIDPipe ) receiverId: string )
 	{
 		return( this.friendService.sendRequest( req.user.id, receiverId ));
 	}
@@ -21,7 +22,7 @@ export class FriendController
 
 	@Patch( ':senderId/accepted' )
 	@HttpCode( 204 )
-	accept( @Req() req, @Param( "senderId", ParseUUIDPipe ) senderId: string )
+	accept( @Req() req: any, @Param( "senderId", ParseUUIDPipe ) senderId: string )
 	{
 		return( this.friendService.accept( req.user.id, senderId ));
 	}
@@ -30,7 +31,7 @@ export class FriendController
 
 	@Delete( ':otherId' )
 	@HttpCode( 204 )
-	delete( @Req() req, @Param( "otherId", ParseUUIDPipe ) otherId: string )
+	delete( @Req() req: any, @Param( "otherId", ParseUUIDPipe ) otherId: string )
 	{
 		return( this.friendService.delete( req.user.id, otherId ));
 	}
@@ -38,12 +39,18 @@ export class FriendController
 	///
 
 	@Get()
-	friendLists( @Req() req ): Promise <FriendLists>
+	friendLists( @Req() req: any ): Promise <FriendLists>
 	{
 		return( this.friendService.friendLists( req.user.id ));
 	}
 
 	///
 
-	//@Get()
+	@Get( 'search' ) // ?query=:username
+	search( @Req() req: any, @Query() dto: SearchDto )
+	{
+		const	searchName: string | undefined = dto.query?.trim(); // trim -> ignore les espace au debut et la la fin
+
+		return( this.friendService.search( req.user.id, searchName ));
+	}
 };

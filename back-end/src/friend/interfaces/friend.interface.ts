@@ -3,7 +3,7 @@ import { StatusFriendship } from "@prisma/client"
 export interface FriendLists
 {
 	friends:	FriendUser[]
-	send:		FriendUser[]
+	sent:		FriendUser[]
 	received:	FriendUser[]
 };
 
