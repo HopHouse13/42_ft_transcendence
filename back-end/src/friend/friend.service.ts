@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service"; 
-import { FriendUser } from "./interfaces/friendUser.interface";
+import { FriendLists, FriendUser, FriendshipRaw } from "./interfaces/friend.interface";
 import { StatusFriendship } from "@prisma/client";
-import { sensitiveHeaders } from "http2";
+import { friendUserSelect } from "./friendUser.select"; 
 
 @Injectable()
 export class FriendService
 {
 	constructor( private readonly prisma: PrismaService ) {};
 
-	async sendRequest( sender: string, receiver: string ): Promise<FriendUser | undefined>
+	async sendRequest( sender: string, receiver: string )/*: Promise<FriendUser | undefined>*/
 	{
 		// si userA -> userA
 		if ( sender === receiver )
@@ -22,13 +22,7 @@ export class FriendService
 				id:	receiver,
 				isDelete: false
 			},
-			select:
-			{
-				id:			true,
-				username:	true,
-				avatarUrl:	true,
-				elo:		true
-			}
+			select:	friendUserSelect // objet au format FriendUser -> il defini select
 		});
 
 		// si userA -> ...
@@ -54,6 +48,7 @@ export class FriendService
 			}
 		});
 		
+		// si aucune friendship existe
 		if ( !friendshipExisting )
 		{
 			await this.prisma.friendship.create(
@@ -71,7 +66,7 @@ export class FriendService
 			{
 				where:
 				{
-					friendshipId:	{senderId: receiverFound.id, receiverId: sender}
+					friendshipId:	{ senderId: receiverFound.id, receiverId: sender }
 				},
 				data:
 				{
@@ -81,7 +76,6 @@ export class FriendService
 		}
 		else // cas ou deja amis ou demande deja faite
 			return;
-
 
 		//return ( receiverFound ); a voir si mael veut un retour ou pas si demande envoyé
 	}
@@ -96,7 +90,10 @@ export class FriendService
 			{
 				senderId:	sender,
 				receiverId:	receiver,
-				status:		StatusFriendship.WAITING
+				status:		StatusFriendship.WAITING,
+
+				sender:		{isDelete: false},
+				receiver:	{isDelete: false},
 			},
 			data:
 			{
@@ -121,5 +118,65 @@ export class FriendService
 			},
 		});
 	}
-};
 
+	///
+
+	async friendLists( userId: string ): Promise<FriendLists>
+	{
+		const	friendsRaws: FriendshipRaw[] = await this.prisma.friendship.findMany(
+		{
+			where:
+			{
+				sender:		{ isDelete: false }, // se sont des relation: reference a la table de user
+				receiver:	{ isDelete:	false }, // same
+
+				OR:
+				[
+					{ senderId:		userId },
+					{ receiverId:	userId }
+				]
+			},
+			select: 
+			{
+				status:		true,
+				sender: 	{ select:	friendUserSelect },
+				receiver:	{ select:	friendUserSelect },
+			}
+		});
+
+		const	friends:	FriendUser[] = [];
+		const 	send:		FriendUser[] = [];
+		const 	received:	FriendUser[] = [];
+
+		for ( let i = 0; i < friendsRaws.length; i++ ) //  for( const <objet> of <tableau> ) <- plus simple mais j'aime pas
+		{
+			const	isSender:	boolean = friendsRaws[i].sender.id === userId ? true : false;
+			const	other:		FriendUser = isSender ? friendsRaws[i].receiver : friendsRaws[i].sender;
+
+			if ( friendsRaws[i].status === StatusFriendship.ACCEPTED )
+				friends.push( other );
+			else if ( isSender )
+				send.push( other );
+			else
+				received.push( other );
+
+			//if ( sender && friendsRaws[i].status === StatusFriendship.ACCEPTED )
+			//	friends.push( friendsRaws[i].receiver );
+			//else if ( !sender && friendsRaws[i].status === StatusFriendship.ACCEPTED )
+			//	friends.push( friendsRaws[i].sender );
+			//else if ( sender && friendsRaws[i].status === StatusFriendship.WAITING )
+			//	send.push( friendsRaws[i].receiver );
+			//else if ( !sender && friendsRaws[i].status === StatusFriendship.WAITING )
+			//	received.push( friendsRaws[i].sender );
+		}
+
+		const	friendLists: FriendLists =
+		{
+			friends,
+			send,
+			received
+		}
+
+		return( friendLists );
+	}
+};

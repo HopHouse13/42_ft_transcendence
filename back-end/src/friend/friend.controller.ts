@@ -2,6 +2,7 @@ import { Controller, UseGuards, Get, Post, Param, ParseUUIDPipe, Req, Patch, Del
 import { JwtGuard } from "../common/guards/jwt.guard";
 import { FriendService } from "./friend.service"; 
 import { HttpCode } from "@nestjs/common";
+import { FriendLists } from "./interfaces/friend.interface";
 
 @UseGuards( JwtGuard )
 @Controller( 'friend' )
@@ -13,7 +14,7 @@ export class FriendController
 	@HttpCode( 204 ) // status de reussite mais rien a envoyer
 	sendRequest( @Req() req, @Param( "receiverId", ParseUUIDPipe ) receiverId: string )
 	{
-		return ( this.friendService.sendRequest( req.user.id, receiverId ));
+		return( this.friendService.sendRequest( req.user.id, receiverId ));
 	}
 
 	///
@@ -33,4 +34,16 @@ export class FriendController
 	{
 		return( this.friendService.delete( req.user.id, otherId ));
 	}
+
+	///
+
+	@Get()
+	friendLists( @Req() req ): Promise <FriendLists>
+	{
+		return( this.friendService.friendLists( req.user.id ));
+	}
+
+	///
+
+	//@Get()
 };
