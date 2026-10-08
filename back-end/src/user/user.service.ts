@@ -321,16 +321,18 @@ export class UserService
 				{
 					select:
 					{
-						id:		true,
-						elo:	true
+						id:			true,
+						username:	true,
+						elo:		true
 					}
 				},
 				whitePlayer:
 				{
 					select:
 					{
-						id:		true,
-						elo:	true
+						id:			true,
+						username:	true,
+						elo:		true
 					}
 				}
 			}
@@ -357,6 +359,7 @@ export class UserService
 			{
 				id :			rawMatch.id,
 				opponentId: 	opponent.id,
+				opponentName:	opponent.username,
 				opponentElo: 	opponent.elo,
     			result,
     			score: [ ownScore , opponentScore ],
