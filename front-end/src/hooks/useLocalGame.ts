@@ -12,19 +12,25 @@ import {
 
 const STORAGE_KEY = "othello:local-game";
 
+export interface LocalMoveHistoryEntry {
+    moveNumber: number;
+    player: Player;
+    position: Position;
+    board: BoardState; // Copie du plateau archivée après le coup
+}
+
 interface SavedLocalGame {
     board: BoardState;
     currentPlayer: Player;
     started: boolean;
     notice: string | null;
+    moveHistory?: LocalMoveHistoryEntry[];
 }
 
-/** Relit la partie sauvegardée (null si absente ou invalide). */
 export function loadSavedLocalGame(): SavedLocalGame | null {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw)
-            return null;
+        if (!raw) return null;
 
         const data = JSON.parse(raw);
         const validBoard =
@@ -33,14 +39,14 @@ export function loadSavedLocalGame(): SavedLocalGame | null {
             data.board.every((c: unknown) => c === null || c === "BLACK" || c === "WHITE");
         const validPlayer = data.currentPlayer === "BLACK" || data.currentPlayer === "WHITE";
 
-        if (!validBoard || !validPlayer || data.started !== true)
-            return null;
+        if (!validBoard || !validPlayer || data.started !== true) return null;
 
         return {
             board: data.board,
             currentPlayer: data.currentPlayer,
             started: true,
             notice: typeof data.notice === "string" ? data.notice : null,
+            moveHistory: Array.isArray(data.moveHistory) ? data.moveHistory : [],
         };
     } catch {
         return null;
@@ -66,22 +72,22 @@ export function useLocalGame() {
     const [currentPlayer, setCurrentPlayer] = useState<Player>(saved?.currentPlayer ?? "BLACK");
     const [started, setStarted] = useState(saved?.started ?? false);
     const [notice, setNotice] = useState<string | null>(saved?.notice ?? null);
+    const [moveHistory, setMoveHistory] = useState<LocalMoveHistoryEntry[]>(saved?.moveHistory ?? []);
 
-    // Sauvegarde automatique à chaque changement
     useEffect(() => {
         try {
             if (started) {
                 localStorage.setItem(
                     STORAGE_KEY,
-                    JSON.stringify({ board, currentPlayer, started, notice }),
+                    JSON.stringify({ board, currentPlayer, started, notice, moveHistory }),
                 );
             } else {
                 localStorage.removeItem(STORAGE_KEY);
             }
         } catch {
-            // localStorage indisponible (navigation privée, quota...) : on ignore
+            // Support mode privé
         }
-    }, [board, currentPlayer, started, notice]);
+    }, [board, currentPlayer, started, notice, moveHistory]);
 
     const validMoves = useMemo(
         () => getAllValidMoves(board, currentPlayer),
@@ -108,12 +114,14 @@ export function useLocalGame() {
         setBoard(createInitialBoard());
         setCurrentPlayer("BLACK");
         setNotice(null);
+        setMoveHistory([]);
         setStarted(true);
     }
 
     function quit() {
         setStarted(false);
         setNotice(null);
+        setMoveHistory([]);
     }
 
     function playMove(pos: Position) {
@@ -123,6 +131,16 @@ export function useLocalGame() {
         const nextBoard = [...board];
         nextBoard[getIndex(pos)] = currentPlayer;
         flipCells(nextBoard, pos, currentPlayer);
+
+        setMoveHistory((prev) => [
+            ...prev,
+            {
+                moveNumber: prev.length + 1,
+                player: currentPlayer,
+                position: { row: pos.row, col: pos.col },
+                board: [...nextBoard],
+            },
+        ]);
 
         const opponent = opponentOf(currentPlayer);
         let next = opponent;
@@ -143,6 +161,6 @@ export function useLocalGame() {
     return {
         started, board, currentPlayer, validMoves,
         blackScore, whiteScore, isFinished, winner, notice,
-        start, quit, playMove,
+        moveHistory, start, quit, playMove,
     };
 }
