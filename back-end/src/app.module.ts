@@ -11,6 +11,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { OthelloService } from './othello/othello.service';
 import { ComputePlayerModule } from './compute-player/compute-player.module';
 import { ChatModule } from './chat/chat.module';
+import { FriendModule } from './friend/friend.module';
 
 @Module({
   imports: [
@@ -27,8 +28,9 @@ import { ChatModule } from './chat/chat.module';
     AuthModule,
     ComputePlayerModule,
     ChatModule,
+	FriendModule
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, OthelloService],
+  providers: [AppService, PrismaService, OthelloService], // voir si PrismaService et OthelloService sont utiles ici
 })
 export class AppModule {}

@@ -53,6 +53,8 @@ model User {
 	gamesAswhite			Game[] @relation( "white" )
 	gamesWon				Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
 
+	friendshipsSent			Friendship[] @relation( "friendSender" )
+	friendshipsReceived		Friendship[] @relation( "friendReceiver" )
 	@@map( "users" )
 }
 
@@ -117,6 +119,32 @@ model Move {
 	@@id([ gameId, moveNumber ], name: "movesInGame" ) // genere une clé primaire composite a partir des champs renseignés
 	@@map( "moves" )
 }
+
+/// FRIENDSHIP //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+enum StatusFriendship {
+	WAITING
+	ACCEPTED
+
+	@@map( "status_friendship" )
+}
+
+model Friendship {
+	senderId	String @db.Uuid @map( "sender_id" )
+	receiverId	String @db.Uuid @map( "receiver_id" )
+
+	status		StatusFriendship @default( WAITING )
+
+	createdAt	DateTime @default( now() ) @map( "created_at" )
+
+	sender		User @relation( "friendSender", fields: [ senderId ], references: [ id ] )
+	receiver	User @relation( "friendReceiver", fields: [ receiverId ], references: [ id ] )
+
+	@@id([ senderId, receiverId ], name: "friendshipId" )
+	@@index([ receiverId ]) // Optimisation: un index serre a demander a la db d'indexer et trier ce champ. ( ralenti l'ecriture, accélère la lecture )
+	@@map( "friendships" )
+}
+
 
 /// CMDs PRISMA /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
