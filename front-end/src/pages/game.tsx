@@ -13,7 +13,7 @@ import GameHeader from "../components/GameHeader";
 import History from "../components/History";
 import LocalGame from "../components/LocalGame";
 import GameEndModal from "../components/GameEndModal";
-import { ChatPanel } from "../components/Chat"
+import { ChatPanel, ChatMessage } from "../components/Chat"
 
 interface ChatMessage {
   id: string | number;
