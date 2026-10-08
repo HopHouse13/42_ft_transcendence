@@ -102,8 +102,9 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         // Partie bot : elle reste en attente, pas de forfait
         if (state.mode === 'BOT') return;
 
-        const timer = setTimeout(() => {
-            const finalState = this.othelloService.forfeit(state.gameId, userId);
+        // Dans handleDisconnect (othello.gateway.ts)
+        const timer = setTimeout(async () => {
+            const finalState = await this.othelloService.forfeit(state.gameId, userId);
             if (finalState) this.server.to(state.gameId).emit('gameState', finalState);
             this.disconnectTimers.delete(userId);
         }, 30_000);
@@ -201,6 +202,26 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         return true;
     }
 
+    /** Si un jouer decide de give up */
+    @SubscribeMessage('forfeit')
+    async handleForfeit( @MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket ) { 
+        
+        const userId = client.data.userId as string;
+        const { gameId } = payload;
+
+        try {
+        
+            const finalState = await this.othelloService.forfeit(gameId, userId);
+            if (finalState) {
+
+                this.server.to(gameId).emit('gameState', finalState);
+            }
+        
+        } catch (err) {
+            client.emit('gameError', { message: err.message });
+        }
+    }
+
     /* -------------------------------------------------------------------------- */
     /*  Anciens events (inchangés)                                                */
     /* -------------------------------------------------------------------------- */
@@ -212,12 +233,23 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     @SubscribeMessage('joinGame')
-    async handleJoinGame(@MessageBody() payload: JoinGamePayload, @ConnectedSocket() client: Socket) {
-        const { gameId } = payload;
+    async handleJoinGame( @MessageBody() payload: string | JoinGamePayload, @ConnectedSocket() client: Socket ) { 
+        
+        const gameId = typeof payload === 'string' ? payload : payload?.gameId;
+        if (!gameId) return;
+
+        const isAlreadyInRoom = client.rooms.has(gameId);
         client.join(gameId);
 
-        const state = await this.othelloService.getState(gameId);
-        this.server.to(gameId).emit('gameState', state);
+        // Ne renvoie le gameState que si la socket n'était PAS encore dans la room
+        if (!isAlreadyInRoom) {
+            try {
+                const state = await this.othelloService.getState(gameId);
+                client.emit('gameState', state);
+            } catch (err) {
+                client.emit('gameError', { message: err.message });
+            }
+        }
     }
 
     @SubscribeMessage('leaveGame')

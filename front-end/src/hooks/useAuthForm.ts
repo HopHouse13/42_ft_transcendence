@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import type { AuthMode } from "../types/authTypes";
 import { useAuth } from "./useAuth";
 
