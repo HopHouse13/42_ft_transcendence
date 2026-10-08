@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-
 :root,
 [data-theme="Othello"] {
   color-scheme: "dark";
