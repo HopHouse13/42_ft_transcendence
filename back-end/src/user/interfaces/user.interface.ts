@@ -28,6 +28,7 @@ export interface Match
 {
 	id:				string
 	opponentId:		string
+	opponentName:	string
 	opponentElo: 	number
 	result:			'WIN' | 'LOSS' | 'DRAW'
 	score:			[ number, number ]
