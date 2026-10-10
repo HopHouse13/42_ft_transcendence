@@ -37,7 +37,7 @@ export class JwtGuard extends AuthGuard( 'jwtStrategy' )
 		const	res = context.switchToHttp().getResponse();
 		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken ); // genere deux cookies avec les tokens et les pose dans le header de la reponse (res)
 
-		return ( auth.userPublic );
+		return ( auth.userPublic ); // objet renvoyé et retrouvé au niveau du controller
 	}
 
 }

@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { Strategy, ExtractJwt } from "passport-jwt"; // passport-jwt est un package générique specialisé JWT de JS (independant a Nest)
+import { Strategy } from "passport-jwt"; // passport-jwt est un package générique specialisé JWT de JS (independant a Nest)
 import { PassportStrategy } from "@nestjs/passport"; // PassportStrategy est une fonction pour faire le pont entre les lib comme passport a l'environement nest. Elle retourne une nouvelle classe, générée à partir de la classe externe passée en arg, adaptée à l'environnement Nest.
 import { ConfigService } from "@nestjs/config";
 import { UserService } from "../../user/user.service";
 import { Payload } from "../interfaces/payload.interface";
 import { Request } from 'express';
+import { UserPublic } from "src/user/interfaces/user.interface";
 
 // PassportStrategy(Strategy) -> mixin (fonction) qui adapte la classe Strategy (la classe de vérification spécifique à passport-jwt) à Nest et retourne une classe utilisable dans Nest
 // JwtStrategy en hérite ensuite
@@ -23,9 +24,9 @@ export class JwtStrategy extends PassportStrategy( Strategy, 'jwtStrategy' ) // 
 	}
 
 	// méthode appelé automatiquement par passport si le token est valide. "payload" -> objet qui est le payload décodé par passport (id+username)
-	async	validate( payload: Payload )
+	async	validate( payload: Payload ): Promise< UserPublic >
 	{
-		return( this.userService.findOne( payload.sub ) ); // appelle findOne() pour renvoyer le user à jour, plutôt que de faire confiance aux données figées du payload
+		return( this.userService.findOne( payload.sub )); // appelle findOne() pour renvoyer le user à jour, plutôt que de faire confiance aux données figées du payload
 	}
 };
 // validate est une methode obligatoire a implementer avec une class strategy, son retour devient automatiquement request.user. Cet objet est accessible dans le controller.
