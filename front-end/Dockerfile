@@ -1,7 +1,7 @@
 # Dockerfile de DÉVELOPPEMENT — hot-reload avec Vite
 # À ne pas utiliser en prod : ici Node tourne en continu, pas de build optimisé.
 
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 

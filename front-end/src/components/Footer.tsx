@@ -1,10 +1,10 @@
 import type { FC } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 
 const Footer: FC = () => {
 	const navLinks = [
 		{name: "About Us", path: "/aboutUs" },
-		{name: "Terms of Use", path: "/termsOfUse" },
+		{name: "Terms of Service", path: "/termsOfService" },
 		{name: "Privacy Policy", path: "/privacyPolicy"}
 	];
 

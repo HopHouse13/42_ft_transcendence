@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import FormField from "../ui/FormField";
 import AuthCard from "./AuthCard";
 import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT } from "../../constants/authConstants";
