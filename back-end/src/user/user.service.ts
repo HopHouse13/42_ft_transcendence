@@ -33,7 +33,7 @@ export class UserService
 				updatedAt:	true
 			}
 		});
-		return( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
+		return ( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
 	}
 
 	///
@@ -95,7 +95,7 @@ export class UserService
 			}
 		});
 
-		return( user );
+		return ( user );
 	}
 
 	///
@@ -130,7 +130,7 @@ export class UserService
 			}
 		});
 
-		return( user ); // renvoie un objet user avec les données UserPrivate
+		return ( user ); // renvoie un objet user avec les données UserPrivate
 	}
 
 	///
@@ -165,7 +165,7 @@ export class UserService
 			}
 		});
 
-		return( user ); // renvoie un objet userPrivate
+		return ( user ); // renvoie un objet userPrivate
 	}
 
 	///
@@ -200,7 +200,7 @@ export class UserService
 			}
 		});
 
-		return( user );
+		return ( user );
 	}
 
 	///
@@ -235,7 +235,7 @@ export class UserService
 			}
 		});
 
-		return( user );
+		return ( user );
 	}
 
 	///
@@ -275,7 +275,7 @@ export class UserService
 				refreshTokenExpiresAt:	true
 			}
 		});
-		return( user );
+		return ( user );
 	}
 
 	///
@@ -381,7 +381,7 @@ export class UserService
 			matchHistory
 		}
 
-		return( userProfile );
+		return ( userProfile );
 	}
 
 	///
@@ -425,7 +425,7 @@ export class UserService
 					refreshTokenExpiresAt:	true
 				}
 			});
-			return( user );
+			return ( user );
 		}
 		catch ( err )
 		{
@@ -488,7 +488,7 @@ export class UserService
 					updatedAt:	true
 				}
 			});
-			return( updateUser );
+			return ( updateUser );
 		}
 		catch ( err )
 		{
@@ -543,7 +543,7 @@ export class UserService
 			}
 		});
 
-		return( user );
+		return ( user );
 	}
 
 	///
@@ -666,34 +666,50 @@ export class UserService
 
 	///
 
-	async remove( id: string ): Promise <{ message: string, deleteUser: UserPublic }>
+	async remove( id: string ): Promise <{ message: string, removeUser: UserPublic }>
 	{
 		try
 		{
-			const	deleteUser: UserPublic = await this.prisma.user.update(
-			{
-				where:
+			const	arrayRemove = await this.prisma.$transaction(
+			[
+				this.prisma.user.update(
 				{
-					id, // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
-					isDelete:	false
-				},
-				data:
+					where:
+					{
+						id, // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+						isDelete:	false
+					},
+					data:
+					{
+						isDelete:				true,
+						username:				`removed_player_${ id.slice( -8 ) }`,
+						email:					`removed_player_${ id.slice( -8 ) }`,
+						refreshToken:			null,
+						refreshTokenExpiresAt:	null
+					},
+					select: // ne retourne que les champs listés à true par mesure de sécurité
+					{
+						id:						true,
+						username:				true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true
+					},
+				}),
+				this.prisma.friendship.deleteMany(
 				{
-					isDelete:	true,
-					username:	`removed_player_${ id.slice( -8 ) }`,
-					email:		`removed_player_${ id.slice( -8 ) }`
-				},
-				select: // ne retourne que les champs listés à true par mesure de sécurité
-				{
-					id:			true,
-					username:	true,
-					avatarUrl:	true,
-					createdAt:	true,
-					updatedAt:	true
-				},
-			});
+					where:
+					{
+						OR:
+						[
+							{ senderId:		id },
+							{ receiverId:	id }
+						]
+					}
+				})
+			]);
 
-			return({ message: `User ${id} has indeed been deleted` , deleteUser }); // message de confirmation + infos filtrées du user supprimé
+			return ({ message: `User ${id} has indeed been deleted` , removeUser: arrayRemove[0] }); // message de confirmation + infos filtrées du user supprimé
 		}
 		catch ( err )
 		{
@@ -735,7 +751,7 @@ export class UserService
 			}
 		});
 
-		return( user );
+		return ( user );
 	}
 }
 
