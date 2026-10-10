@@ -7,7 +7,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  # Prometheus scraping the Node Exporter container
+  # Prometheus scraping the backend container through the NestJS PrometheusModule
   - job_name: 'backend'
     static_configs:
       - targets: ['backend:3000']
