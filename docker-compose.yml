@@ -39,8 +39,6 @@ services:
     volumes:
       - ./front-end:/app
       - /app/node_modules
-    # ports:
-    #   - "5173:5173"
     networks:
       - ft_transcendence_network
     expose:
@@ -57,8 +55,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U othello_user -d othello_db"]
       interval: 2s
@@ -66,6 +62,8 @@ services:
       retries: 10
     networks:
       - ft_transcendence_network
+    expose:
+      - "5432"
 
   grafana:
     image: docker.io/grafana/grafana:13.2.3
@@ -82,8 +80,6 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=false
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
     restart: unless-stopped
-    # ports:
-    #   - "3101:3000"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:Z
@@ -99,8 +95,6 @@ services:
       - backend
       - database
     restart: unless-stopped
-    # ports:
-    #   - "9090:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z # /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \ prom/prometheus
       - prometheus-data:/prometheus
@@ -157,7 +151,7 @@ services:
     depends_on:
       - proxy
     command:
-      - -nginx.scrape-uri=http://proxy:81/stub_status
+      - "--nginx.scrape-uri=http://proxy:81/stub_status"
     networks:
       - ft_transcendence_network
     restart: unless-stopped

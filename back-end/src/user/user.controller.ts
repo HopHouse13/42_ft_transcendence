@@ -71,6 +71,5 @@ export class UserController
 	}
 }
 
-
 // ParseUUIDPipe -> pipe specialisé (pas besoin de DTO). Son code est ecrit en dur. Pas besoin de l'instancier
 // DTO -> donne un modele d'objet js que ValidationPipe utilise pour instancier et verifier les donnée de l'objet a partir de la donnée brute du body d'une requete

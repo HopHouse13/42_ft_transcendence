@@ -7,6 +7,7 @@ import { ResetPasswordDto } from './dto/resetPassword.dto';
 import {  HttpStatus, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtGuard } from '../common/guards/jwt.guard';
+import { SilentJwtGuard } from '../common/guards/silentJwt.guard'; 
 import { GoogleGuard } from '../common/guards/google.guard';
 import { GitGuard } from '../common/guards/github.guard';
 import { CookieInterceptor } from '../common/interceptors/cookie.interceptor';
@@ -38,22 +39,9 @@ export class AuthController
 
 	@UseGuards( JwtGuard )
 	@Post( 'logout' )
-	async logout( @Req() request, @Res({ passthrough: true }) response: Response )
+	async logout( @Req() request, @Res({ passthrough: true }) response: Response ) // passthrough: true -> on accède à response (cookies, statut) mais Nest envoie toujours le return dans la reponse
 	{
-		// clearCookie "supprime" les cookies: en realité, il set les MaxAge a 1 -> rend instantanément le cookie expiré -> le navigateur le supprime automatiquement 
-		response.clearCookie( 'access_token',
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-		});
-
-		response.clearCookie( 'refresh_token',
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-		});
+		this.authService.clearTokensCookies( response ); // supprime les deux cookies d'auth
 
 		return( await this.authService.logout( request.user.id )); // logout set le refreshtoken et son expiration a null et retourne le user logout
 	}
@@ -68,13 +56,13 @@ export class AuthController
 
 	@UseGuards( GoogleGuard )
 	@Get( 'google/callback' )
-	async googleCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
+	async googleCallback( @Req() request, @Res() response: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
 		const	auth = await this.authService.login( request.user ); // stock le retour de login (les deux tokens + le userPublic )
 
-		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
+		this.authService.setTokensCookies( response, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
 
-		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` ); // cookiesInterceptor est interompu par la redirection -> on 
+		response.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` ); // cookiesInterceptor est interompu par la redirection -> on 
 	}
 
 	///
@@ -86,13 +74,13 @@ export class AuthController
 
 	@UseGuards( GitGuard )
 	@Get( 'github/callback' )
-	async githubCallback( @Req() request, @Res() res: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
+	async githubCallback( @Req() request, @Res() response: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
 		const	auth = await this.authService.login( request.user );
 
-		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken );
+		this.authService.setTokensCookies( response, auth.jwt, auth.refreshToken );
 
-		res.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` );
+		response.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` );
 	}
 
 	///
@@ -126,10 +114,18 @@ export class AuthController
 
 	///
 
-	@UseGuards( JwtGuard )
+	// SilentJwtGuard specialement concu pour la route "me". Rend silencieux le guard pour que "me" indiquer au navigateur si il y a une session active, sans lui renvoyer des status d'erreurs
+	@UseGuards( SilentJwtGuard )
 	@Get( 'me' )
-	async me( @Req() request )
+	async me( @Req() request, @Res({ passthrough: true }) reponse: Response )
 	{
-		return ( request.user );
+		if ( !request.user )
+		{
+			this.authService.clearTokensCookies( reponse ); // clear les cookies dans la reponse
+			reponse.status( HttpStatus.NO_CONTENT ); // implemente le statut de notre reponse par un 204
+			return;
+		}
+
+		return ( request.user ); // renvoie au navigateur de userPublic renvoyé par jwtGuard
 	}
 };
