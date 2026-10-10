@@ -11,27 +11,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		queryFn: async () => {
 			let res = await fetch('/api/auth/me', { credentials: 'include' });
 
-			if (res.status === 401) {
-				const refreshRes = await fetch('/api/auth/refresh', {
-					method: "POST",
-					credentials: "include",
-				});
+			//if (res.status === 401) {
+			//	const refreshRes = await fetch('/api/auth/refresh', {
+			//		method: "POST",
+			//		credentials: "include",
+			//	});
 	
-				if (refreshRes.ok) {
-					res = await fetch('/api/auth/me', { credentials: 'include' });
-				}
-			}
+			//	if (refreshRes.ok) {
+			//		res = await fetch('/api/auth/me', { credentials: 'include' });
+			//	}
+			//}
 			
-			if (res.ok) {
+			//if (res.ok) {
+			//	const data = await res.json();
+			//	return (data.userPublic ?? data);
+			//}
+
+			//if (res.status === 401) {
+			//	return null;
+			//}
+
+			if ( res.status === 204 ) // pas de session active
+				return null;
+
+			if ( res.ok ) // session active: recuperation du userPublic
+			{
 				const data = await res.json();
 				return (data.userPublic ?? data);
 			}
 
-			if (res.status === 401) {
-				return null;
-			}
-
-			throw new Error(`Network error: ${res.status}`);
+			throw new Error(`Network error: ${res.status}`); // souleve l'erreur de la reponse
 		},
 		retry: false,
 		staleTime: 5 * 60 * 1000,

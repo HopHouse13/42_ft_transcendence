@@ -9,7 +9,6 @@ import { UserPublic, UserPrivate, UserCreate } from '../user/interfaces/user.int
 import { Response } from 'express';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
-
 //import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
 //import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
 
@@ -108,7 +107,7 @@ export class AuthService
 
 	///
 
-	async resetPassword( password: string, token: string )
+	async resetPassword( password: string, token: string ): Promise< UserPrivate >
 	{
 		// genere le hash avec le meme algo, au meme format avec le token transmit.
 		const	tokenHashClient = createHash( 'sha256' ).update( token ).digest( 'hex' );
@@ -120,7 +119,7 @@ export class AuthService
 			throw new UnauthorizedException( 'invalid or expired token' );
 
 		// passe l'id et le password hashé dans la foulée
-		const	updateUser = await this.usersService.setPassword( user.id, await argon2.hash( password ));
+		const	updateUser: UserPrivate = await this.usersService.setPassword( user.id, await argon2.hash( password ));
 	
 		// si tout est bon, retourne le userPrivate pour le log
 		return( updateUser );
@@ -184,6 +183,26 @@ export class AuthService
 			secure:		true,
 			sameSite:	'lax',
 			maxAge:		expirationCookies,
+		});
+	}
+
+	///
+
+	// clearCookie "supprime" les cookies: en realité, il set les MaxAge a 1 -> rend instantanément le cookie expiré -> le navigateur le supprime automatiquement
+	clearTokensCookies( response: Response )
+	{
+		response.clearCookie( 'access_token',
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
+		});
+
+		response.clearCookie( 'refresh_token',
+		{
+			httpOnly:	true,
+			secure:		true,
+			sameSite:	'lax',
 		});
 	}
 };
