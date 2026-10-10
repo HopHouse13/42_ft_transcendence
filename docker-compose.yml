@@ -3,8 +3,8 @@ services:
     build: ./proxy
     container_name: nginx
     ports:
-      - "8080:80"       # HTTP (proxy redirects to 443)
-      - "8443:443"     # HTTPS
+      - "8080:80"        # HTTP (proxy redirects to 443)
+      - "8443:443"       # HTTPS
     depends_on:
       - backend
       - frontend
