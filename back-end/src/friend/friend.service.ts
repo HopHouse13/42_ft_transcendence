@@ -193,11 +193,13 @@ export class FriendService
 		{
 			where:
 			{
-				isDelete:	false, // pas de compte supprimé
-				username:	{ contains: searchName, mode: 'insensitive' }, // recherche partiel a partir de searchName, recherche insensible a la case
-				id:			{ not: userId } // pour ne pas retourner lui meme
+				isDelete:				false, // pas de compte supprimé
+				id:						{ not: userId }, // pour ne pas retourner lui meme
+				friendshipsReceived:	{ none: { senderId: userId }}, // exclu les user ayant deja une demande envoyée par le user courant
+				friendshipsSent:		{ none: { receiverId: userId, status: StatusFriendship.ACCEPTED }}, // exclu les user ayant une relation accepté avec le user courant et etant l'initiateur de la relation
+				username:				{ contains: searchName, mode: 'insensitive' }, // recherche partiel a partir de searchName, recherche insensible a la case
 			},
-			take:			5,
+			take:			10,
 			select:			friendUserSelect
 		});
 
