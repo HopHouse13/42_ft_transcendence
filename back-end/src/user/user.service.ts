@@ -666,7 +666,7 @@ export class UserService
 
 	///
 
-	async remove( id: string ): Promise <{ message: string, removeUser: UserPublic }>
+	async delete( id: string ): Promise <{ message: string, removeUser: UserPublic }>
 	{
 		try
 		{
