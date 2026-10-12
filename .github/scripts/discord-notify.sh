@@ -68,7 +68,11 @@ PAYLOAD=$(jq -n \
             "**\($actor)** merged `\($source)` into `\($ref)`.\n\n> \($commit)"
           end
         else
-          "**\($actor)** pushed directly to `\($ref)`.\n\n> \($commit)"
+            if $ref == "main" then
+              "**\($actor)** pushed directly to `\($ref)`.\n\n> \($commit)"
+            else
+              "**\($actor)** pushed to `\($ref)`.\n\n> \($commit)"
+            end
         end
       )
     }]
