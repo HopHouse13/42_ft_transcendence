@@ -20,9 +20,9 @@ services:
       - ./backend:/app       # ton code hôte monté en live dans le conteneur
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
     env_file:
-      - ./backend/.env
+      - .env
     environment:
-      - DATABASE_URL=postgres://othello_user:othello_pass@database:5432/othello_db
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     depends_on:
       database:
         condition: service_healthy
@@ -49,14 +49,10 @@ services:
     container_name: db
     env_file:
       - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U othello_user -d othello_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 2s
       timeout: 3s
       retries: 10
@@ -72,7 +68,7 @@ services:
       - database
       - prometheus
     environment:
-      - GF_SERVER_ROOT_URL=https://localhost:8443/grafana/
+      - GF_SERVER_ROOT_URL=${APP_URL}/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true # keep /grafana/ sublocation full URI
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
@@ -110,7 +106,7 @@ services:
       - "9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml" # added for prometheus interface through proxy
-      - "--web.external-url=https://localhost:8443/prometheus/" # added for prometheus interface through proxy
+      - "--web.external-url=${APP_URL}/prometheus/" # added for prometheus interface through proxy
       - "--web.route-prefix=/" # added for prometheus interface through proxy
 
   postgres-exporter:
@@ -135,7 +131,7 @@ services:
     image: docker.io/prom/node-exporter:v1.12.1
     container_name: node-exporter
     command:
-      # - '--path.rootfs=/host'
+      # - '--path.rootfs=/host' # because rslave bind-mount doesnt work on docker-desktop
       - '--path.procfs=/host/proc' # "Read CPU and RAM data
       - '--path.rootfs=/rootfs'    # "Read disk space data
       - '--path.sysfs=/host/sys'   # "Read hardware and network data
