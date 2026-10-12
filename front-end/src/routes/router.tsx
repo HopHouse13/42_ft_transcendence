@@ -16,7 +16,7 @@ const AboutUs = lazy(() => import('../pages/aboutUs'));
 const TermsOfUse = lazy(() => import('../pages/termsOfUse'));
 const PrivacyPolicy = lazy(() => import('../pages/privacyPolicy'));
 const UserProfile = lazy(() => import('../pages/userProfile'));
-const Friends = lazy(() => import('../pages/friends'));
+const Friend = lazy(() => import('../pages/friend'));
 
 function AppRouter(): React.ReactElement {
     return (
@@ -83,10 +83,10 @@ function AppRouter(): React.ReactElement {
                     }
                 />
 				<Route
-					path="/friends"
+					path="/friend"
 					element={
 					<AuthRoute>
-						<Friends />
+						<Friend />
 					</AuthRoute>
 					}
 				/>

@@ -11,7 +11,7 @@ interface FriendCardProps
 export default function FriendCard( props: FriendCardProps )
 {
 	return (
-		<div onClick={ props.onClick } className={ `card card-md bg-base-100 w-full flex flex-row items-center p-2 gap-3 ${ props.onClick ? 'cursor-pointer' : '' }` }> {/* carte de daisy taille medium, centrée, le bg a 100, tuile prend toute la largeur de la colonne, marge interieur et espacemeemnt des elements -> 2 */}
+		<div onClick={ props.onClick } className={ `card card-md bg-base-100 w-full flex flex-row border border-base-300 items-center p-2 gap-3 ${ props.onClick ? 'cursor-pointer' : '' }` }> {/* carte de daisy taille medium, centrée, le bg a 100, tuile prend toute la largeur de la colonne, marge interieur et espacemeemnt des elements -> 2 */}
 			{/* bloc avatar */}
 			<div className="avatar avatar-online"> {/* element avatar de daisy */}
 				<div className="w-10 rounded-full">

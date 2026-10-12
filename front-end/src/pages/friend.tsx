@@ -1,9 +1,13 @@
-import { useFriends } from '../hooks/useFriends';
+import useFriendDisplay from '../hooks/useFriendDisplay';
+import useFriendActions from '../hooks/useFriendActions';
+import useAllUsers from '../hooks/useAllUsers'; // aSupp
 import FriendCard from '../components/FriendCard'; // export default -> pas de {}
 
-export default function Friends() // une page = une fonction avec un retour avec la page construite 
+export default function Friend() // une page = une fonction avec un retour avec la page construite 
 {
-	const	{ lists, loading, error } = useFriends();
+	const	{ lists, loading, error } = useFriendDisplay(); // le hook qui recupere la donnée des 3 listes pour pouvoir actualiser les listes
+	const	{ usersList } = useAllUsers(); // hook qui recupere la list des users
+	const	{ sendRequest } = useFriendActions(); // hook pour les actions sur les listes 
 
 	if ( loading )
 		return ( <p>Loading...</p> );
@@ -18,17 +22,30 @@ export default function Friends() // une page = une fonction avec un retour avec
 				<h2 className='text-xl text-center font-bold'> {/* h2 -> header2, text-lg -> le test prendre plus de place, bold -> gras */}
 					Search
 				</h2>
-				<FriendCard user = {{ id: '1', username: 'Pabeeeeeeeeeeee', avatarUrl: '', elo: 1200 }} onClick={ () => console.log('clic') }>
+
+				{
+					usersList?.map(( user ) =>
+						{
+							return(
+								<FriendCard key = { user.id } user = {{ ...user, elo: 0 }} onClick={ () => sendRequest( user.id ) }>
+								<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
+								ADD
+								</button>
+								</FriendCard>
+							)
+						})
+				}
+				<FriendCard user = {{ id: '1', username: 'Benoit', avatarUrl: '', elo: 1200 }} onClick={ () => console.log( 'click' ) }>
 					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
 						ADD
 					</button>
 				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Pabeeeeeeeeeeee', avatarUrl: '', elo: 1200 }}>
+				<FriendCard user = {{ id: '1', username: 'Mael', avatarUrl: '', elo: 1200 }}>
 					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
 						ADD
 					</button>
 				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Pabeeeeeeeeeeee', avatarUrl: '', elo: 1200 }}>
+				<FriendCard user = {{ id: '1', username: 'Thomas', avatarUrl: '', elo: 1200 }}>
 					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
 						ADD
 					</button>
@@ -49,7 +66,7 @@ export default function Friends() // une page = une fonction avec un retour avec
 				</FriendCard>
 				<FriendCard user = {{ id: '1', username: 'Cheveulu', avatarUrl: '', elo: 1200 }}>
 					<button className='btn btn-xs' disabled>
-						WAITTING
+						WAITING
 					</button>
 				</FriendCard>
 
@@ -58,17 +75,19 @@ export default function Friends() // une page = une fonction avec un retour avec
 				<h2 className='text-xl text-center font-bold'>
 					Friends
 				</h2>
-				<FriendCard user = {{ id: '1', username: 'Harry_Porttttter', avatarUrl: '', elo: 1200 }}>
-					<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
-						REMOVE
-					</button>
-				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Pabeeeeeeeeeeee', avatarUrl: '', elo: 1200 }}>
-					<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
-						REMOVE
-					</button>
-				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Pabeeeeeeeeeeee', avatarUrl: '', elo: 1200 }}>
+				{
+					lists?.friends.map(( friend ) =>
+						{
+							return (
+								<FriendCard key = { friend.id } user = { friend }> {/* React, lors d'affichages de liste a besoin du key pour identifier chaque element de la liste */}
+									<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
+										REMOVE
+									</button>
+								</FriendCard>
+							)
+						})
+				}
+				<FriendCard user = { {id: '1', username: 'CheveuluBoss', avatarUrl: '', elo: 6200 }}>
 					<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
 						REMOVE
 					</button>

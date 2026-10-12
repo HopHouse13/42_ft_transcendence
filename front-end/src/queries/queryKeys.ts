@@ -10,8 +10,11 @@ export const queryKeys = {
     },
 	friends: {
 		all: ['friends'] as const,
-		list: (userId: string) => [...queryKeys.friends.all, userId, 'list'] as const,
+		list: (userId: string) =>
+			[...queryKeys.friends.all, userId, 'list'] as const,
 		search: (userId: string, query: string ) =>
 			[...queryKeys.friends.all, userId, 'search', query] as const,
+		allUsers: () =>
+			[...queryKeys.friends.all, 'allUsers'] as const, // a supp
 	},
 };
