@@ -16,6 +16,7 @@ const AboutUs = lazy(() => import('../pages/aboutUs'));
 const TermsOfUse = lazy(() => import('../pages/termsOfUse'));
 const PrivacyPolicy = lazy(() => import('../pages/privacyPolicy'));
 const UserProfile = lazy(() => import('../pages/userProfile'));
+const Friends = lazy(() => import('../pages/friends'));
 
 function AppRouter(): React.ReactElement {
     return (
@@ -81,6 +82,14 @@ function AppRouter(): React.ReactElement {
                     </AuthRoute>
                     }
                 />
+				<Route
+					path="/friends"
+					element={
+					<AuthRoute>
+						<Friends />
+					</AuthRoute>
+					}
+				/>
 
                 {/* Catch-all route */}
                 <Route path="*" element={<Navigate to="/notFound" replace />}/>

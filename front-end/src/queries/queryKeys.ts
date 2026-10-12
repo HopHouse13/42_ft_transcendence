@@ -8,4 +8,10 @@ export const queryKeys = {
         profile: (userId: string) =>
             [...queryKeys.users.all, 'profile', userId] as const, 
     },
+	friends: {
+		all: ['friends'] as const,
+		list: (userId: string) => [...queryKeys.friends.all, userId, 'list'] as const,
+		search: (userId: string, query: string ) =>
+			[...queryKeys.friends.all, userId, 'search', query] as const,
+	},
 };
