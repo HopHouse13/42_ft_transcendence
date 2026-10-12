@@ -14,13 +14,13 @@ services:
       - ft_transcendence_network
 
   backend:
-    build: ./back-end
+    build: ./backend
     container_name: backend
     volumes:
-      - ./back-end:/app       # ton code hôte monté en live dans le conteneur
+      - ./backend:/app       # ton code hôte monté en live dans le conteneur
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
     env_file:
-      - ./back-end/.env
+      - ./backend/.env
     environment:
       - DATABASE_URL=postgres://othello_user:othello_pass@database:5432/othello_db
     depends_on:
@@ -33,11 +33,11 @@ services:
 
   frontend:
     build:
-      context: ./front-end
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
     volumes:
-      - ./front-end:/app
+      - ./frontend:/app
       - /app/node_modules
     networks:
       - ft_transcendence_network
