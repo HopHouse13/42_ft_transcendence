@@ -7,7 +7,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 {
 	const	{ lists, loading, error } = useFriendDisplay(); // le hook qui recupere la donnée des 3 listes pour pouvoir actualiser les listes
 	const	{ usersList } = useAllUsers(); // hook qui recupere la list des users
-	const	{ sendRequest } = useFriendActions(); // hook pour les actions sur les listes 
+	const	{ sendRequest, removeFriend } = useFriendActions(); // hook pour les actions sur les listes 
 
 	if ( loading )
 		return ( <p>Loading...</p> );
@@ -28,70 +28,75 @@ export default function Friend() // une page = une fonction avec un retour avec 
 						{
 							return(
 								<FriendCard key = { user.id } user = {{ ...user, elo: 0 }} onClick={ () => sendRequest( user.id ) }>
-								<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
-								ADD
-								</button>
+									<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
+										ADD
+									</button>
 								</FriendCard>
 							)
 						})
 				}
-				<FriendCard user = {{ id: '1', username: 'Benoit', avatarUrl: '', elo: 1200 }} onClick={ () => console.log( 'click' ) }>
-					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
-						ADD
-					</button>
-				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Mael', avatarUrl: '', elo: 1200 }}>
-					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
-						ADD
-					</button>
-				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Thomas', avatarUrl: '', elo: 1200 }}>
-					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
-						ADD
-					</button>
-				</FriendCard>
 
 			</section>
 			<section className='card bg-base-200 border border-base-300 p-4 min-h-120 gap-2'>
 				<h2 className='text-xl text-center font-bold'>
 					Requests
 				</h2>
-				<FriendCard user = {{ id: '1', username: 'Cheveulu', avatarUrl: '', elo: 1200 }}>
-					<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
-						ACCEPT
-					</button>
-					<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
-						REMOVE
-					</button>
-				</FriendCard>
-				<FriendCard user = {{ id: '1', username: 'Cheveulu', avatarUrl: '', elo: 1200 }}>
-					<button className='btn btn-xs' disabled>
-						WAITING
-					</button>
-				</FriendCard>
+
+				{
+					lists?.received.map(( user ) =>
+						{
+							return (
+								<FriendCard key = { user.id } user = { user }>
+									<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
+										ACCEPT
+									</button>
+									<button onClick = { () => removeFriend( user.id )} className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
+										REFUSE
+									</button>
+								</FriendCard>
+							);
+						})
+				}
+
+				<h3 className='text-sm font-semibold opacity-60'>
+					sent
+				</h3>
+
+				{
+					lists?.sent.map(( user ) =>
+						{
+							return (
+								<FriendCard key = { user.id } user = { user }>
+									<button className='btn btn-xs' disabled>
+										WAITING
+									</button>
+									<button onClick = { () => removeFriend( user.id )} className='btn btn-xs btn-warning opacity-50 transition-opacity hover:opacity-100'>
+										CANCEL
+									</button>
+								</FriendCard>
+							);
+						})
+				}
 
 			</section>
 			<section className='card bg-base-200 border border-base-300 p-4 min-h-120 gap-2'>
 				<h2 className='text-xl text-center font-bold'>
 					Friends
 				</h2>
+
 				{
-					lists?.friends.map(( friend ) =>
+					lists?.friends.map(( user ) =>
 						{
 							return (
-								<FriendCard key = { friend.id } user = { friend }> {/* React, lors d'affichages de liste a besoin du key pour identifier chaque element de la liste */}
-									<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
+								<FriendCard key = { user.id } user = { user }> {/* React, lors d'affichages de liste a besoin du key pour identifier chaque element de la liste */}
+									<button onClick = { () => removeFriend( user.id )} className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
 										REMOVE
 									</button>
 								</FriendCard>
 							)
 						})
 				}
-				<FriendCard user = { {id: '1', username: 'CheveuluBoss', avatarUrl: '', elo: 6200 }}>
-					<button className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>
-						REMOVE
-					</button>
-				</FriendCard>
+
 			</section>
 
 		</div>

@@ -28,9 +28,33 @@ export default function useFriendActions()
 				}
 		});
 
+	const	removeMutation = useMutation(
+		{
+			mutationFn: async ( otherId: string ) =>
+				{
+					const	response = await fetch(
+						`/api/friend/${ otherId }`,
+						{
+							method:			'DELETE',
+							credentials:	'include'
+						});
+					
+					if ( !response.ok )
+					{
+						const	data = await response.json().catch( () => ({}) );
+						throw ( new Error( data.message || 'Failed to remove friend' ));
+					}
+				},
+			onSuccess:	() =>
+				{
+					void	queryClient.invalidateQueries({ queryKey: queryKeys.friends.all });
+				}
+		});
+
 	return({
-		sendRequest:	( receiverId: string ) => sendRequestMutation.mutate( receiverId ), // expose la methode sendRequestMutation a l'exterieur
-		sending:		sendRequestMutation.isPending // bool qui indique l'etat de la requete au back: true -> en cours; false -> ne l'est pas (utile pour eviter les spam bouton)
+		sendRequest:	( receiverId: string ) => sendRequestMutation.mutate( receiverId ), // expose la fonction sendRequestMutation a l'exterieur
+		sending:		sendRequestMutation.isPending, // bool qui indique l'etat de la requete au back: true -> en cours; false -> ne l'est pas (utile pour eviter les spam bouton)
+		removeFriend:	( otherId: string ) => removeMutation.mutate( otherId ) // expose la fonction removeMutation
 	});
 }
 
