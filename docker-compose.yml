@@ -76,9 +76,12 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true # keep /grafana/ sublocation full URI
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_USERS_ALLOW_SIGN_UP=false  # security
+      - GF_AUTH_ANONYMOUS_ENABLED=false # security
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false
     restart: unless-stopped
     volumes:
       - grafana-data:/var/lib/grafana
