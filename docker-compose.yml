@@ -76,10 +76,10 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true # keep /grafana/ sublocation full URI
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      - GF_USERS_ALLOW_SIGN_UP=false  # security
-      - GF_AUTH_ANONYMOUS_ENABLED=false # security
-      - GF_SECURITY_COOKIE_SECURE=true  # security - enabling this flag ensures the grafana_session cookie is sent with the Secure attribute.
-      - GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY} # security - Session key: Providing your own secret key in .env prevents using a publicly known cryptographic key.
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_SECURITY_COOKIE_SECURE=true  # enabling this flag ensures the grafana_session cookie is sent with the Secure attribute.
+      - GF_SECURITY_SECRET_KEY=${GRAFANA_SECRET_KEY} # Session key: Providing your own secret key in .env prevents using a publicly known cryptographic key.
       - GF_SECRETS_MANAGER_ENCRYPTION_SECRET_KEY_V1_SECRET_KEY=${GRAFANA_ENCRYPTION_KEY} # secrets manager - envelope encryption: if datasource (prometheus, PostgreSQL) configuration requires a password, encrypts that password
       - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
       - GF_ANALYTICS_REPORTING_ENABLED=false
