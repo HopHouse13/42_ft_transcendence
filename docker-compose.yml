@@ -18,7 +18,7 @@ services:
       - "8080:80"        # HTTP (proxy redirects to 443)
       - "8443:443"       # HTTPS
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     restart: on-failure:5
 
   database:
@@ -34,7 +34,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "5432"
     restart: unless-stopped
@@ -62,7 +62,7 @@ services:
       - ./backend:/app        # bind-mount
       - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "3000"
     restart: on-failure:5
@@ -77,7 +77,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "5173"
     restart: on-failure:5
@@ -89,7 +89,7 @@ services:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z # /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \ prom/prometheus
       - prometheus-data:/prometheus
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "9090"
     command:
@@ -122,7 +122,7 @@ services:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:Z
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "3000"
     restart: unless-stopped
@@ -140,7 +140,7 @@ services:
       - DATA_SOURCE_USER=${POSTGRES_USER}
       - DATA_SOURCE_PASS=${POSTGRES_PASSWORD}
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "9187"
     restart: unless-stopped
@@ -154,7 +154,7 @@ services:
       - /:/rootfs:ro
       - /sys:/host/sys:ro
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     expose:
       - "9100"
     command:
@@ -170,13 +170,13 @@ services:
       proxy:
         condition: service_started
     networks:
-      - ft_transcendence_network
+      - transcendence-net
     command:
       - "--nginx.scrape-uri=http://proxy:81/stub_status"
     restart: unless-stopped
 
 networks:
-  ft_transcendence_network:
+  transcendence-net:
     driver: bridge
 
 volumes:
