@@ -23,12 +23,12 @@ export class ChatGateway {
 
   handleConnection(client: Socket) {
 
-      //console.log(`Client connecté ChatRoom: ${client.id}`);
+      console.log(`${new Date().toISOString()} by: client Conect(${client.id}) to: Chat Room`);
   }
 
   handleDisconnect(client: Socket)  {
 
-      //console.log(`Client déconnecté ChatRoom: ${client.id}`);
+      console.log(`${new Date().toISOString()} by: client Disconect(${client.id}) to: Chat Room`);
   }
 
     /* -------------------------------------------------------------------------- */

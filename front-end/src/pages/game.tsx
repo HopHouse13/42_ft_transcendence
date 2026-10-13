@@ -16,9 +16,6 @@ import LocalGame from "../components/LocalGame";
 import GameEndModal from "../components/GameEndModal";
 import { ChatPanel, ChatMessage, ChatRoom } from "../components/Chat"
 
-import othelloImg from '../assets/Illustration-Othello-local.jpeg';
-import othelloBot from '../assets/ImageBot.jpeg';
-import othelloOnline from '../assets/OthelloOnLine.jpeg';
 
 function MyCard({ title, text, route, }) {
   

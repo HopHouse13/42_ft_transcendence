@@ -16,13 +16,13 @@ import { PlayerInfo } from './player-info.interface';
 
 export interface GameState {
 
-  gameId:         string;
-  mode:           'BOT' | 'ONLINE';
-  cells:          Cell[];                 // snapshot du plateau (64 cases), pas l'instance OthelloBoard
-  status:         GameStatus;
+  mode:           'LOCAL' | 'BOT' | 'ONLINE';  
+  status:         'WAITING' | 'IN_PROGRESS' | 'FINISHED';
+  
   players:        PlayerInfo[];
   currentPlayer:  PlayerColor;
   validMoves:     Move[];
   result?:        GameResult;
   createdAt:      Date;
+
 }

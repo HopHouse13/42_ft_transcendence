@@ -24,7 +24,7 @@ import { FriendModule } from './friend/friend.module';
     PrismaModule,
     UserModule,
     OthelloModule,
-    GameRoomModule,
+    //GameRoomModule,
     AuthModule,
     ComputePlayerModule,
     ChatModule,

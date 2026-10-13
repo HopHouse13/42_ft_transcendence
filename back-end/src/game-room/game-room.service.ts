@@ -60,7 +60,7 @@ export class GameRoomService    {
     /*  4. La room est prête → on lance la partie et on supprime la room          */
     /* -------------------------------------------------------------------------- */
 
-    newPlayerEntry(player: PlayerRoom): string | Promise<GameState> {
+/*    newPlayerEntry(player: PlayerRoom): string | Promise<GameState> {
 
         const waitingRoom = this._findWaitingRoom(player);
         if (!waitingRoom)   {
@@ -80,7 +80,7 @@ export class GameRoomService    {
     /*  Un invit est fourni → on rejoint la room correspondante                   */
     /* -------------------------------------------------------------------------- */
 
-    invitPlayerEntry(player: PlayerRoom)     {
+/*    invitPlayerEntry(player: PlayerRoom)     {
 
         if (!player.invit)  {
             
@@ -102,7 +102,7 @@ export class GameRoomService    {
     /*  Pas de préférence de couleur → n'importe quelle room en attente convient  */
     /* -------------------------------------------------------------------------- */
 
-    private _findWaitingRoom(player: PlayerRoom): GameRoom | undefined {
+/*    private _findWaitingRoom(player: PlayerRoom): GameRoom | undefined {
 
         for ( const room of this.rooms.values() )  {
 
