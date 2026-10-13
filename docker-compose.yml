@@ -1,35 +1,59 @@
 services:
   proxy:
-    build: ./proxy
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
     container_name: nginx
-    ports:
-      - "8080:80"        # HTTP (proxy redirects to 443)
-      - "8443:443"       # HTTPS
     depends_on:
       - backend
       - frontend
       - grafana
-      - prometheus     # added for prometheus interface through proxy
+      - prometheus       # added for prometheus interface through proxy
+    ports:
+      - "8080:80"        # HTTP (proxy redirects to 443)
+      - "8443:443"       # HTTPS
     networks:
       - ft_transcendence_network
+    restart: on-failure:5
+
+  database:
+    image: docker.io/library/postgres:16-alpine
+    container_name: db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ft_transcendence_network
+    expose:
+      - "5432"
+    restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
-    volumes:
-      - ./backend:/app       # ton code hôte monté en live dans le conteneur
-      - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
+    depends_on:
+      database:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
-    depends_on:
-      database:
-        condition: service_healthy
+    volumes:
+      - ./backend:/app        # bind-mount
+      - /app/node_modules     # évite d'écraser node_modules du conteneur par un volume vide de l'hôte
     networks:
       - ft_transcendence_network
     expose:
       - "3000"
+    restart: on-failure:5
 
   frontend:
     build:
@@ -43,23 +67,26 @@ services:
       - ft_transcendence_network
     expose:
       - "5173"
+    restart: on-failure:5
 
-  database:
-    image: docker.io/library/postgres:16-alpine
-    container_name: db
-    env_file:
-      - .env
+  prometheus:
+    image: docker.io/prom/prometheus:v3.13.3
+    container_name: prometheus
+    depends_on:
+      - backend
+      - database
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 2s
-      timeout: 3s
-      retries: 10
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z # /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \ prom/prometheus
+      - prometheus-data:/prometheus
     networks:
       - ft_transcendence_network
     expose:
-      - "5432"
+      - "9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml" # added for prometheus interface through proxy
+      - "--web.external-url=${APP_URL}/prometheus/" # added for prometheus interface through proxy
+      - "--web.route-prefix=/" # added for prometheus interface through proxy
+    restart: unless-stopped
 
   grafana:
     image: docker.io/grafana/grafana:13.2.3
@@ -81,7 +108,6 @@ services:
       - GF_ANALYTICS_REPORTING_ENABLED=false
       - GF_ANALYTICS_CHECK_FOR_UPDATES=false
       - GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false
-    restart: unless-stopped
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:Z
@@ -89,38 +115,20 @@ services:
       - ft_transcendence_network
     expose:
       - "3000"
-
-  prometheus:
-    image: docker.io/prom/prometheus:v3.13.3
-    container_name: prometheus
-    depends_on:
-      - backend
-      - database
     restart: unless-stopped
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z # /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \ prom/prometheus
-      - prometheus-data:/prometheus
-    networks:
-      - ft_transcendence_network
-    expose:
-      - "9090"
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml" # added for prometheus interface through proxy
-      - "--web.external-url=${APP_URL}/prometheus/" # added for prometheus interface through proxy
-      - "--web.route-prefix=/" # added for prometheus interface through proxy
 
   postgres-exporter:
     image: docker.io/prometheuscommunity/postgres-exporter:v0.20.1
     container_name: postgres-exporter
+    depends_on:
+      database:
+        condition: service_healthy
     env_file:
       - .env
     environment:
       - DATA_SOURCE_URI=database:5432/${POSTGRES_DB}?sslmode=disable
       - DATA_SOURCE_USER=${POSTGRES_USER}
       - DATA_SOURCE_PASS=${POSTGRES_PASSWORD}
-    depends_on:
-      database:
-        condition: service_healthy
     networks:
       - ft_transcendence_network
     expose:
@@ -130,36 +138,32 @@ services:
   node-exporter:
     image: docker.io/prom/node-exporter:v1.12.1
     container_name: node-exporter
-    command:
-      # - '--path.rootfs=/host' # because rslave bind-mount doesnt work on docker-desktop
-      - '--path.procfs=/host/proc' # "Read CPU and RAM data
-      - '--path.rootfs=/rootfs'    # "Read disk space data
-      - '--path.sysfs=/host/sys'   # "Read hardware and network data
     pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /:/rootfs:ro
+      - /sys:/host/sys:ro
     networks:
       - ft_transcendence_network
     expose:
       - "9100"
+    command:
+      - '--path.procfs=/host/proc' # "Read CPU and RAM data
+      - '--path.rootfs=/rootfs'    # "Read disk space data
+      - '--path.sysfs=/host/sys'   # "Read hardware and network data
     restart: unless-stopped
-    volumes:
-      # - '/:/host:ro,rslave' # rslave doesnt work on docker-desktop (macos/windows)
-      - /proc:/host/proc:ro
-      - /:/rootfs:ro
-      - /sys:/host/sys:ro
 
   nginx-exporter:
     image: docker.io/nginx/nginx-prometheus-exporter:1.3
     container_name: nginx-exporter
     depends_on:
       - proxy
-    command:
-      - "--nginx.scrape-uri=http://proxy:81/stub_status"
     networks:
       - ft_transcendence_network
+    command:
+      - "--nginx.scrape-uri=http://proxy:81/stub_status"
     restart: unless-stopped
 
-
-# Réseau dédié pour que les conteneurs communiquent
 networks:
   ft_transcendence_network:
     driver: bridge
