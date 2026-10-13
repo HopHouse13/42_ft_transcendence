@@ -85,11 +85,6 @@ services:
   prometheus:
     image: docker.io/prom/prometheus:v3.13.3
     container_name: prometheus
-    depends_on:
-      backend:
-        condition: service_healthy
-      database:
-        condition: service_healthy
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:Z # /path/to/prometheus.yml:/etc/prometheus/prometheus.yml \ prom/prometheus
       - prometheus-data:/prometheus
@@ -107,8 +102,6 @@ services:
     image: docker.io/grafana/grafana:13.2.3
     container_name: grafana
     depends_on:
-      database:
-        condition: service_healthy
       prometheus:
         condition: service_started
     environment:
