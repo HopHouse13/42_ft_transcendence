@@ -45,17 +45,20 @@ export class    OthelloService  {
 
     /* -------------------------------------------------------------------------- */
 
-    createLocalGame(hostUserId: string): string {
+    localCreateGame(hostUserId: string): string {
 
+        const setGameId = randomUUID();
         const setEngine = new OthelloEngine();
         const playerArr: PlayerInfo[] = [
             { userId: hostUserId, color: 'BLACK', connected: true },
             {userId: randomUUID(), color: 'WHITE', connected: true}];
         
-        const service: GameService = { gameId: randomUUID(), engine: setEngine, state  : {
+        const service: GameService = { gameId: setGameId, engine: setEngine, state  : {
 
+                gameId: setGameId,
                 mode: 'LOCAL', 
                 status: 'IN_PROGRESS',
+                board: setEngine.getBoard().getAllCell(),
                 players: playerArr,
                 currentPlayer: 'BLACK',
                 validMoves: setEngine.allValidMove('BLACK'),
@@ -66,12 +69,50 @@ export class    OthelloService  {
         return( service.gameId );
     }
 
-    playMove(gameId: string, player: PlayerInfo, move: Move)    {
-
+    localPlayMove(gameId: string, move: Move) {
+        
         const service: GameService = this.getLocalGame(gameId);
+        
+        // 1. Récupérer la couleur du joueur dont c'est le tour directement via l'engine
+        const currentColor = service.engine.getCurrentPlayer();
+
+        // 2. Trouver le PlayerInfo correspondant dans l'état du jeu
+        const player = service.state.players.find(p => p.color === currentColor);
+        if (!player) {
+            throw new Error(`Aucun joueur trouvé pour la couleur ${currentColor}`);
+        }
+
+        // 3. Jouer le coup
         service.engine.playMove(move, player.color);
 
-        return( this.getGameState(gameId) );
+        // 4. Mettre à jour l'état du jeu (en utilisant getAllCell() comme dans createGame)
+        service.state.board = service.engine.getBoard().getAllCell();
+        
+        const nextTurnPlayer = service.engine.getCurrentPlayer();
+        service.state.currentPlayer = nextTurnPlayer;
+        service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
+
+        if (service.engine.isGameOver()) {
+            service.state.status = GameStatus.FINISHED;
+        }
+
+        return this.getGameState(gameId);
+    }
+
+    localGiveUp(gameId: string, playerColor: Player) {
+        const service: GameService = this.getLocalGame(gameId);
+
+        if (service.state.status === GameStatus.FINISHED) {
+            return service.state;
+        }
+
+        // Marquer la partie comme terminée
+        service.state.status = GameStatus.FINISHED;
+
+        // Optionnel : Vous pouvez stocker le gagnant ou l'info d'abandon dans le state si besoin,
+        // par exemple le joueur adverse gagne par forfait.
+        
+        return this.getGameState(gameId);
     }
 
     /* -------------------------------------------------------------------------- */

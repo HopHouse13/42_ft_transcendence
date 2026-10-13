@@ -46,5 +46,64 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     /* -------------------------------------------------------------------------- */
 
+    @SubscribeMessage('crateLocal')
+    handleLocalCreateGame(@ConnectedSocket() client: Socket) {
+        
+        const userId = client.data.userId as string;
+        const gameId = this.othelloService.localCreateGame(userId);
+        
+        // Optionnel : faire rejoindre une room Socket.io au client pour ce jeu
+        client.join(gameId);
+        
+        const initialState = this.othelloService.getGameState(gameId);
+        client.emit('gameState', initialState);
+    }
+
+    @SubscribeMessage('localplayMove') 
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    handleLocalPlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
+    
+        try {
+            // La gateway délère 100% de la logique au service
+            const updatedState = this.othelloService.localPlayMove(payload.gameId, payload.move);
+
+            // Diffusion du résultat à la room
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+
+        } catch (error) {
+            client.emit('moveRejected', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('localGiveUp')
+    handleLocalGiveUp( @MessageBody() payload: { gameId: string; color: string }, @ConnectedSocket() client: Socket ) {
+        
+        try {
+            const updatedState = this.othelloService.localGiveUp(payload.gameId, payload.color as any);
+            
+            // Diffuser le nouvel état (marqué FINISHED) à tous les joueurs de la room
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('getGameState')
+    handleGetGameState( @ConnectedSocket() client: Socket, @MessageBody() data: { gameId: string } ) {
+        
+        try {
+        
+            const state = this.othelloService.getGameState(data.gameId);
+            client.join(data.gameId);
+            client.emit('gameState', state);
+        
+        } catch (error) {
+        
+            client.emit('gameError', { message: error.message });
+        
+        }
+    }
+
+        /* -------------------------------------------------------------------------- */
 
 }

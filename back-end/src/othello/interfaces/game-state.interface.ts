@@ -16,12 +16,14 @@ import { PlayerInfo } from './player-info.interface';
 
 export interface GameState {
 
+  gameId:          string, 
   mode:           'LOCAL' | 'BOT' | 'ONLINE';  
   status:         'WAITING' | 'IN_PROGRESS' | 'FINISHED';
   
+  board:          Cell[], 
   players:        PlayerInfo[];
-  currentPlayer:  PlayerColor;
   validMoves:     Move[];
+  currentPlayer:  PlayerColor;
   result?:        GameResult;
   createdAt:      Date;
 
