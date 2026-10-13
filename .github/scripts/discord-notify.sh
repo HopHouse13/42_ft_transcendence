@@ -7,7 +7,7 @@ SUBJECT=$(git log -1 --format=%s)
 # 1. Extract merge data
 if [ "$PARENT_COUNT" -gt 1 ]; then
   IS_MERGE="true"
-	# 1. Look for ANYTHING wrapped in single quotes (catches local and remote-tracking merges)
+	# Look for ANYTHING wrapped in single quotes (catches local and remote-tracking merges)
   SOURCE_BRANCH=$(echo "$SUBJECT" | grep -oP "(?<=')[^']+(?=')" | head -n 1 || true)
 
   if [ -z "$SOURCE_BRANCH" ]; then
@@ -43,9 +43,13 @@ else
   fi
 fi
 
+# Generate a list of all commit messages in this push (extracting just the first line of each)
+COMMIT_LIST=$(echo "$COMMITS_JSON" | jq -r 'map("> \(.message | gsub("\n"; "\n> "))") | join("\n\n")')
+                                                               # gsub (global substitution) to find every hidden newline (\n) in the commit body and automatically insert a \n>  in front of it.
+
 # 3. Build the JSON Payload
 PAYLOAD=$(jq -n \
-  --arg commit "$COMMIT_MSG" \
+  --arg commit_list "$COMMIT_LIST" \
   --arg actor "$ACTOR" \
   --arg ref "$REF_NAME" \
   --arg url "$COMPARE_URL" \
@@ -63,15 +67,15 @@ PAYLOAD=$(jq -n \
       description: (
         if $is_merge == "true" then
           if $source == "unknown" then
-            "**\($actor)** merged code into `\($ref)`.\n\n> \($commit)"
+            "**\($actor)** merged code into `\($ref)`.\n\n\($commit_list)"
           else
-            "**\($actor)** merged `\($source)` into `\($ref)`.\n\n> \($commit)"
+            "**\($actor)** merged `\($source)` into `\($ref)`.\n\n\($commit_list)"
           end
         else
             if $ref == "main" then
-              "**\($actor)** pushed directly to `\($ref)`.\n\n> \($commit)"
+              "**\($actor)** pushed directly to `\($ref)`.\n\n\($commit_list)"
             else
-              "**\($actor)** pushed to `\($ref)`.\n\n> \($commit)"
+              "**\($actor)** pushed to `\($ref)`.\n\n\($commit_list)"
             end
         end
       )
