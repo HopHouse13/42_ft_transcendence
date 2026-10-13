@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { NavLink } from "react-router";
 import Board from "../components/Board";
 import type { PlayerColor, Position } from "../types/gameTypes";
 
@@ -13,15 +14,80 @@ import GameHeader from "../components/GameHeader";
 import History from "../components/History";
 import LocalGame from "../components/LocalGame";
 import GameEndModal from "../components/GameEndModal";
-import { ChatPanel, ChatMessage } from "../components/Chat"
+import { ChatPanel, ChatMessage, ChatRoom } from "../components/Chat"
 
-interface ChatMessage {
-  id: string | number;
-  author?: string;
-  own: boolean;
-  time: string;
-  text: string;
+import othelloImg from '../assets/Illustration-Othello-local.jpeg';
+import othelloBot from '../assets/ImageBot.jpeg';
+import othelloOnline from '../assets/OthelloOnLine.jpeg';
+
+function MyCard({ title, text, route, }) {
+  
+  return ( 
+
+    
+      <div className="hover-3d">
+        <div className="aura aura-glow rounded-2xl">
+          <div className="card bg-white text-primary-content w-96 rounded-2xl">
+            <div className="card-body">
+              
+              <h2 className="card-title">{title}</h2>
+              <p>Entraîne-toi face au Bot Othello.. {text}</p>
+              
+              <div className="card-actions justify-end">
+                <NavLink className="btn btn-soft" to={route}> Play now !! </NavLink>
+              </div>
+            
+            </div>
+          </div>
+        </div>
+      </div>
+)};
+
+
+export default function Game() {
+
+  return (
+    <div className="bg-base-200 p-6 flex justify-center items-center">
+      {/* Conteneur principal 2 colonnes */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl items-center">
+        
+        {/* Colonne de gauche : Menu des modes de jeu */}
+        <div className="flex flex-col gap-4">
+          <MyCard title="🎮 Partie Locale" route="/LocalGame" />
+          <MyCard title="🤖 Partie Botello" text="Entraîne-toi face au Bot Othello.." route="/botGame" />
+          <MyCard title="🛜 Partie Online" route="/onlineGame" />
+        </div>
+
+        {/* Colonne de droite : Chat global / d'attente */}
+        <div className="flex justify-center md:justify-end w-full">
+          <ChatRoom />
+        </div>
+
+      </div>
+    </div>
+  );
 }
+   
+
+
+/*
+
+      <div className="card bg-base-100 image-full w-96 shadow-sm">
+        <figure>
+          <img src={othelloOnLine} alt="OnLine Game" ></img>
+        </figure>
+        <div className="card-body">
+          <h2 className="card-title"> 🛜 Bot Game </h2>
+          <p> A card component has a figure, a body part, and inside body there are title and actions parts</p>
+            <div className="card-actions justify-end">
+              <button className="btn btn-primary"> PLAY </button>
+            </div>
+        </div> 
+      </div>
+
+
+
+
 
 const Game = (): React.ReactElement => {  
   const { mode, selectMode } = useCreateGame();
@@ -214,7 +280,7 @@ const Game = (): React.ReactElement => {
         </div>
       </div>
 
-      {/* Modale de fin de partie pour BOT & ONLINE */}
+      //{ Modale de fin de partie pour BOT & ONLINE }
       <GameEndModal
         isOpen={isGameFinished}
         winner={gameState.result?.winner ?? null}
@@ -229,3 +295,4 @@ const Game = (): React.ReactElement => {
 };
 
 export default Game;
+*/

@@ -1,42 +1,68 @@
 /* ========================================================================== */
 /*                                                                            */
-/*              ~~ ChatService: code metier pour le chatBox ~~                */
+/*              ~~ ChatService: code metier pour le chatRoom ~~               */
 /*                                                                            */
 /* ========================================================================== */
+
 import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+
+/* -------------------------------------------------------------------------- */
 
 // chat.service.ts
 export class Message {
-  id: number;
-  text: string;
-  senderId: string;
-  gameId: string;
+
+  id:       number;
+  text:     string;
+  userId:   string;
+  roomId:   string;
 }
 
-@Injectable()
-export class ChatService {
-  private readonly gamesMessages = new Map<string, Message[]>();
+/* -------------------------------------------------------------------------- */
+/*                         ~~ Class ChatService ~~                            */
+/*                                                                            */
+/* cette classe utilmise une map qui contien des tableaux de message          */
+/* liée pars des ID unique                                                    */
+/* -------------------------------------------------------------------------- */
 
-  newMessage(gameId: string, text: string, senderId: string): Message {
-    if (!this.gamesMessages.has(gameId)) {
-      this.gamesMessages.set(gameId, []);
+@Injectable()
+export class ChatService { 
+  
+  private readonly chatRooms = new Map<string, Message[]>();
+
+  /* -------------------------------------------------------------------------- */
+
+
+  newMessage(roomId: string, text: string, userId: string): Message {
+    
+    if ( !this.chatRooms.has(roomId) ) {
+    
+      this.chatRooms.set(roomId, []);
     }
 
     // Le "!" informe TypeScript que le tableau existe obligatoirement ici
-    const messages = this.gamesMessages.get(gameId)!;
-
-    const newMessage: Message = {
-      id: Date.now(),
-      text,
-      senderId,
-      gameId,
-    };
+    const messages = this.chatRooms.get(roomId)!;
+    const newMessage: Message = { id: Date.now(), text, userId, roomId };
 
     messages.push(newMessage);
-    return newMessage;
+
+    console.log(text);
+    return( newMessage );
   }
 
-  getMessages(gameId: string): Message[] {
-    return this.gamesMessages.get(gameId) || [];
+  /* ---------------------------- GET/SET for chatRoom ---------------------- */
+
+  getChatRoom(roomId: string): Message[] {
+
+    return( this.chatRooms.get(roomId) || [] );
   }
+
+  setChatRoom(): string {
+
+    const roomId = randomUUID(); this.chatRooms.set(roomId, []);    
+    
+    return( roomId );
+  }
+
+
 }

@@ -16,6 +16,8 @@ const AboutUs = lazy(() => import('../pages/aboutUs'));
 const TermsOfUse = lazy(() => import('../pages/termsOfUse'));
 const PrivacyPolicy = lazy(() => import('../pages/privacyPolicy'));
 const UserProfile = lazy(() => import('../pages/userProfile'));
+const LocalGame = lazy(() => import('../pages/localGame'));
+const BotGame = lazy(() => import('../pages/botGame'));
 
 function AppRouter(): React.ReactElement {
     return (
@@ -62,6 +64,22 @@ function AppRouter(): React.ReactElement {
                     element={
                     <AuthRoute>
                         <Game />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/localGame"
+                    element={
+                    <AuthRoute>
+                        <LocalGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/botGame"
+                    element={
+                    <AuthRoute>
+                        <BotGame />
                     </AuthRoute>
                     }
                 />
