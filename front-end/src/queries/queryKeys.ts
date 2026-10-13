@@ -8,4 +8,9 @@ export const queryKeys = {
         profile: (userId: string) =>
             [...queryKeys.users.all, 'profile', userId] as const, 
     },
+    achievements: {
+        all: ['achievements'] as const,
+        user: (userId?: string) => 
+            [...queryKeys.achievements.all, 'user', userId] as const,
+    }
 };

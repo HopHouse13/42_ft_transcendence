@@ -55,6 +55,15 @@ const Header = () => {
 				</NavLink>
 			</li>
 			<li>
+				<NavLink
+					to="/achievements"
+					onClick={closeMobileMenu}
+					className={NAV_BUTTON_CLASS}
+				>
+					My Achievements
+				</NavLink>
+			</li>
+			<li>
 				<button
 					onClick={handleLogout}
 					className="btn btn-error rounded-btn text-lg hover:bg-base-300 hover:text-error"
@@ -131,7 +140,7 @@ const Header = () => {
 							<ul
 								aria-label="Account"
 								tabIndex={0}
-								className="menu dropdown-content z-[1] mt-3 w-40 gap-2 rounded-box bg-base-200 p-2 shadow"
+								className="menu dropdown-content z-[1] mt-3 w-60 gap-2 rounded-box bg-base-200 p-2 shadow"
 							>
 								{authMenuItems}
 							</ul>
@@ -166,7 +175,7 @@ const Header = () => {
 							<ul
 							id="mobile-menu"
 							aria-label="Main navigation"
-							className="menu dropdown-content z-[1] mt-3 w-48 gap-2 rounded-box bg-base-200 p-2 shadow"
+							className="menu dropdown-content z-[1] mt-3 w-60 gap-2 rounded-box bg-base-200 p-2 shadow"
 						>
 								{NAV_LINKS.map((link) => (
 									<li key={link.path}>
