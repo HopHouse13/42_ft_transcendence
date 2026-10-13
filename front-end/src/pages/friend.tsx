@@ -7,7 +7,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 {
 	const	{ lists, loading, error } = useFriendDisplay(); // le hook qui recupere la donnée des 3 listes pour pouvoir actualiser les listes
 	const	{ usersList } = useAllUsers(); // hook qui recupere la list des users
-	const	{ sendRequest, removeFriend } = useFriendActions(); // hook pour les actions sur les listes 
+	const	{ sendRequest, acceptFriend, removeFriend } = useFriendActions(); // hook pour les actions sur les listes 
 
 	if ( loading )
 		return ( <p>Loading...</p> );
@@ -47,7 +47,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 						{
 							return (
 								<FriendCard key = { user.id } user = { user }>
-									<button className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
+									<button onClick = { () => acceptFriend( user.id ) } className='btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'>
 										ACCEPT
 									</button>
 									<button onClick = { () => removeFriend( user.id )} className='btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'>

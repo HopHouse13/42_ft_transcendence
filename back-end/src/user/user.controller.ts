@@ -3,7 +3,6 @@ import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../common/guards/jwt.guard';
-import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { avatarUploadOptions } from './avatar-upload.config';
 import { UserUpdate } from './interfaces/user.interface';

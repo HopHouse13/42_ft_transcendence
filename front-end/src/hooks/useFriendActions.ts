@@ -14,7 +14,8 @@ export default function useFriendActions()
 						{
 							method:			'POST',
 							credentials:	'include'
-						});
+						}
+					);
 					
 					if ( !response.ok )
 					{
@@ -27,6 +28,32 @@ export default function useFriendActions()
 					void	queryClient.invalidateQueries({ queryKey: queryKeys.friends.all }); // invalide la branche d'elements lié a nos 3 listes (friends.all) dans le but de les mettre a jour
 				}
 		});
+
+
+	const	acceptMutation = useMutation( // mutation pour l'acceptation des demandes reçus
+		{
+			mutationFn:	async ( senderId: string ) =>
+				{
+					const	response = await fetch(
+						`/api/friend/${ senderId }/accepted`,
+						{
+							method:			'PATCH',
+							credentials:	'include'
+						}
+					);
+
+					if ( !response.ok )
+					{
+						const	data = await response.json().catch( () => ({}) ); // si erreur, recuperation des info danas data
+						throw ( new Error( data.message || 'Failed to accept request' ));
+					}
+				},
+			onSuccess:	() =>
+			{
+				void	queryClient.invalidateQueries({ queryKey: queryKeys.friends.all });
+			}
+		}
+	);
 
 	const	removeMutation = useMutation(
 		{
@@ -54,7 +81,8 @@ export default function useFriendActions()
 	return({
 		sendRequest:	( receiverId: string ) => sendRequestMutation.mutate( receiverId ), // expose la fonction sendRequestMutation a l'exterieur
 		sending:		sendRequestMutation.isPending, // bool qui indique l'etat de la requete au back: true -> en cours; false -> ne l'est pas (utile pour eviter les spam bouton)
-		removeFriend:	( otherId: string ) => removeMutation.mutate( otherId ) // expose la fonction removeMutation
+		removeFriend:	( otherId: string ) => removeMutation.mutate( otherId ), // expose la fonction removeMutation
+		acceptFriend:	( senderId: string ) => acceptMutation.mutate( senderId ) // `<objetMutation>.mutate` -> lance la mutation en appelant `mutationFn`, gere le `isPending`, appelle `onSuccess`/`onError` selon le retour de fetch: c'est le handler des objets mutation
 	});
 }
 

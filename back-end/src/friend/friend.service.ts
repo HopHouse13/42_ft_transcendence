@@ -93,14 +93,14 @@ export class FriendService
 
 	///
 
-	async accept( receiver: string, sender: string )
+	async accept( receiverId: string, senderId: string )
 	{
-		await this.prisma.friendship.updateMany( // updateMany renvoie un tableau des elements modifié -> renvoie un tableau vite si rien trouvé -> jamais de throw error
+		await this.prisma.friendship.updateMany( // updateMany renvoie un tableau des elements modifié -> renvoie un tableau vide si rien trouvé -> jamais de throw error
 		{
 			where:
 			{
-				senderId:	sender,
-				receiverId:	receiver,
+				senderId,
+				receiverId,
 				status:		StatusFriendship.WAITING,
 
 				sender:		{isDelete: false},
@@ -108,7 +108,7 @@ export class FriendService
 			},
 			data:
 			{
-				status:			StatusFriendship.ACCEPTED
+				status:		StatusFriendship.ACCEPTED
 			}
 		});
 	}
