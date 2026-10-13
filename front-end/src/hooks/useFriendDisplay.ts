@@ -7,7 +7,7 @@ export default function useFriendDisplay()
 {
 	const 	{ user }  = useAuthContext(); // recupere uniquement le user si session active (avec les cookies??)
 
-	// query represente le retour du hook 'useQuery'. Ce hook fait partie de la librairie Query qui gère la donnée au niveau du navigateur
+	// query represente le retour du hook 'useQuery'. Ce hook fait partie de la librairie Query qui gère la donnée au niveau du navigateur ( l'etat )
 	const	query = useQuery(
 		{
 			queryKey:	queryKeys.friends.list( user?.id ?? '' ), // pose l'etiquette definie dans queryKeys.ts, l'arbre de la gestion des caches
