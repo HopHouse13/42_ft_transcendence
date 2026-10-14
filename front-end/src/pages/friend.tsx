@@ -71,7 +71,8 @@ export default function Friend() // une page = une fonction avec un retour avec 
 									</button>
 								</FriendCard>
 							)
-						})
+						}
+					)
 				}
 
 			</section>
@@ -98,9 +99,10 @@ export default function Friend() // une page = une fonction avec un retour avec 
 									</button>
 								</FriendCard>
 							);
-						})
+						}
+					)
 				}
-{/*				<h3 className = 'text-sm font-semibold opacity-60'>
+				{/*<h3 className = 'text-sm font-semibold opacity-60'>
 					Sent
 				</h3>*/}
 				{
@@ -108,9 +110,9 @@ export default function Friend() // une page = une fonction avec un retour avec 
 						{
 							return (
 								<FriendCard key = { user.id } user = { user }>
-									<span className = 'badge italic opacity-50'>
-										waiting
-									</span>
+									<div className = 'italic animate-pulse text-xs text-center '>
+											waiting
+									</div>
 									<button
 										className = 'btn btn-xs btn-warning opacity-50 transition-opacity hover:opacity-100'
 										onClick = { () => removeFriend( user.id )}>
@@ -118,12 +120,11 @@ export default function Friend() // une page = une fonction avec un retour avec 
 									</button>
 								</FriendCard>
 							);
-						})
+						}
+					)
 				}
 
 			</section>
-
-
 		</div>
 	);
 }
