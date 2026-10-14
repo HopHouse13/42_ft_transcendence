@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 # Path resolution
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SSL_DIR="$SCRIPT_DIR/ssl/"
