@@ -5,10 +5,12 @@ import { useAuthContext } from "./useAuthContext";
 
 export interface ChatMessage {
   
-  id: 		number;
-  text: 	string;
-  userId:	string;
-  roomId:	string;
+  id: 		   number;
+  text: 	   string;
+  userId:	   string;
+  roomId:	   string;
+  
+  userName?: string;
 }
 
 export function useChatRoomSocket( roomId?: string ) {
@@ -23,7 +25,7 @@ export function useChatRoomSocket( roomId?: string ) {
     if ( loading || !user?.id ) return;
 
     // 1. Instanciation
-    const socket = io(window.location.origin, { autoConnect: false, query: { userId: user.id }, withCredentials: true });
+    const socket = io(window.location.origin, { autoConnect: false, query: { userId: user.id, userName: user.username }, withCredentials: true });
 
 	socketRef.current = socket;
     // 2. Écouteur de l'événement de connexion

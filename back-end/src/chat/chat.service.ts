@@ -16,6 +16,8 @@ export class Message {
   text:     string;
   userId:   string;
   roomId:   string;
+
+  userName?: string;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -33,7 +35,7 @@ export class ChatService {
   /* -------------------------------------------------------------------------- */
 
 
-  newMessage(roomId: string, text: string, userId: string): Message {
+  newMessage(roomId: string, text: string, userId: string, userName?: string): Message {
     
     if ( !this.chatRooms.has(roomId) ) {
     
@@ -42,7 +44,7 @@ export class ChatService {
 
     // Le "!" informe TypeScript que le tableau existe obligatoirement ici
     const messages = this.chatRooms.get(roomId)!;
-    const newMessage: Message = { id: Date.now(), text, userId, roomId };
+    const newMessage: Message = { id: Date.now(), text, userId, roomId, userName };
 
     messages.push(newMessage);
 

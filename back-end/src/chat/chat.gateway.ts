@@ -56,7 +56,9 @@ export class ChatGateway {
     // TODO: Extraire le véritable ID depuis la session JWT (client.data.user.id)
     // Récupération du userId passé lors du handshake/query
     const userId = (client.handshake.query.userId as string) || client.id;
-    const newMessage = this.chatService.newMessage(payload.roomId, payload.text, userId);
+    const userName = (client.handshake.query.userName as string) || `Utilisateur (${userId.slice(0, 4)})`;
+
+    const newMessage = this.chatService.newMessage(payload.roomId, payload.text, userId, userName);
 
       // Diffusion à l'ensemble de la room (y compris l'émetteur)
     this.server.to(payload.roomId).emit('newMessage', newMessage);

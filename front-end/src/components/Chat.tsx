@@ -53,7 +53,7 @@ return (
 
               <div key={msg.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`} >
                 <div className="text-[10px] text-gray-400 mb-0.5 px-1">
-                  {isMe ? "Vous" : `Utilisateur (${msg.userId.slice(0, 4)})`}
+                  {isMe ? "Vous" : (msg.userName ? msg.userName : "Inconnu")}
                 </div>
                 <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-xs leading-relaxed ${ (isMe )? "bg-blue-500 text-white rounded-br-xs" : "bg-gray-100 text-gray-700 rounded-bl-xs"}`} >
                   {msg.text}
