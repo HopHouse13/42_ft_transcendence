@@ -19,13 +19,13 @@ export default function Friend() // une page = une fonction avec un retour avec 
 
 	return (
 		<div
-	 className = 'w-full max-w-md lg:max-w-4xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4'> 
-			<section className = 'card bg-base-200 border border-base-300 p-4 min-h-120 gap-2 lg:col-span-2'>
+			className = 'w-full max-w-md lg:max-w-4xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4'> 
+			<section className = 'card bg-base-200 border border-base-300 p-4 h-140 gap-2 lg:col-span-2'>
 
 				<h2 className = 'text-xl text-center font-bold p-2'>
 					Friends
 				</h2>
-				<div className='grid lg:grid-cols-2 gap-2'>
+				<div className='flex-1 min-h-0 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-2 content-start'>
 				{
 					lists?.friends.map(( user ) =>
 						{
@@ -44,7 +44,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 				</div>
 
 			</section>
-			<section className = 'card bg-base-200 border border-base-300 p-4 min-h-120 gap-2'>
+			<section className = 'card bg-base-200 border border-base-300 p-4 h-140 gap-2'>
 
 				<h2 className = 'text-xl text-center font-bold p-2'>
 					Search
@@ -52,77 +52,76 @@ export default function Friend() // une page = une fonction avec un retour avec 
 
 				<input
 					type = 'text'
-					className = 'input input-bordered w-full gap-2'
+					className = 'input input-bordered w-full mb-1'
 					placeholder = 'search a user ...'
 					value = { searchName }
-					onChange = { ( event ) => setSearchName( event.target.value )}>
-				</input>
-
-				{
-					searchResult?.map(( user ) =>
-						{
-							return(
-								<FriendCard key = { user.id } user = { user }
-									/*onClick = {() => sendRequest( user.id )}*/>
-									<button
-										className = 'btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'
-										onClick = { () => sendRequest( user.id )}>
-										ADD
-									</button>
-								</FriendCard>
-							)
-						}
-					)
-				}
+					onChange = { ( event ) => setSearchName( event.target.value )}/>
+				<div className = 'flex-1 min-h-0 overflow-y-auto flex flex-col gap-2'>
+					{
+						searchResult?.map(( user ) =>
+							{
+								return(
+									<FriendCard key = { user.id } user = { user }>
+										<button
+											className = 'btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'
+											onClick = { () => sendRequest( user.id )}>
+											ADD
+										</button>
+									</FriendCard>
+								)
+							}
+						)
+					}
+				</div>
 
 			</section>
 
-			<section className = 'card bg-base-200 border border-base-300 p-4 min-h-120 gap-2'>
+			<section className = 'card bg-base-200 border border-base-300 p-4 h-140 gap-2'>
 
 				<h2 className = 'text-xl text-center font-bold p-2'>
 					Requests
 				</h2>
-				{
-					lists?.received.map(( user ) =>
-						{
-							return (
-								<FriendCard key = { user.id } user = { user }>
-									<button
-										className = 'btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'
-										onClick = { () => acceptFriend( user.id ) }>
-										ACCEPT
-									</button>
-									<button
-										className = 'btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'
-										onClick = { () => removeFriend( user.id )}>
-										REFUSE
-									</button>
-								</FriendCard>
-							);
-						}
-					)
-				}
-				{/*<h3 className = 'text-sm font-semibold opacity-60'>
-					Sent
-				</h3>*/}
-				{
-					lists?.sent.map(( user ) =>
-						{
-							return (
-								<FriendCard key = { user.id } user = { user }>
-									<div className = 'italic animate-pulse text-xs text-center '>
-											waiting
-									</div>
-									<button
-										className = 'btn btn-xs btn-warning opacity-50 transition-opacity hover:opacity-100'
-										onClick = { () => removeFriend( user.id )}>
-										CANCEL
-									</button>
-								</FriendCard>
-							);
-						}
-					)
-				}
+
+				<div className = 'flex-1 min-h-0 overflow-y-auto flex flex-col gap-2'>
+					{
+						lists?.received.map(( user ) =>
+							{
+								return (
+									<FriendCard key = { user.id } user = { user }>
+										<button
+											className = 'btn btn-xs btn-success opacity-60 transition-opacity hover:opacity-100'
+											onClick = { () => acceptFriend( user.id ) }>
+											ACCEPT
+										</button>
+										<button
+											className = 'btn btn-xs btn-error opacity-50 transition-opacity hover:opacity-100'
+											onClick = { () => removeFriend( user.id )}>
+											REFUSE
+										</button>
+									</FriendCard>
+								);
+							}
+						)
+					}
+					{
+						lists?.sent.map(( user ) =>
+							{
+								return (
+									<FriendCard key = { user.id } user = { user }>
+										<div className = 'italic animate-pulse text-xs text-center '>
+												waiting
+										</div>
+										<button
+											className = 'btn btn-xs btn-warning opacity-50 transition-opacity hover:opacity-100'
+											onClick = { () => removeFriend( user.id )}>
+											CANCEL
+										</button>
+									</FriendCard>
+								);
+							}
+						)
+					}
+				</div>
 
 			</section>
 		</div>
