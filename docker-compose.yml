@@ -15,8 +15,8 @@ services:
       prometheus:        # added for prometheus interface through proxy
         condition: service_started
     volumes:
-      - ./proxy/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./proxy/ssl:/etc/nginx/ssl:ro
+      - ./proxy/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro,Z # Z = private
+      - ./proxy/ssl:/etc/nginx/ssl:ro,Z
     ports:
       - "8080:80"        # HTTP (proxy redirects to 443)
       - "8443:443"       # HTTPS
