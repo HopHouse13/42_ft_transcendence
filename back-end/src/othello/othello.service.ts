@@ -155,11 +155,10 @@ export class    OthelloService  {
         return( service.gameId );
     }
 
-    async computePlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
-        
+    // 1. Exécute uniquement le coup de l'humain
+    async humanPlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
         const service: GameService = this.getLocalGame(gameId);
 
-        // 1. Validation de base du tour de l'humain
         const currentColor = service.engine.getCurrentPlayer();
         const player = service.state.players.find(p => p.color === currentColor);
         
@@ -167,50 +166,51 @@ export class    OthelloService  {
             throw new Error(`Ce n'est pas votre tour de jouer.`);
         }
 
-        // 2. Jouer le coup de l'humain
+        // Jouer le coup de l'humain
         service.engine.playMove(move, player.color);
         service.state.board = service.engine.getBoard().getAllCell();
 
-        // Mettre à jour l'état intermédiaire
         let nextTurnPlayer = service.engine.getCurrentPlayer();
         service.state.currentPlayer = nextTurnPlayer;
         service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
 
         if (service.engine.isGameOver()) {
             service.state.status = GameStatus.FINISHED;
+        }
+
+        return this.getGameState(gameId);
+    }
+
+    // 2. Exécute le tour du bot ensuite
+    async botPlayTurn(gameId: string): Promise<GameState> {
+        const service: GameService = this.getLocalGame(gameId);
+
+        if (service.state.status === GameStatus.FINISHED) {
             return this.getGameState(gameId);
         }
 
-        // 3. Tour du Bot (si le nouvel état donne la main au bot et que la partie continue)
-        const botPlayer = service.state.players.find(p => p.userId !== userId); // Le bot est l'autre joueur
+        // Identifier le bot (le joueur qui n'est pas l'humain, ou selon ta logique de couleur)
+        const botPlayer = service.state.players.find(p => p.userId !== service.state.players[0].userId); 
         
-        if (botPlayer && service.state.status === GameStatus.IN_PROGRESS) {
+        if (botPlayer && service.engine.getCurrentPlayer() === botPlayer.color && !service.engine.isGameOver()) {
             const botColor = botPlayer.color;
+            const legalMoves = service.engine.allValidMove(botColor);
 
-            // Boucle au cas où l'humain n'a pas de coup valide et que le bot doit rejouer
-            while (
-                service.state.status === GameStatus.IN_PROGRESS &&
-                service.engine.getCurrentPlayer() === botColor &&
-                !service.engine.isGameOver()
-            ) {
-                const legalMoves = service.engine.allValidMove(botColor);
-                if (legalMoves.length === 0) break; // Sécurité
-
-                // Demande du coup au service de calcul du bot (similaire à ton ancienne implémentation)
+            if (legalMoves.length > 0) {
                 const botMove = await this.computePlayerService.requestMove(
-                    service.engine.getBoard().getAllCell(), // ou méthode de sérialisation équivalente
+                    service.engine.getBoard().getAllCell(),
                     botColor, 
                     legalMoves
                 );
 
-                if (!botMove) break; // Évite la boucle infinie si le bot ne répond pas
-
-                service.engine.playMove(botMove, botColor);
-                service.state.board = service.engine.getBoard().getAllCell();
+                if (botMove) {
+                    service.engine.playMove(botMove, botColor);
+                    service.engine.getBoard().getAllCell();
+                }
             }
 
-            // Mettre à jour l'état final après le tour du bot
-            nextTurnPlayer = service.engine.getCurrentPlayer();
+            // Mettre à jour l'état après le coup du bot
+            const nextTurnPlayer = service.engine.getCurrentPlayer();
             service.state.currentPlayer = nextTurnPlayer;
             service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
 

@@ -112,18 +112,31 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     @SubscribeMessage('computePlayMove')
     @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-    async handleComputePlayMove(
-        @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, 
-        @ConnectedSocket() client: Socket
-    ) {
+    async handleComputePlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId as string;
             
-            // Exécute le coup de l'humain + la réponse automatique du bot
-            const updatedState = await this.othelloService.computePlayMove(payload.gameId, payload.move, userId);
+            // --- ÉTAPE 1 : Jouer le coup de l'humain et émettre l'état intermédiaire ---
+            const humanState = await this.othelloService.humanPlayMove(payload.gameId, payload.move, userId);
+            this.server.to(payload.gameId).emit('gameState', humanState);
 
-            // Diffuse l'état final mis à jour aux clients de la room
-            this.server.to(payload.gameId).emit('gameState', updatedState);
+            // Si la partie est déjà finie après le coup de l'humain, on s'arrête là
+            if (humanState.status === 'FINISHED') return;
+
+            // Optionnel : Notifier le front que le bot réfléchit (si ton front écoute 'botThinking')
+            this.server.to(payload.gameId).emit('botThinking', { gameId: payload.gameId });
+
+            // --- ÉTAPE 2 : Attendre un court instant, puis jouer le coup du bot et émettre le résultat ---
+            setTimeout(async () => {
+                try {
+                    const finalState = await this.othelloService.botPlayTurn(payload.gameId);
+                    
+                    // Émettre le résultat final du bot vers la room
+                    this.server.to(payload.gameId).emit('gameState', finalState);
+                } catch (botError) {
+                    this.server.to(payload.gameId).emit('botError', { message: botError.message });
+                }
+            }, 700); // Délai de 700ms pour simuler la réflexion naturelle du bot
 
         } catch (error) {
             client.emit('moveRejected', { message: error.message });
