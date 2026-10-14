@@ -14,6 +14,9 @@ services:
         condition: service_started
       prometheus:        # added for prometheus interface through proxy
         condition: service_started
+    volumes:
+      - ./proxy/conf.d/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./proxy/ssl:/etc/nginx/ssl:ro
     ports:
       - "8080:80"        # HTTP (proxy redirects to 443)
       - "8443:443"       # HTTPS
@@ -52,8 +55,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1"]
       interval: 10s
       timeout: 5s
+      start_period: 10s #provides initialization time for containers that need time to bootstrap
       retries: 5
-      start_period: 10s
     env_file:
       - .env
     environment:
