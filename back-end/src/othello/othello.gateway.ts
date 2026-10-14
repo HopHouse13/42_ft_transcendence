@@ -178,41 +178,53 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         
         /* -------------------------------------------------------------------------- */
     
-    @SubscribeMessage('startBotStream')
-    async handleStartBotStream(@ConnectedSocket() client: Socket) {
-        // 1. Créer une partie en mode spectateur / bot vs bot
-        const gameId = this.othelloService.createBotVsBotGame(); 
-        client.join(gameId);
+    @SubscribeMessage('createBotStreamGame')
+    async handleCreateBotStreamGame(@ConnectedSocket() client: Socket) {
+        try {
+            // 1. Créer la partie Bot vs Bot
+            const gameId = this.othelloService.createBotVsBotGame();
+            client.join(gameId);
 
-        // 2. Envoyer l'état initial
-        const initialState = this.othelloService.getGameState(gameId);
-        client.emit('gameState', initialState);
+            // 2. Envoyer l'état initial
+            const initialState = this.othelloService.getGameState(gameId);
+            client.emit('gameState', initialState);
 
-        // 3. Lancer une boucle automatique sur le serveur pour faire jouer les bots un par un
-        this.runBotStreamLoop(gameId);
+            // 3. Lancer la boucle automatique pour faire jouer les bots en direct
+            this.runBotStreamLoop(gameId);
+
+        } catch (error) {
+            client.emit('gameError', { message: error.message });
+        }
     }
 
-    private async runBotStreamLoop(gameId: string) {
+    private runBotStreamLoop(gameId: string) {
         const interval = setInterval(async () => {
             try {
                 const state = this.othelloService.getGameState(gameId);
                 
-                // Si la partie est finie, on arrête la boucle
+                // Si la partie est terminée, on arrête la boucle
                 if (state.status === 'FINISHED') {
                     clearInterval(interval);
                     return;
                 }
 
-                // Faire jouer le bot dont c'est le tour
-                const updatedState = await this.othelloService.botPlayTurn(gameId);
-                
-                // Diffuser à TOUS les spectateurs connectés dans la room du stream
-                this.server.to(gameId).emit('gameState', updatedState);
+                // Notifier que le bot réfléchit
+                this.server.to(gameId).emit('botThinking', { gameId });
+
+                // Faire jouer le bot via notre nouvelle fonction dédiée
+                setTimeout(async () => {
+                    const updatedState = await this.othelloService.botVsBotPlayTurn(gameId);
+                    this.server.to(gameId).emit('gameState', updatedState);
+                    
+                    if (updatedState.status === 'FINISHED') {
+                        clearInterval(interval);
+                    }
+                }, 800);
 
             } catch (error) {
                 clearInterval(interval);
             }
-        }, 1500); // Un coup toutes les 1.5 secondes pour que ce soit agréable à regarder
+        }, 2000); // Un coup toutes les 2 secondes
     }
         
         /* -------------------------------------------------------------------------- */

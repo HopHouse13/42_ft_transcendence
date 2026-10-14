@@ -17,6 +17,51 @@ import GameEndModal from "../components/GameEndModal";
 import { ChatPanel, ChatMessage, ChatRoom } from "../components/Chat"
 
 
+function MyCarousel() {
+
+  return ( 
+
+    
+      <div className="hover-3d">
+        <div className="aura aura-glow rounded-2xl">
+          <div className="carousel carousel-vertical rounded-2xl h-40 w-full overflow-y-auto bg-transparent" >
+            
+            <div className="carousel-item h-full" >
+              <div className="card bg-white text-primary-content w-96 rounded-2xl">
+                <div className="card-body">
+                  
+                  <h2 className="card-title">🤖 Partie Botello</h2>
+                  <p>Entraîne-toi face au Bot Othello.. </p>
+                  
+                  <div className="card-actions justify-end">
+                    <NavLink className="btn btn-soft" to={"/botGame"}> Play now !! </NavLink>
+                  </div>
+                
+                </div>
+              </div>
+            </div>
+
+            <div className="carousel-item h-full" >
+              <div className="card bg-white text-primary-content w-96 rounded-2xl">
+                <div className="card-body">
+                  
+                  <h2 className="card-title">📺 Stream Bot TV</h2>
+                  <p>Regarde une partie entre deux IA en direct.</p>
+                  
+                  <div className="card-actions justify-end">
+                    <NavLink className="btn btn-soft" to="/streamBotGame"> Play now !! </NavLink>
+                  </div>
+                
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+)};
+
 function MyCard({ title, text, route, }) {
   
   return ( 
@@ -28,7 +73,7 @@ function MyCard({ title, text, route, }) {
             <div className="card-body">
               
               <h2 className="card-title">{title}</h2>
-              <p>Entraîne-toi face au Bot Othello.. {text}</p>
+              <p>{text}</p>
               
               <div className="card-actions justify-end">
                 <NavLink className="btn btn-soft" to={route}> Play now !! </NavLink>
@@ -50,9 +95,9 @@ export default function Game() {
         
         {/* Colonne de gauche : Menu des modes de jeu */}
         <div className="flex flex-col gap-4">
-          <MyCard title="🎮 Partie Locale" route="/LocalGame" />
-          <MyCard title="🤖 Partie Botello" text="Entraîne-toi face au Bot Othello.." route="/botGame" />
-          <MyCard title="🛜 Partie Online" route="/onlineGame" />
+          <MyCard title="🎮 Partie Locale" text="Joue en local sur le même écran." route="/LocalGame" />
+          <MyCarousel />
+          <MyCard title="🛜 Partie Online" text="Affronte des joueurs du monde entier." route="/onlineGame" />
         </div>
 
         {/* Colonne de droite : Chat global / d'attente */}

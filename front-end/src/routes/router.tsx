@@ -18,6 +18,7 @@ const PrivacyPolicy = lazy(() => import('../pages/privacyPolicy'));
 const UserProfile = lazy(() => import('../pages/userProfile'));
 const LocalGame = lazy(() => import('../pages/localGame'));
 const BotGame = lazy(() => import('../pages/botGame'));
+const StreamBotGame = lazy(() => import('../pages/streambotGame'));
 
 function AppRouter(): React.ReactElement {
     return (
@@ -80,6 +81,14 @@ function AppRouter(): React.ReactElement {
                     element={
                     <AuthRoute>
                         <BotGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/streamBotGame"
+                    element={
+                    <AuthRoute>
+                        <StreamBotGame />
                     </AuthRoute>
                     }
                 />

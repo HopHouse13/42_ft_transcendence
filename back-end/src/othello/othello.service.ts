@@ -243,7 +243,74 @@ export class    OthelloService  {
 
     /* -------------------------------------------------------------------------- */
 
-    getGameState(gameId: string):   GameState {
+    // Crée une partie Bot vs Bot pour le mode Stream
+    createBotVsBotGame(): string {
+        const setGameId = randomUUID(); 
+        const setEngine = new OthelloEngine();
+        
+        const playerArr: PlayerInfo[] = [
+            { userId: 'bot-black-id', color: 'BLACK', connected: true },
+            { userId: 'bot-white-id', color: 'WHITE', connected: true }
+        ];
+        
+        const service: GameService = { 
+            gameId: setGameId, 
+            engine: setEngine, 
+            state: {
+                gameId: setGameId,
+                mode: 'BOT', 
+                status: 'IN_PROGRESS',
+                board: setEngine.getBoard().getAllCell(),
+                players: playerArr,
+                currentPlayer: 'BLACK',
+                validMoves: setEngine.allValidMove('BLACK'),
+                createdAt: new Date 
+            }
+        }; 
+        
+        this.games.set(service.gameId, service);
+        return service.gameId;
+    }
+
+    async botVsBotPlayTurn(gameId: string): Promise<GameState> {
+        const service: GameService = this.getLocalGame(gameId);
+
+        if (service.state.status === GameStatus.FINISHED) {
+            return this.getGameState(gameId);
+        }
+
+        const currentColor = service.engine.getCurrentPlayer();
+        const legalMoves = service.engine.allValidMove(currentColor);
+
+        if (legalMoves.length > 0) {
+            // Demande au service de calcul de trouver le meilleur coup pour la couleur actuelle
+            const botMove = await this.computePlayerService.requestMove(
+                service.engine.getBoard().getAllCell(),
+                currentColor, 
+                legalMoves
+            );
+
+            if (botMove) {
+                service.engine.playMove(botMove, currentColor);
+                service.engine.getBoard().getAllCell();
+            }
+        }
+
+        // Mettre à jour l'état après le coup du bot
+        const nextTurnPlayer = service.engine.getCurrentPlayer();
+        service.state.currentPlayer = nextTurnPlayer;
+        service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
+
+        if (service.engine.isGameOver()) {
+            service.state.status = GameStatus.FINISHED;
+        }
+
+        return this.getGameState(gameId);
+    }
+
+    /* -------------------------------------------------------------------------- */
+
+    getGameState(gameId: string):   GameState { 
 
         return( this.getLocalGame(gameId).state );
     }

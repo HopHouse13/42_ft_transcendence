@@ -79,7 +79,7 @@ export class MinmaxBotStrategy implements BotStrategy {
       for (const move of legalMoves) {
         const child = root.clone();
         child.playMove(move, color);
-        const value = this._search(child, Depth.EASY - 1, -Infinity, Infinity, color);
+        const value = this._search(child, Depth.HARD - 1, -Infinity, Infinity, color);
         if (value > bestValue) { bestValue = value; best = move; }
       }
       return best;
@@ -130,7 +130,7 @@ export class MinmaxBotStrategy implements BotStrategy {
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     const cell = board.getCell(row, col);
-                    const weight = ONEWEIGHTS[row * 8 + col];
+                    const weight = WEIGHTS[row * 8 + col];
 
                     if (cell === botColor)           score += weight;
                     else if (cell === opponentColor) score -= weight;
