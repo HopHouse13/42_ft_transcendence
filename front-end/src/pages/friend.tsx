@@ -20,7 +20,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 	return (
 		<div
 			className = 'w-full max-w-md lg:max-w-4xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-2 gap-4'> 
-			<section className = 'card bg-base-200 border border-base-300 p-4 h-140 gap-2 lg:col-span-2'>
+			<section className = 'card bg-base-200 border border-base-300 p-4 h-130 gap-2 lg:col-span-2'>
 
 				<h2 className = 'text-xl text-center font-bold p-2'>
 					Friends
@@ -44,7 +44,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 				</div>
 
 			</section>
-			<section className = 'card bg-base-200 border border-base-300 p-4 h-140 gap-2'>
+			<section className = 'card bg-base-200 border border-base-300 p-4 h-130 gap-2'>
 
 				<h2 className = 'text-xl text-center font-bold p-2'>
 					Search
@@ -76,7 +76,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 
 			</section>
 
-			<section className = 'card bg-base-200 border border-base-300 p-4 h-140 gap-2'>
+			<section className = 'card bg-base-200 border border-base-300 p-4 h-130 gap-2'>
 
 				<h2 className = 'text-xl text-center font-bold p-2'>
 					Requests
