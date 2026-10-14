@@ -117,7 +117,7 @@ export class FriendService
 
 	async delete( userId: string, otherId: string )
 	{
-		await this.prisma.friendship.deleteMany(
+		await this.prisma.friendship.5(
 		{
 			where:
 			{

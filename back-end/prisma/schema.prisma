@@ -55,6 +55,9 @@ model User {
 
 	friendshipsSent			Friendship[] @relation( "friendSender" )
 	friendshipsReceived		Friendship[] @relation( "friendReceiver" )
+
+	achievement				Achievement[] @relation( "achievement" )
+
 	@@map( "users" )
 }
 
@@ -87,7 +90,7 @@ model Game {
 	blackScore		Int? @map( "black_score" )
 	whiteScore		Int? @map( "white_score" )
 
-	currentPlayer	PlayerColor @default( BLACK ) @map( "current_player" )
+	nextPlayer		PlayerColor @default( BLACK ) @map( "next_player" )
 
 	createdAt		DateTime @default( now() ) @map( "created_at" )
 	updatedAt		DateTime @updatedAt @map( "updated_at" )
@@ -97,7 +100,7 @@ model Game {
 	blackPlayer		User @relation( "black", fields: [ blackPlayerId ], references: [ id ] ) // créer une contriante entre Game et User
 	whitePlayer		User @relation( "white", fields: [ whitePlayerId ], references: [ id ] )
 	winner			User? @relation( "winner", fields: [ winnerId ], references: [ id ] ) // Si null -> draw
-	
+
 	@@map( "games" )
 }
 
@@ -141,10 +144,23 @@ model Friendship {
 	receiver	User @relation( "friendReceiver", fields: [ receiverId ], references: [ id ] )
 
 	@@id([ senderId, receiverId ], name: "friendshipId" )
-	@@index([ receiverId ]) // Optimisation: un index serre a demander a la db d'indexer et trier ce champ. ( ralenti l'ecriture, accélère la lecture )
+	@@index([ receiverId ])// Optimisation: un index serre a demander a la db d'indexer et trier ce champ. ( ralenti l'ecriture, accélère la lecture )
 	@@map( "friendships" )
 }
 
+/// ACHIEVEMENT /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+model Achievement {
+	userId			String @db.Uuid @map( "user_id" )
+	achievementId	String @db.VarChar( 50 ) @map( "achievement_id" )
+
+	unlockedAt		DateTime @default( now() ) @map( "unlocked_at" )
+
+	user			User @relation( "achievement", fields: [ userId ], references: [ id ] )
+
+	@@id([ userId, achievementId ], name: "userAchievementId" )
+	@@map( "achievements" )
+}
 
 /// CMDs PRISMA /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

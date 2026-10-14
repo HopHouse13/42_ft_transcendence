@@ -9,7 +9,7 @@ const Achievement = () => {
     const userId = user?.id ?? '';
     const { data, isLoading, isError } = useAchievement(userId);
 
-    if (isLoading) 
+/*    if (isLoading) 
         return(<Loader />);
 
     if (isError)
@@ -17,7 +17,7 @@ const Achievement = () => {
             <div className="alert alert-error max-w-md mx-auto my-8">
                 <span>Failed to load achievements. Please try again.</span>
             </div>
-    );
+    );*/
 
     const nbAchievements = ACHIEVEMENT_LIST.length;
     const nbUnlockedAchievements = data?.length ?? 0;
