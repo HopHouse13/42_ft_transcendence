@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useBotSocket } from "../hooks/useBotSocket";
 import GameEndModal from "../components/GameEndModal"; 
+import ColorSelectionModal from "../components/SelectionBotModal";
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                   ~~ Inteface & Type ~~                                       */
@@ -89,6 +90,9 @@ function MyBoard({ board, validMoves = [], onCellClick }: MyBoardProps) {
 export default function Botgame() {
   const { isConnected, error, gameState, isMovePending, startBotGame, playMove, giveUp } = useBotSocket();
 
+  // État local pour contrôler l'affichage du modal de sélection de couleur
+  const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+
   const rawCells = gameState?.board;
 
   const currentBoard: CellState[] = rawCells ? rawCells.map((cell: any) => {
@@ -108,7 +112,6 @@ export default function Botgame() {
     playMove({ row, col });
   };
 
-  // Calcul des scores et gestion de la fin de partie
   const blackScore = currentBoard.filter(cell => cell === "BLACK").length;
   const whiteScore = currentBoard.filter(cell => cell === "WHITE").length;
 
@@ -120,12 +123,22 @@ export default function Botgame() {
     else winner = "DRAW";
   }
 
+  // Fonction appelée lorsque l'utilisateur choisit sa couleur dans le modal
+  const handleSelectColor = (color: "BLACK" | "WHITE") => {
+    setIsColorModalOpen(false);
+    startBotGame(color); // 💡 Passe la couleur choisie à ton hook si supporté, ou appelle startBotGame() simplement
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 p-6 relative">
       <h1 className="text-2xl font-bold">🤖 Partie contre le Bot</h1>
 
       {!gameState ? (
-        <button className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer" onClick={startBotGame} disabled={!isConnected}>
+        <button 
+          className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer" 
+          onClick={() => setIsColorModalOpen(true)} // 👈 Ouvre le modal au lieu de lancer direct
+          disabled={!isConnected}
+        >
           {isConnected ? "Démarrer contre l'IA" : "Connexion au serveur..."}
         </button>
       ) : (
@@ -139,7 +152,6 @@ export default function Botgame() {
               )}
             </span>
 
-            {/* Bouton Give Up Propre */}
             {!isFinished && (
               <button
                 onClick={giveUp}
@@ -161,7 +173,7 @@ export default function Botgame() {
             blackScore={blackScore}
             whiteScore={whiteScore}
             onRestartOrRematch={() => {
-              startBotGame();
+              setIsColorModalOpen(true); // Réouvre le choix de couleur pour une nouvelle partie
             }}
             onQuit={() => {
               localStorage.removeItem("othello_bot_game_id");
@@ -170,6 +182,12 @@ export default function Botgame() {
           />
         </>
       )}
+
+      {/* Modal de sélection de couleur */}
+      <ColorSelectionModal
+        isOpen={isColorModalOpen}
+        onSelectColor={handleSelectColor}
+      />
     </div>
   );
 }

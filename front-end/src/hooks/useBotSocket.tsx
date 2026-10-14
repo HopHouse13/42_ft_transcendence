@@ -99,13 +99,13 @@ export function useBotSocket() {
     };
   }, [user?.id, loading]);
 
-  // Déclencher la partie contre le bot
-  const startBotGame = useCallback(() => {
+  // Déclencher la partie contre le bot avec la couleur choisie
+  const startBotGame = useCallback((color: "BLACK" | "WHITE" = "BLACK") => {
     if (socketRef.current && isConnected && user?.id) {
       setError(null);
       setGameState(null);
       localStorage.removeItem(BOT_GAME_KEY);
-      socketRef.current.emit("createBotGame"); // Émet vers le back
+      socketRef.current.emit("createBotGame", { color }); // 👈 Envoi de la couleur sélectionnée
     }
   }, [isConnected, user?.id]);
 
@@ -116,7 +116,7 @@ export function useBotSocket() {
 
     if (socketRef.current && isConnected && targetGameId && user?.id) {
       setIsMovePending(true);
-      setIsBotThinking(true); // Active l'indicateur que le bot va répondre juste après
+      setIsBotThinking(true);
       socketRef.current.emit("computePlayMove", {
         gameId: targetGameId,
         move,
@@ -133,9 +133,7 @@ export function useBotSocket() {
     }
   }, [isConnected, gameState?.gameId]);
 
-  // N'oublie pas de l'ajouter dans le return :
   return { isConnected, error, gameState, isMovePending, startBotGame, playMove, giveUp };
-
 }
 
 export default useBotSocket;

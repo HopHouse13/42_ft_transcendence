@@ -130,29 +130,37 @@ export class    OthelloService  {
     /*                                                                            */
     /* -------------------------------------------------------------------------- */
 
-    computeCreateGame(hostUserId: string): string {
+    computeCreateGame(hostUserId: string, userColor: 'BLACK' | 'WHITE' = 'BLACK'): string {
 
-        const setGameId = randomUUID(); const setEngine = new OthelloEngine();
+        const setGameId = randomUUID(); 
+        const setEngine = new OthelloEngine();
         
+        // Détermine la couleur du bot (l'opposé de celle du joueur)
+        const botColor = userColor === 'BLACK' ? 'WHITE' : 'BLACK';
+
         const playerArr: PlayerInfo[] = [
-            { userId: hostUserId, color: 'BLACK', connected: true },
-            { userId: randomUUID(), color: 'WHITE', connected: true}];
+            { userId: hostUserId, color: userColor, connected: true },
+            { userId: randomUUID(), color: botColor, connected: true }
+        ];
         
-        const service: GameService = { gameId: setGameId, engine: setEngine, state  : {
-
+        const service: GameService = { 
+            gameId: setGameId, 
+            engine: setEngine, 
+            state: {
                 gameId: setGameId,
                 mode: 'BOT', 
                 status: 'IN_PROGRESS',
                 board: setEngine.getBoard().getAllCell(),
                 players: playerArr,
-                currentPlayer: 'BLACK',
+                currentPlayer: 'BLACK', // Les Noirs commencent toujours à Othello
                 validMoves: setEngine.allValidMove('BLACK'),
-                createdAt:  new Date 
-            }} 
+                createdAt: new Date 
+            }
+        }; 
         
         this.games.set(service.gameId, service);
         
-        return( service.gameId );
+        return service.gameId;
     }
 
     // 1. Exécute uniquement le coup de l'humain
