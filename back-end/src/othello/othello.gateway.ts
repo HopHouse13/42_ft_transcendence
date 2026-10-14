@@ -88,6 +88,59 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         }
     }
 
+        /* -------------------------------------------------------------------------- */
+
+    @SubscribeMessage('createBotGame')
+    handleCreateBotGame(@ConnectedSocket() client: Socket) {
+        try {
+            const userId = client.data.userId as string;
+            
+            // 1. Créer la partie bot via le service
+            const gameId = this.othelloService.computeCreateGame(userId);
+            
+            // 2. Faire rejoindre la room Socket.io au client
+            client.join(gameId);
+
+            // 3. Récupérer et envoyer l'état initial
+            const initialState = this.othelloService.getGameState(gameId);
+            client.emit('gameState', initialState);
+
+        } catch (error) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('computePlayMove')
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    async handleComputePlayMove(
+        @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, 
+        @ConnectedSocket() client: Socket
+    ) {
+        try {
+            const userId = client.data.userId as string;
+            
+            // Exécute le coup de l'humain + la réponse automatique du bot
+            const updatedState = await this.othelloService.computePlayMove(payload.gameId, payload.move, userId);
+
+            // Diffuse l'état final mis à jour aux clients de la room
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+
+        } catch (error) {
+            client.emit('moveRejected', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('botGiveUp')
+    handleBotGiveUp(@MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket) {
+        try {
+            const updatedState = this.othelloService.botGiveUp(payload.gameId);
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+        /* -------------------------------------------------------------------------- */
+
     @SubscribeMessage('getGameState')
     handleGetGameState( @ConnectedSocket() client: Socket, @MessageBody() data: { gameId: string } ) {
         

@@ -3,6 +3,8 @@ import { io, Socket } from "socket.io-client";
 import { useAuthContext } from "./useAuthContext";
 import type { GameState, Move } from "../types/gameTypes";
 
+const BOT_GAME_KEY = "othello_bot_game_id";
+
 export function useBotSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +18,7 @@ export function useBotSocket() {
   useEffect(() => {
     if (loading || !user?.id) return;
 
-    // Se connecte en utilisant l'origin actuelle (proxy Vite) et l'ID de l'utilisateur
+    // Se connecte en utilisant l'origin actuelle et l'ID de l'utilisateur
     const socket = io(window.location.origin, {
       autoConnect: false,
       query: { userId: user.id },
@@ -29,11 +31,18 @@ export function useBotSocket() {
     socket.on("connect", () => {
       setIsConnected(true);
       setError(null);
+
+      // 🔄 Récupération automatique si un gameId est en cache (F5)
+      const savedGameId = localStorage.getItem(BOT_GAME_KEY);
+      if (savedGameId) {
+        socket.emit("getGameState", { gameId: savedGameId });
+      }
     });
 
     socket.on("disconnect", () => {
       setIsConnected(false);
       setIsMovePending(false);
+      setIsBotThinking(false);
     });
 
     socket.on("connect_error", (err) => {
@@ -41,15 +50,20 @@ export function useBotSocket() {
       setIsConnected(false);
     });
 
-    // Événements du jeu Bot (OthelloGateway)
+    // Événements du jeu Bot
     socket.on("matchFound", (state: GameState) => {
+      if (state.gameId) localStorage.setItem(BOT_GAME_KEY, state.gameId);
       setGameState(state);
       setIsBotThinking(false);
       setError(null);
     });
 
     socket.on("gameState", (state: GameState) => {
-      setGameState(state);
+      if (state.gameId) localStorage.setItem(BOT_GAME_KEY, state.gameId);
+      setGameState((prev) => ({
+        ...state,
+        gameId: state.gameId || prev?.gameId || localStorage.getItem(BOT_GAME_KEY) || undefined,
+      }));
       setIsBotThinking(false);
       setIsMovePending(false);
       setError(null);
@@ -62,11 +76,20 @@ export function useBotSocket() {
     socket.on("moveRejected", (payload: { message: string }) => {
       setError(payload.message);
       setIsMovePending(false);
+      setIsBotThinking(false);
     });
 
     socket.on("botError", (payload: { message: string }) => {
       setIsBotThinking(false);
       setError(payload.message);
+    });
+
+    socket.on("gameError", (payload: { message: string }) => {
+      setError(payload.message);
+      setIsBotThinking(false);
+      setIsMovePending(false);
+      localStorage.removeItem(BOT_GAME_KEY);
+      setGameState(null);
     });
 
     socket.connect();
@@ -81,24 +104,38 @@ export function useBotSocket() {
     if (socketRef.current && isConnected && user?.id) {
       setError(null);
       setGameState(null);
-      socketRef.current.emit("createBotGame", { userId: user.id });
+      localStorage.removeItem(BOT_GAME_KEY);
+      socketRef.current.emit("createBotGame"); // Émet vers le back
     }
   }, [isConnected, user?.id]);
 
-  // Jouer un coup
+  // Jouer un coup (envoie vers l'événement computePlayMove de notre service)
   const playMove = useCallback((move: Move) => {
-    if (socketRef.current && isConnected && gameState?.gameId && user?.id) {
+    const currentStorageGameId = localStorage.getItem(BOT_GAME_KEY);
+    const targetGameId = gameState?.gameId || currentStorageGameId;
+
+    if (socketRef.current && isConnected && targetGameId && user?.id) {
       setIsMovePending(true);
-      socketRef.current.emit("playMove", {
-        gameId: gameState.gameId,
-        userId: user.id,
+      setIsBotThinking(true); // Active l'indicateur que le bot va répondre juste après
+      socketRef.current.emit("computePlayMove", {
+        gameId: targetGameId,
         move,
       });
     }
   }, [isConnected, gameState?.gameId, user?.id]);
 
-  return { isConnected, error, gameState, isBotThinking, isMovePending, startBotGame, playMove };
-  
+  const giveUp = useCallback(() => {
+    const currentStorageGameId = localStorage.getItem(BOT_GAME_KEY);
+    const targetGameId = gameState?.gameId || currentStorageGameId;
+
+    if (socketRef.current && isConnected && targetGameId) {
+      socketRef.current.emit("botGiveUp", { gameId: targetGameId });
+    }
+  }, [isConnected, gameState?.gameId]);
+
+  // N'oublie pas de l'ajouter dans le return :
+  return { isConnected, error, gameState, isMovePending, startBotGame, playMove, giveUp };
+
 }
 
 export default useBotSocket;

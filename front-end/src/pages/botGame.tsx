@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useBotSocket } from "../hooks/useBotSocket";
+import GameEndModal from "../components/GameEndModal"; 
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                   ~~ Inteface & Type ~~                                       */
@@ -86,52 +87,87 @@ function MyBoard({ board, validMoves = [], onCellClick }: MyBoardProps) {
 /* --------------------------------------------------------------------------------------------- */
 
 export default function Botgame() {
-  // Utilisation directe du hook useBotSocket
-  const { isConnected, error, gameState, isBotThinking, isMovePending, startBotGame, playMove } = useBotSocket();
+  const { isConnected, error, gameState, isMovePending, startBotGame, playMove, giveUp } = useBotSocket();
 
- // Conversion propre des cellules du serveur vers le type CellState ("BLACK" | "WHITE" | null)
-const currentBoard: CellState[] = gameState?.cells? gameState.cells.map((cell: any) => {
-      // 1. Si la cellule est nulle ou indéfinie
-      if (!cell) return null;
+  const rawCells = gameState?.board;
 
-      // 2. Si c'est un objet (ex: { color: "BLACK" } ou { color: 1 })
-      const color = typeof cell === "object" ? cell.color : cell;
+  const currentBoard: CellState[] = rawCells ? rawCells.map((cell: any) => {
+    if (!cell) return null;
+    const color = typeof cell === "object" ? cell.color : cell;
+    if (color === "BLACK" || color === 1) return "BLACK";
+    if (color === "WHITE" || color === 2) return "WHITE";
+    return null;
+  }) : Array(64).fill(null);
 
-      if (color === "BLACK" || color === 1) return "BLACK";
-      if (color === "WHITE" || color === 2) return "WHITE";
-
-      return null;
-    }) : Array(64).fill(null); 
-
-  // Mapping des coups valides
-  const validMovesIndexes = gameState?.validMoves? gameState.validMoves.map((m: any) => m.row * 8 + m.col) : [];
+  const validMovesIndexes = gameState?.validMoves ? gameState.validMoves.map((m: any) => m.row * 8 + m.col) : [];
 
   const handleCellClick = (index: number) => {
-    if (isMovePending || isBotThinking || !gameState) return;
-
+    if (isMovePending || !gameState || gameState.status === 'FINISHED') return;
     const row = Math.floor(index / 8);
     const col = index % 8;
-
     playMove({ row, col });
   };
 
+  // Calcul des scores et gestion de la fin de partie
+  const blackScore = currentBoard.filter(cell => cell === "BLACK").length;
+  const whiteScore = currentBoard.filter(cell => cell === "WHITE").length;
+
+  const isFinished = gameState?.status === 'FINISHED';
+  let winner: "BLACK" | "WHITE" | "DRAW" | null = null;
+  if (isFinished) {
+    if (blackScore > whiteScore) winner = "BLACK";
+    else if (whiteScore > blackScore) winner = "WHITE";
+    else winner = "DRAW";
+  }
+
   return (
-    <div className="flex flex-col items-center gap-4 p-6">
+    <div className="flex flex-col items-center gap-4 p-6 relative">
       <h1 className="text-2xl font-bold">🤖 Partie contre le Bot</h1>
 
       {!gameState ? (
-        <button className="btn btn-primary" onClick={startBotGame} disabled={!isConnected}>
+        <button className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer" onClick={startBotGame} disabled={!isConnected}>
           {isConnected ? "Démarrer contre l'IA" : "Connexion au serveur..."}
         </button>
-        ) : (
+      ) : (
         <>
-          {isBotThinking && (
-            <div className="badge badge-warning p-3">🤖 Le Bot réfléchit...</div>
-          )}
+          <div className="flex items-center justify-between w-full max-w-md px-2">
+            <span className="text-sm text-amber-200">
+              {!isFinished ? (
+                <span>Tour actuel : <span className="font-bold">{gameState.currentPlayer}</span></span>
+              ) : (
+                <span className="font-bold text-amber-400">Partie terminée</span>
+              )}
+            </span>
 
-          {error && <div className="alert alert-error text-sm">{error}</div>}
+            {/* Bouton Give Up Propre */}
+            {!isFinished && (
+              <button
+                onClick={giveUp}
+                className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              >
+                Abandonner
+              </button>
+            )}
+          </div>
 
-          <MyBoard board={currentBoard} validMoves={validMovesIndexes} onCellClick={handleCellClick}/>
+          {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
+
+          <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
+
+          {/* Modal de fin de partie */}
+          <GameEndModal
+            isOpen={isFinished}
+            winner={winner}
+            blackScore={blackScore}
+            whiteScore={whiteScore}
+            onRestartOrRematch={() => {
+              startBotGame();
+            }}
+            onQuit={() => {
+              localStorage.removeItem("othello_bot_game_id");
+              window.location.reload();
+            }}
+          />
         </>
       )}
     </div>
