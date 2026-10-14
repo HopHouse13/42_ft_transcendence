@@ -31,13 +31,13 @@ export class ComputePlayerService {
 
     async requestMove(cells: Cell[], color: Player, legalMoves: Move[]): Promise<Move | null> {
         
-        const thinkingTime = Math.floor(Math.random() * 800) + 400;
+        const thinkingTime = 0; //Math.floor(Math.random() * 800) + 400;
         
         return new Promise((resolve) => {
 
             setTimeout(() => {
 
-                const randomChance = 0.50; 
+                const randomChance = 0.20; 
                 const shouldUseRandom = Math.random() < randomChance;
 
                 let move: Move | null = null;

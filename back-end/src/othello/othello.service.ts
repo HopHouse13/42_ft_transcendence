@@ -197,34 +197,47 @@ export class    OthelloService  {
             return this.getGameState(gameId);
         }
 
-        // Identifier le bot (le joueur qui n'est pas l'humain, ou selon ta logique de couleur)
         const botPlayer = service.state.players.find(p => p.userId !== service.state.players[0].userId); 
-        
-        if (botPlayer && service.engine.getCurrentPlayer() === botPlayer.color && !service.engine.isGameOver()) {
-            const botColor = botPlayer.color;
+        if (!botPlayer) return this.getGameState(gameId);
+
+        const botColor = botPlayer.color;
+
+        // Boucle pour gérer le cas où le bot doit jouer, ou rejouer si l'humain a dû passer son tour,
+        // ou si le bot lui-même s'enchaîne plusieurs tours.
+        while (
+            service.state.status === GameStatus.IN_PROGRESS &&
+            service.engine.getCurrentPlayer() === botColor &&
+            !service.engine.isGameOver()
+        ) {
             const legalMoves = service.engine.allValidMove(botColor);
 
-            if (legalMoves.length > 0) {
-                const botMove = await this.computePlayerService.requestMove(
-                    service.engine.getBoard().getAllCell(),
-                    botColor, 
-                    legalMoves
-                );
-
-                if (botMove) {
-                    service.engine.playMove(botMove, botColor);
-                    service.engine.getBoard().getAllCell();
-                }
+            if (legalMoves.length === 0) {
+                // Le bot n'a aucun coup valide : l'engine gère ou force le passage de tour 
+                // (ou on break pour éviter une boucle infinie si personne n'a de coup)
+                break; 
             }
 
-            // Mettre à jour l'état après le coup du bot
-            const nextTurnPlayer = service.engine.getCurrentPlayer();
-            service.state.currentPlayer = nextTurnPlayer;
-            service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
+            const botMove = await this.computePlayerService.requestMove(
+                service.engine.getBoard().getAllCell(),
+                botColor, 
+                legalMoves
+            );
 
-            if (service.engine.isGameOver()) {
-                service.state.status = GameStatus.FINISHED;
+            if (botMove) {
+                service.engine.playMove(botMove, botColor);
+                service.state.board = service.engine.getBoard().getAllCell();
+            } else {
+                break;
             }
+        }
+
+        // Mettre à jour l'état final après le ou les coups du bot
+        const nextTurnPlayer = service.engine.getCurrentPlayer();
+        service.state.currentPlayer = nextTurnPlayer;
+        service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
+
+        if (service.engine.isGameOver()) {
+            service.state.status = GameStatus.FINISHED;
         }
 
         return this.getGameState(gameId);
