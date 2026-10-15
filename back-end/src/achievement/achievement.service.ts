@@ -23,7 +23,7 @@ export class AchievementService
 		);
 
 		if ( !user )
-			throw ( new NotFoundException( `User ${ rawId } does not exist` ) );
+			throw ( new NotFoundException( `User ${ rawId } does not exist` ));
 
 		const achievement = await this.prisma.achievement.findMany(
 			{
@@ -45,4 +45,24 @@ export class AchievementService
 
 		return( achievement );
 	}
+	
+	///
+	
+	validateAchievement( gameId: string )
+	{
+
+	}
 };
+
+/* 
+Plan:
+
+- verif. si game existe
+- verif. si les deux users existent
+- make {un objet} le resumé de la game: (faire le detail)
+
+Pour chaque user:
+- recuperer (findMany) tous les achiev unlocked[]
+- parcourrir
+
+*/

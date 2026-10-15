@@ -1,5 +1,5 @@
 export interface Payload
 {
-	sub:		string,
-	username:	string
+	sub:		string;
+	username:	string;
 };
