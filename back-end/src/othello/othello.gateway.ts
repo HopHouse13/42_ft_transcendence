@@ -206,7 +206,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     ) {
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
-            const updatedState = await this.othelloService.humanPlayMove(payload.gameId, payload.move, userId);
+            const updatedState = await this.othelloService.onlinePlayMove(payload.gameId, payload.move, userId);
             this.server.to(payload.gameId).emit('gameState', updatedState);
         } catch (error: any) {
             client.emit('moveRejected', { message: error.message });
@@ -219,14 +219,13 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         @ConnectedSocket() client: Socket,
     ) {
         try {
-            // Utilise botGiveUp ou une méthode d'abandon en ligne similaire
-            const updatedState = this.othelloService.botGiveUp(payload.gameId);
+            const userId = client.data.userId || client.handshake.query.userId as string;
+            const updatedState = await this.othelloService.onlineGiveUp(payload.gameId, userId);
             this.server.to(payload.gameId).emit('gameState', updatedState);
         } catch (error: any) {
             client.emit('gameError', { message: error.message });
         }
     }
-
     /* -------------------------------------------------------------------------- */
     /*  Mode Bot Stream (Bot vs Bot)                                              */
     /* -------------------------------------------------------------------------- */

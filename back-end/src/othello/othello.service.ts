@@ -264,6 +264,7 @@ export class    OthelloService  {
 
     // Crée une partie Bot vs Bot pour le mode Stream
     createBotVsBotGame(): string {
+
         const setGameId = randomUUID(); 
         const setEngine = new OthelloEngine();
         
@@ -331,37 +332,6 @@ export class    OthelloService  {
     /*                                                                            */
     /* -------------------------------------------------------------------------- */
 
-    /*async OnlineCreateGame(hostUserId: string): string {
-
-        gameRoom = appel de la fonction newgameEntry 
-        si GameRoom est ready on crees une partie
-        {
-            const setGameId = randomUUID(); const setEngine = new OthelloEngine();
-            
-            const playerArr: PlayerInfo[] = [ gameRoom.player1, gameRoom.player2];
-            
-            const service: GameService = { gameId: setGameId, engine: setEngine, state  : {
-
-                    gameId: setGameId,
-                    mode: 'ONLINE', 
-                    status: 'IN_PROGRESS',
-                    board: setEngine.getBoard().getAllCell(),
-                    players: playerArr,
-                    currentPlayer: 'BLACK',
-                    validMoves: setEngine.allValidMove('BLACK'),
-                    createdAt:  new Date 
-                }} 
-            
-            this.games.set(service.gameId, service);
-
-            await this.prisma.game.create({ data: { id: gameId, status: 'IN_PROGRESS', blackPlayerId: playerArr[0].userId, whitePlayerId: playerArr[2].userId } });
-            return( service.gameId );
-        }
-        Si Non 
-        {
-            on fait patienter le joueur 
-        }
-    }*/
     async OnlineCreateGame(hostPlayer: { userId: string; socketId: string; color?: 'BLACK' | 'WHITE' }): Promise<{ gameId: string; roomStatus: 'waiting' | 'ready'; roomId?: string }> {
 
         // 1. Appel du service de matchmaking pour enregistrer ou matcher le joueur
@@ -426,6 +396,67 @@ export class    OthelloService  {
             roomStatus: 'ready',
             roomId: room.roomId
         };
+    }
+
+    // 1. Jouer un coup en ligne
+    async onlinePlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
+        const service: GameService = this.getLocalGame(gameId);
+
+        if (service.state.status === GameStatus.FINISHED) {
+            throw new Error("Cette partie est déjà terminée.");
+        }
+
+        const currentColor = service.engine.getCurrentPlayer();
+        const player = service.state.players.find(p => p.color === currentColor);
+        
+        if (!player || player.userId !== userId) {
+            throw new Error(`Ce n'est pas votre tour de jouer.`);
+        }
+
+        // Jouer le coup
+        service.engine.playMove(move, player.color);
+        service.state.board = service.engine.getBoard().getAllCell();
+
+        const nextTurnPlayer = service.engine.getCurrentPlayer();
+        service.state.currentPlayer = nextTurnPlayer;
+        service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
+
+        if (service.engine.isGameOver()) {
+            service.state.status = GameStatus.FINISHED;
+            
+            // Optionnel : Mettre à jour le statut dans la base de données Prisma
+            await this.prisma.game.update({
+                where: { id: gameId },
+                data: { status: 'FINISHED' }
+            }).catch(() => {}); // Sécurité si la partie n'est pas en DB
+        }
+
+        return this.getGameState(gameId);
+    }
+
+    // 2. Abandonner une partie en ligne
+    async onlineGiveUp(gameId: string, userId: string): Promise<GameState> {
+        const service: GameService = this.getLocalGame(gameId);
+
+        if (service.state.status === GameStatus.FINISHED) {
+            return service.state;
+        }
+
+        // Vérifier que le joueur fait bien partie de la partie
+        const player = service.state.players.find(p => p.userId === userId);
+        if (!player) {
+            throw new Error("Vous ne faites pas partie de cette partie.");
+        }
+
+        service.state.status = GameStatus.FINISHED;
+
+        // Mise à jour en base de données
+        await this.prisma.game.update({
+            where: { id: gameId },
+            data: { status: 'FINISHED' }
+        }).catch(() => {});
+
+        return this.getGameState(gameId);
     }
 
     /* -------------------------------------------------------------------------- */
