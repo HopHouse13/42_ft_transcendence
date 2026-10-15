@@ -54,15 +54,18 @@ export class AchievementService
 	}
 };
 
-/* 
+/*
 Plan:
 
-- verif. si game existe
+- verif. si game existe et qu'elle soit FINISHED
 - verif. si les deux users existent
 - make {un objet} le resumé de la game: (faire le detail)
 
 Pour chaque user:
-- recuperer (findMany) tous les achiev unlocked[]
-- parcourrir
+- recuperer (findMany) tous les achiev unlocked[] dans une tableau
+- genrerer le tableau inverser tu 1er pour avoir tous les achievements lock
+-parcourir un chaque element dans un switch (alternative -> record<>) pour appeler la methode correspondant a la achievementId
+	-> si l achiavement est unlocked la methode psuh dans une 3eme array l'achievementId.
+-apres le traitement de l'ensemble des achievement -> un appel en db avec createMany() pour genrer l'ensemble des achievments unlock
 
 */
