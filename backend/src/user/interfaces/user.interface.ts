@@ -40,7 +40,6 @@ export interface UserProfile extends UserPublic
 {
 	elo:			number
 	matchHistory:	Match[]
-
 };
 
 export interface UserCreate
