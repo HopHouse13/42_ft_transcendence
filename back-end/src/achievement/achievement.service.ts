@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Game, Achievement } from '@prisma/client'
 
 @Injectable()
 export class AchievementService
@@ -48,9 +49,29 @@ export class AchievementService
 	
 	///
 	
-	validateAchievement( gameId: string )
+	async validateAchievement( gameId: string )
 	{
+		const game: Readonly<Game> = await this.prisma.game.findUniqueOrThrow(
+			{
+				where:
+				{
+					id: 	gameId
+				},
+				include:
+				{
+					moves:	true
+				}
+			}
+		)
 
+		const	arrayUnlocked: Readonly<Achievement[]> = await this.prisma.achievement.findMany(
+			{
+				where:
+				{
+					userId: game
+				}
+			}
+		)
 	}
 };
 
@@ -58,13 +79,12 @@ export class AchievementService
 Plan:
 
 - verif. si game existe et qu'elle soit FINISHED
-- verif. si les deux users existent
-- make {un objet} le resumé de la game: (faire le detail)
+- charge en readonly: la game et l'historique des cou
 
 Pour chaque user:
 - recuperer (findMany) tous les achiev unlocked[] dans une tableau
-- genrerer le tableau inverser tu 1er pour avoir tous les achievements lock
--parcourir un chaque element dans un switch (alternative -> record<>) pour appeler la methode correspondant a la achievementId
+- genrerer le tableau inverser avec tous les lock (.filter)
+-parcourir chaque element dans un switch (alternative -> record<>) pour appeler la methode correspondant a la achievementId
 	-> si l achiavement est unlocked la methode psuh dans une 3eme array l'achievementId.
 -apres le traitement de l'ensemble des achievement -> un appel en db avec createMany() pour genrer l'ensemble des achievments unlock
 
