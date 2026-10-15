@@ -46,7 +46,8 @@ fi
 # Generate a list of all commit messages in this push (extracting just the first line of each)
 if [ "$IS_MERGE" = "true" ]; then
   # If it is a merge, ignore GitHub's history dump and ONLY format the top merge commit
-  COMMIT_LIST=$(git log -1 --format=%B | sed 's/^/> /')
+  MERGE_MSG=$(git log -1 --format=%B)              # trim trailing empty line
+  COMMIT_LIST=$(echo "$MERGE_MSG" | sed 's/^/> /') #add blockquot arrow
 else
   # If it is a normal push, format all batched commits from the JSON array
   COMMIT_LIST=$(echo "$COMMITS_JSON" | jq -r 'map("> \(.message | gsub("\n"; "\n> "))") | join("\n\n")')
