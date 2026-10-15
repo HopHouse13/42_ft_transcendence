@@ -5,7 +5,7 @@ import type { UserAchievement } from "../types/achievementTypes";
 const fetchUserAchievements = async (userId: string): Promise<UserAchievement[]> => {
     const safeUserId = encodeURIComponent(userId);
 
-    const res = await fetch(`/api/users/${safeUserId}/achievements`, {
+    const res = await fetch(`/api/achievement/${safeUserId}`, {
         headers: {'Content-Type': 'application/json'},
         credentials: 'include',
     });

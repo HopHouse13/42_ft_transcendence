@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client'; // namespace Prisma pour obetenir la cl
 import { basename, join } from 'path';
 import { unlink } from 'fs';
 import { UserPublic, UserPrivate, UserCreate, Match, UserProfile, UserUpdate } from './interfaces/user.interface';
-import { finished } from 'node:stream';
 
 @Injectable() // cette classe peut être injectée
 export class UserService
@@ -19,20 +18,22 @@ export class UserService
 	async findAll(): Promise< UserPublic[] >// renvoie un tableau de l'ensemble des users inscrient dans la db
 	{
 		const	users: UserPublic[] = await this.prisma.user.findMany(
-		{
-			where:
 			{
-				isDelete:	false
-			},
-			select: // ne retourne que les champs listés à true
-			{
-				id:			true,
-				username:	true,
-				avatarUrl:	true,
-				createdAt:	true,
-				updatedAt:	true
+				where:
+				{
+					isDelete:	false
+				},
+				select: // ne retourne que les champs listés à true
+				{
+					id:			true,
+					username:	true,
+					avatarUrl:	true,
+					createdAt:	true,
+					updatedAt:	true
+				}
 			}
-		});
+		);
+
 		return ( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
 	}
 
@@ -41,21 +42,21 @@ export class UserService
 	async findOne( id: string ): Promise< UserPublic >
 	{
 		const	user: UserPublic | null = await this.prisma.user.findUnique(
-		{
-			where:
 			{
-				id,
-				isDelete:	false
-			},
-			select:
-			{
-				id:			true,
-				username:	true,
-				avatarUrl:	true,
-				createdAt:	true,
-				updatedAt:	true
+				where:
+				{
+					id,
+					isDelete:	false
+				},
+				select:
+				{
+					id:			true,
+					username:	true,
+					avatarUrl:	true,
+					createdAt:	true,
+					updatedAt:	true
+				}
 			}
-		}
 		);
 
 		if ( !user ) // findUnique renvoit null si il n'a pas trouvé de user
@@ -68,32 +69,33 @@ export class UserService
 	async findByEmail( email: string ): Promise< UserPrivate | null >
 	{
 		const	user: UserPrivate | null = await this.prisma.user.findUnique(
-		{
-			where:
 			{
-				email,
-				isDelete:				false
-			},
-			select:
-			{
-				id:						true,
-				username:				true,
-				email:					true,
-				avatarUrl:				true,
-				createdAt:				true,
-				updatedAt:				true,
+				where:
+				{
+					email,
+					isDelete:				false
+				},
+				select:
+				{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
 
-				passwordHash:			true,
-				googleId:				true,
-				gitId:					true,
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
 
-				passwordToken:			true,
-				passwordTokenExpiresAt:	true,
-				
-				refreshToken:			true,
-				refreshTokenExpiresAt:	true
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
+
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+				}
 			}
-		});
+		);
 
 		return ( user );
 	}
@@ -103,32 +105,33 @@ export class UserService
 	async findByGoogleId( googleId: string ) : Promise< UserPrivate | null >
 	{
 		const	user: UserPrivate | null = await this.prisma.user.findUnique(
-		{
-			where: 
 			{
-				googleId,
-				isDelete:					false
-			},
-			select:
-			{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
+				where: 
+				{
+					googleId,
+					isDelete:					false
+				},
+				select:
+				{
+						id:						true,
+						username:				true,
+						email:					true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true,
 
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
+						passwordHash:			true,
+						googleId:				true,
+						gitId:					true,
 
-					passwordToken:			true,
-					passwordTokenExpiresAt:	true,
+						passwordToken:			true,
+						passwordTokenExpiresAt:	true,
 
-					refreshToken:			true,
-					refreshTokenExpiresAt:	true
+						refreshToken:			true,
+						refreshTokenExpiresAt:	true
+				}
 			}
-		});
+		);
 
 		return ( user ); // renvoie un objet user avec les données UserPrivate
 	}
@@ -138,14 +141,50 @@ export class UserService
 	async findByGitId( gitId: string ): Promise< UserPrivate | null >
 	{
 		const	user: UserPrivate | null = await this.prisma.user.findUnique(
-		{
-			where: 
 			{
-				gitId,
-				isDelete:					false
-			},
-			select:
+				where: 
+				{
+					gitId,
+					isDelete:					false
+				},
+				select:
+				{
+						id:						true,
+						username:				true,
+						email:					true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true,
+
+						passwordHash:			true,
+						googleId:				true,
+						gitId:					true,
+
+						passwordToken:			true,
+						passwordTokenExpiresAt:	true,
+
+						refreshToken:			true,
+						refreshTokenExpiresAt:	true
+				}
+			}
+		);
+
+		return ( user ); // renvoie un objet userPrivate
+	}
+
+	///
+
+	async findByPasswordToken( tokenHash: string ): Promise< UserPrivate | null >
+	{
+		const	user: UserPrivate | null = await this.prisma.user.findUnique(
 			{
+				where:
+				{
+					passwordToken:			tokenHash,
+					isDelete:				false
+				},
+				select:
+				{
 					id:						true,
 					username:				true,
 					email:					true,
@@ -162,43 +201,9 @@ export class UserService
 
 					refreshToken:			true,
 					refreshTokenExpiresAt:	true
+				}
 			}
-		});
-
-		return ( user ); // renvoie un objet userPrivate
-	}
-
-	///
-
-	async findByPasswordToken( tokenHash: string ): Promise< UserPrivate | null >
-	{
-		const	user: UserPrivate | null = await this.prisma.user.findUnique(
-		{
-			where:
-			{
-				passwordToken:			tokenHash,
-				isDelete:				false
-			},
-			select:
-			{
-				id:						true,
-				username:				true,
-				email:					true,
-				avatarUrl:				true,
-				createdAt:				true,
-				updatedAt:				true,
-
-				passwordHash:			true,
-				googleId:				true,
-				gitId:					true,
-
-				passwordToken:			true,
-				passwordTokenExpiresAt:	true,
-
-				refreshToken:			true,
-				refreshTokenExpiresAt:	true
-			}
-		});
+		);
 
 		return ( user );
 	}
@@ -208,32 +213,33 @@ export class UserService
 	async findByRefreshToken( refreshToken: string ): Promise< UserPrivate | null >
 	{
 		const	user: UserPrivate | null = await this.prisma.user.findUnique(
-		{
-			where:
 			{
-				refreshToken,
-				isDelete:				false
-			},
-			select:
-			{
-				id:						true,
-				username:				true,
-				email:					true,
-				avatarUrl:				true,
-				createdAt:				true,
-				updatedAt:				true,
+				where:
+				{
+					refreshToken,
+					isDelete:				false
+				},
+				select:
+				{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
 
-				passwordHash:			true,
-				googleId:				true,
-				gitId:					true,
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
 
-				passwordToken:			true,
-				passwordTokenExpiresAt:	true,
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
 
-				refreshToken:			true,
-				refreshTokenExpiresAt:	true
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+				}
 			}
-		});
+		);
 
 		return ( user );
 	}
@@ -243,38 +249,40 @@ export class UserService
 	async setPassword( id: string, newPasswordHash: string ): Promise< UserPrivate >
 	{
 		const	user: UserPrivate = await this.prisma.user.update(
-		{
-			where:
 			{
-				id,
-				isDelete:				false
-			},
-			data:
-			{
-				passwordHash:			newPasswordHash,
-				passwordToken:			null,
-				passwordTokenExpiresAt:	null
-			},
-			select:
-			{
-				id:						true,
-				username:				true,
-				email:					true,
-				avatarUrl:				true,
-				createdAt:				true,
-				updatedAt:				true,
+				where:
+				{
+					id,
+					isDelete:				false
+				},
+				data:
+				{
+					passwordHash:			newPasswordHash,
+					passwordToken:			null,
+					passwordTokenExpiresAt:	null
+				},
+				select:
+				{
+					id:						true,
+					username:				true,
+					email:					true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true,
 
-				passwordHash:			true,
-				googleId:				true,
-				gitId:					true,
+					passwordHash:			true,
+					googleId:				true,
+					gitId:					true,
 
-				passwordToken:			true,
-				passwordTokenExpiresAt:	true,
+					passwordToken:			true,
+					passwordTokenExpiresAt:	true,
 
-				refreshToken:			true,
-				refreshTokenExpiresAt:	true
+					refreshToken:			true,
+					refreshTokenExpiresAt:	true
+				}
 			}
-		});
+		);
+		
 		return ( user );
 	}
 
@@ -283,91 +291,94 @@ export class UserService
 	async findProfile( id: string ): Promise < UserProfile >
 	{
 		const	user = await this.prisma.user.findUnique(
-		{
-			where:
 			{
-				id,
-				isDelete:	false
-			},
-			select:
-			{
-				id:			true,
-				username:	true,
-				avatarUrl:	true,
-				createdAt:	true,
-				updatedAt:	true,
-				elo:		true,
+				where:
+				{
+					id,
+					isDelete:	false
+				},
+				select:
+				{
+					id:			true,
+					username:	true,
+					avatarUrl:	true,
+					createdAt:	true,
+					updatedAt:	true,
+					elo:		true,
+				}
 			}
-		});
+		);
 
 		if ( !user )
 			throw ( new NotFoundException( `User ${ id } does not existe` ) );
 		
 		// findMany renvoit un tableau d'elements
 		const	games = await this.prisma.game.findMany(
-		{
-			where: // toutes les games que notre user a jouées
 			{
-				status: 'FINISHED', // Je pense que ABANDONED doit pas exister
-				OR: [{ blackPlayerId: id }, { whitePlayerId: id }]// OR -> tableau de conditions, si l'une des conditions du tableau est remplie, l'element est retenu.
-			},
-			orderBy: // tri les elements selon le champ et le 'mode': desc -> descendant; asc -> ascendant
-			{
-				createdAt: 'desc'
-			},
-			include: // include indique la relation entre plusieurs tables. Ici, c'est la relation entre Game et User via les champs blackPlayerId/whitePlayerId. On aura acces au donnée des 2 players
-			{
-				blackPlayer:
+				where: // toutes les games que notre user a jouées
 				{
-					select:
-					{
-						id:			true,
-						username:	true,
-						elo:		true
-					}
+					status: 'FINISHED', // Je pense que ABANDONED doit pas exister
+					OR: [{ blackPlayerId: id }, { whitePlayerId: id }]// OR -> tableau de conditions, si l'une des conditions du tableau est remplie, l'element est retenu.
 				},
-				whitePlayer:
+				orderBy: // tri les elements selon le champ et le 'mode': desc -> descendant; asc -> ascendant
 				{
-					select:
+					createdAt: 'desc'
+				},
+				include: // include indique la relation entre plusieurs tables. Ici, c'est la relation entre Game et User via les champs blackPlayerId/whitePlayerId. On aura acces au donnée des 2 players
+				{
+					blackPlayer:
 					{
-						id:			true,
-						username:	true,
-						elo:		true
+						select:
+						{
+							id:			true,
+							username:	true,
+							elo:		true
+						}
+					},
+					whitePlayer:
+					{
+						select:
+						{
+							id:			true,
+							username:	true,
+							elo:		true
+						}
 					}
 				}
 			}
-		});
+		);
 
 		const	matchHistory: Match[] = games.map(( rawMatch ) =>
-		{
-			const	isBlack = rawMatch.blackPlayerId === id;
-			const	opponent = isBlack ? rawMatch.whitePlayer : rawMatch.blackPlayer;
-			
-			const	ownScore = ( isBlack ? rawMatch.blackScore : rawMatch.whiteScore ) ?? 0;
-			const	opponentScore = ( isBlack ? rawMatch.whiteScore : rawMatch.blackScore ) ?? 0;
-
-			let		result: 'WIN' | 'LOSS' | 'DRAW';
-
-			if( rawMatch.winnerId === null )
-				result = 'DRAW';
-			else if( rawMatch.winnerId === id )
-				result = 'WIN';
-			else
-				result = 'LOSS';
-
-			const	match: Match =
 			{
-				id :			rawMatch.id,
-				opponentId: 	opponent.id,
-				opponentName:	opponent.username,
-				opponentElo: 	opponent.elo,
-    			result,
-    			score: [ ownScore , opponentScore ],
-    			date: rawMatch.createdAt
-			}
+				const	isBlack = rawMatch.blackPlayerId === id;
+				const	opponent = isBlack ? rawMatch.whitePlayer : rawMatch.blackPlayer;
 
-			return( match );
-		});
+				const	ownScore = ( isBlack ? rawMatch.blackScore : rawMatch.whiteScore ) ?? 0;
+				const	opponentScore = ( isBlack ? rawMatch.whiteScore : rawMatch.blackScore ) ?? 0;
+
+				let		result: 'WIN' | 'LOSS' | 'DRAW';
+
+				if( rawMatch.winnerId === null )
+					result = 'DRAW';
+				else if( rawMatch.winnerId === id )
+					result = 'WIN';
+				else
+					result = 'LOSS';
+
+				const	match: Match =
+				{
+					id :			rawMatch.id,
+					opponentId: 	opponent.id,
+					opponentName:	opponent.username,
+					opponentElo: 	opponent.elo,
+    				result,
+    				score: [ ownScore , opponentScore ],
+    				date: rawMatch.createdAt
+				}
+
+				return( match );
+			}
+		);
 
 		const userProfile: UserProfile =
 		{
@@ -396,35 +407,37 @@ export class UserService
 		try
 		{
 			const	user: UserPrivate = await this.prisma.user.create(
-			{
-				data:
 				{
-					username:				dataCreate.username,
-					email:					dataCreate.email,
-					passwordHash:			dataCreate.passwordHash,
-					googleId:				dataCreate.googleId,
-					gitId:					dataCreate.gitId
-				},
-				select:
-				{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
+					data:
+					{
+						username:				dataCreate.username,
+						email:					dataCreate.email,
+						passwordHash:			dataCreate.passwordHash,
+						googleId:				dataCreate.googleId,
+						gitId:					dataCreate.gitId
+					},
+					select:
+					{
+						id:						true,
+						username:				true,
+						email:					true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true,
 
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
+						passwordHash:			true,
+						googleId:				true,
+						gitId:					true,
 
-					passwordToken:			true,
-					passwordTokenExpiresAt:	true,
+						passwordToken:			true,
+						passwordTokenExpiresAt:	true,
 
-					refreshToken:			true,
-					refreshTokenExpiresAt:	true
+						refreshToken:			true,
+						refreshTokenExpiresAt:	true
+					}
 				}
-			});
+			);
+			
 			return ( user );
 		}
 		catch ( err )
@@ -448,17 +461,18 @@ export class UserService
 		try
 		{
 			const	currentUser = await this.prisma.user.findUnique(
-			{
-				where:
 				{
-					id,
-					isDelete:	false
-				},
-				select:
-				{
-					avatarUrl:	true
+					where:
+					{
+						id,
+						isDelete:	false
+					},
+					select:
+					{
+						avatarUrl:	true
+					}
 				}
-			});
+			);
 
 			if ( data.avatarUrl && currentUser && currentUser.avatarUrl != '/uploads/avatars/default.png' ) // si le user exite, si il a upload un nouveau avatar et si l'avatar est different de l'avatar default -> il faut supprimer le fichier
 			{
@@ -467,27 +481,29 @@ export class UserService
 			}
 
 			const	updateUser: UserPublic = await this.prisma.user.update(
-			{
+				{
 
-				where:
-				{
-					id,
-					isDelete:	false
-				},
-				data:
-				{
-					username:	data.username,
-					avatarUrl:	data.avatarUrl
-				},
-				select:
-				{
-					id:			true,
-					username:	true,
-					avatarUrl:	true,
-					createdAt:	true,
-					updatedAt:	true
+					where:
+					{
+						id,
+						isDelete:	false
+					},
+					data:
+					{
+						username:	data.username,
+						avatarUrl:	data.avatarUrl
+					},
+					select:
+					{
+						id:			true,
+						username:	true,
+						avatarUrl:	true,
+						createdAt:	true,
+						updatedAt:	true
+					}
 				}
-			});
+			);
+
 			return ( updateUser );
 		}
 		catch ( err )
@@ -511,37 +527,38 @@ export class UserService
 	async setPasswordToken( id: string, passwordToken: string, passwordTokenExpiresAt: Date ): Promise< UserPrivate >
 	{
 		const user: UserPrivate = await this.prisma.user.update(
-		{
-			where:
 			{
-				id,
-				isDelete:					false
-			},
-			data:
-			{
-				passwordToken,
-				passwordTokenExpiresAt
-			},
-			select:
-			{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
+				where:
+				{
+					id,
+					isDelete:					false
+				},
+				data:
+				{
+					passwordToken,
+					passwordTokenExpiresAt
+				},
+				select:
+				{
+						id:						true,
+						username:				true,
+						email:					true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true,
 
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
+						passwordHash:			true,
+						googleId:				true,
+						gitId:					true,
 
-					passwordToken:			true,
-					passwordTokenExpiresAt:	true,
+						passwordToken:			true,
+						passwordTokenExpiresAt:	true,
 
-					refreshToken:			true,
-					refreshTokenExpiresAt:	true
+						refreshToken:			true,
+						refreshTokenExpiresAt:	true
+				}
 			}
-		});
+		);
 
 		return ( user );
 	}
@@ -551,36 +568,37 @@ export class UserService
 	async setGoogleId( id: string, googleId: string ): Promise< UserPrivate >
 	{
 		const	user: UserPrivate = await this.prisma.user.update(
-		{
-			where:
 			{
-				id,
-				isDelete:					false
-			},
-			data:
-			{
-				googleId
-			},
-			select:
-			{
-					id:						true,
-					username:				true,
-					email:					true,
-					avatarUrl:				true,
-					createdAt:				true,
-					updatedAt:				true,
+				where:
+				{
+					id,
+					isDelete:					false
+				},
+				data:
+				{
+					googleId
+				},
+				select:
+				{
+						id:						true,
+						username:				true,
+						email:					true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true,
 
-					passwordHash:			true,
-					googleId:				true,
-					gitId:					true,
+						passwordHash:			true,
+						googleId:				true,
+						gitId:					true,
 
-					passwordToken:			true,
-					passwordTokenExpiresAt:	true,
+						passwordToken:			true,
+						passwordTokenExpiresAt:	true,
 
-					refreshToken:			true,
-					refreshTokenExpiresAt:	true
+						refreshToken:			true,
+						refreshTokenExpiresAt:	true
+				}
 			}
-		});
+		);
 
 		return ( user );
 	}
@@ -590,18 +608,59 @@ export class UserService
 	async setGitId( id: string, gitId: string ): Promise< UserPrivate >
 	{
 		const	user: UserPrivate = await this.prisma.user.update(
-		{
-			where:
 			{
-				id,
-				isDelete:					false
-			},
-			data:
+				where:
+				{
+					id,
+					isDelete:					false
+				},
+				data:
+				{
+					gitId
+				},
+				select:
+				{
+						id:						true,
+						username:				true,
+						email:					true,
+						avatarUrl:				true,
+						createdAt:				true,
+						updatedAt:				true,
+
+						passwordHash:			true,
+						googleId:				true,
+						gitId:					true,
+
+						passwordToken:			true,
+						passwordTokenExpiresAt:	true,
+
+						refreshToken:			true,
+						refreshTokenExpiresAt:	true
+				}
+			}
+		);
+
+		return ( user );
+	}
+
+	///
+
+	async setRefreshToken( id: string, refreshToken: string, refreshTokenExpiresAt: Date ): Promise< UserPrivate >
+	{
+		const	user: UserPrivate = await this.prisma.user.update(
 			{
-				gitId
-			},
-			select:
-			{
+				where:
+				{
+					id,
+					isDelete:				false
+				},
+				data:
+				{
+					refreshToken,
+					refreshTokenExpiresAt
+				},
+				select:
+				{
 					id:						true,
 					username:				true,
 					email:					true,
@@ -618,48 +677,9 @@ export class UserService
 
 					refreshToken:			true,
 					refreshTokenExpiresAt:	true
+				}
 			}
-		});
-
-		return ( user );
-	}
-
-	///
-
-	async setRefreshToken( id: string, refreshToken: string, refreshTokenExpiresAt: Date ): Promise< UserPrivate >
-	{
-		const	user: UserPrivate = await this.prisma.user.update(
-		{
-			where:
-			{
-				id,
-				isDelete:				false
-			},
-			data:
-			{
-				refreshToken,
-				refreshTokenExpiresAt
-			},
-			select:
-			{
-				id:						true,
-				username:				true,
-				email:					true,
-				avatarUrl:				true,
-				createdAt:				true,
-				updatedAt:				true,
-
-				passwordHash:			true,
-				googleId:				true,
-				gitId:					true,
-
-				passwordToken:			true,
-				passwordTokenExpiresAt:	true,
-
-				refreshToken:			true,
-				refreshTokenExpiresAt:	true
-			}
-		});
+		);
 
 		return ( user );
 	}
@@ -671,43 +691,47 @@ export class UserService
 		try
 		{
 			const	arrayRemove = await this.prisma.$transaction(
-			[
-				this.prisma.user.update(
-				{
-					where:
-					{
-						id, // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
-						isDelete:	false
-					},
-					data:
-					{
-						isDelete:				true,
-						username:				`removed_player_${ id.slice( -8 ) }`,
-						email:					`removed_player_${ id.slice( -8 ) }`,
-						refreshToken:			null,
-						refreshTokenExpiresAt:	null
-					},
-					select: // ne retourne que les champs listés à true par mesure de sécurité
-					{
-						id:						true,
-						username:				true,
-						avatarUrl:				true,
-						createdAt:				true,
-						updatedAt:				true
-					},
-				}),
-				this.prisma.friendship.deleteMany(
-				{
-					where:
-					{
-						OR:
-						[
-							{ senderId:		id },
-							{ receiverId:	id }
-						]
-					}
-				})
-			]);
+				[
+					this.prisma.user.update(
+						{
+							where:
+							{
+								id, // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+								isDelete:	false
+							},
+							data:
+							{
+								isDelete:				true,
+								username:				`removed_player_${ id.slice( -8 ) }`,
+								email:					`removed_player_${ id.slice( -8 ) }`,
+								refreshToken:			null,
+								refreshTokenExpiresAt:	null
+							},
+							select: // ne retourne que les champs listés à true par mesure de sécurité
+							{
+								id:						true,
+								username:				true,
+								avatarUrl:				true,
+								createdAt:				true,
+								updatedAt:				true
+							},
+						}
+					),
+
+					this.prisma.friendship.deleteMany(
+						{
+							where:
+							{
+								OR:
+								[
+									{ senderId:		id },
+									{ receiverId:	id }
+								]
+							}
+						}
+					)
+				]
+			);
 
 			return ({ message: `User ${id} has indeed been deleted` , removeUser: arrayRemove[0] }); // message de confirmation + infos filtrées du user supprimé
 		}
@@ -730,28 +754,28 @@ export class UserService
 	async clearRefreshToken( id:string ): Promise< UserPublic >
 	{
 		const	user = await this.prisma.user.update(
-		{
-			where:
 			{
-				id,
-				isDelete:				false
-			},
-			data:
-			{
-				refreshToken:			null,
-				refreshTokenExpiresAt:	null
-			},
-			select:
-			{
-				id:						true,
-				username:				true,
-				avatarUrl:				true,
-				createdAt:				true,
-				updatedAt:				true
+				where:
+				{
+					id,
+					isDelete:				false
+				},
+				data:
+				{
+					refreshToken:			null,
+					refreshTokenExpiresAt:	null
+				},
+				select:
+				{
+					id:						true,
+					username:				true,
+					avatarUrl:				true,
+					createdAt:				true,
+					updatedAt:				true
+				}
 			}
-		});
+		);
 
 		return ( user );
 	}
-}
-
+};
