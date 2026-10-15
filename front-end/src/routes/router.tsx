@@ -19,6 +19,7 @@ const UserProfile = lazy(() => import('../pages/userProfile'));
 const LocalGame = lazy(() => import('../pages/localGame'));
 const BotGame = lazy(() => import('../pages/botGame'));
 const StreamBotGame = lazy(() => import('../pages/streambotGame'));
+const OnlineGame = lazy(() => import('../pages/onlineGame'));
 
 function AppRouter(): React.ReactElement {
     return (
@@ -89,6 +90,14 @@ function AppRouter(): React.ReactElement {
                     element={
                     <AuthRoute>
                         <StreamBotGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/onlineGame"
+                    element={
+                    <AuthRoute>
+                        <OnlineGame />
                     </AuthRoute>
                     }
                 />

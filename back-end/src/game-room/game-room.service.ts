@@ -10,15 +10,6 @@ import type { PlayerRoom } from './interfaces/player-room.interface';
 
 /* -------------------------------------------------------------------------- */
 
-/*export interface PlayerRoom {
-    
-    userId:      string;
-    socketId:    string;
-    color?:      string;
-    
-    invit?:      string
-}
-*/
 export interface GameRoom   {
     
     roomId:     string ;

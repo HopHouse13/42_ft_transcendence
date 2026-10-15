@@ -25,7 +25,7 @@ import type { MoveResult } from './interfaces/move-result.interface';
 import type { GameResult } from './interfaces/game-result.interface';
 
 import { ComputePlayerService } from '../compute-player/compute-player.service';
-import { GameRoomService } from '../game-room/game-room.service';
+import { GameRoomService, GameRoom } from '../game-room/game-room.service';
 
 /* -------------------------------------------------------------------------- */
 
@@ -331,9 +331,101 @@ export class    OthelloService  {
     /*                                                                            */
     /* -------------------------------------------------------------------------- */
 
-    /*OnlineCreateGame(hostUserId: string): string {
+    /*async OnlineCreateGame(hostUserId: string): string {
 
+        gameRoom = appel de la fonction newgameEntry 
+        si GameRoom est ready on crees une partie
+        {
+            const setGameId = randomUUID(); const setEngine = new OthelloEngine();
+            
+            const playerArr: PlayerInfo[] = [ gameRoom.player1, gameRoom.player2];
+            
+            const service: GameService = { gameId: setGameId, engine: setEngine, state  : {
 
+                    gameId: setGameId,
+                    mode: 'ONLINE', 
+                    status: 'IN_PROGRESS',
+                    board: setEngine.getBoard().getAllCell(),
+                    players: playerArr,
+                    currentPlayer: 'BLACK',
+                    validMoves: setEngine.allValidMove('BLACK'),
+                    createdAt:  new Date 
+                }} 
+            
+            this.games.set(service.gameId, service);
+
+            await this.prisma.game.create({ data: { id: gameId, status: 'IN_PROGRESS', blackPlayerId: playerArr[0].userId, whitePlayerId: playerArr[2].userId } });
+            return( service.gameId );
+        }
+        Si Non 
+        {
+            on fait patienter le joueur 
+        }
+    }*/
+    async OnlineCreateGame(hostPlayer: { userId: string; socketId: string; color?: 'BLACK' | 'WHITE' }): Promise<{ gameId: string; roomStatus: 'waiting' | 'ready'; roomId?: string }> {
+
+        // 1. Appel du service de matchmaking pour enregistrer ou matcher le joueur
+        const room: GameRoom = this.gameRoom.newPlayerEntry(hostPlayer);
+
+        // 2. Si la room est en attente (waiting), le joueur doit patienter
+        if (room.status === 'waiting') {
+            return {
+                gameId: '',
+                roomStatus: 'waiting',
+                roomId: room.roomId
+            };
+        }
+
+        // 3. Si la room est 'ready' (2 joueurs présents), on crée la partie en ligne !
+        const setGameId = randomUUID(); 
+        const setEngine = new OthelloEngine();
+
+        // Détermination propre des couleurs des deux joueurs
+        const p1Color: Player = (room.player1.color as Player) || 'BLACK';
+        const p2Color: Player = (room.player2?.color as Player) || (p1Color === 'BLACK' ? 'WHITE' : 'BLACK');
+
+        const playerArr: PlayerInfo[] = [
+            { userId: room.player1.userId, color: p1Color, connected: true },
+            { userId: room.player2!.userId, color: p2Color, connected: true }
+        ];
+        
+        const service: GameService = { 
+            gameId: setGameId, 
+            engine: setEngine, 
+            state: {
+                gameId: setGameId,
+                mode: 'ONLINE', 
+                status: 'IN_PROGRESS',
+                board: setEngine.getBoard().getAllCell(),
+                players: playerArr,
+                currentPlayer: 'BLACK', // Les Noirs commencent toujours à Othello
+                validMoves: setEngine.allValidMove('BLACK'),
+                createdAt: new Date()
+            }
+        }; 
+        
+        // Enregistrement en mémoire
+        this.games.set(service.gameId, service);
+
+        // Enregistrement persistant dans la base de données via Prisma
+        // (Attention à l'ordre des joueurs pour correspondre à ton schéma Prisma)
+        const blackPlayer = playerArr.find(p => p.color === 'BLACK');
+        const whitePlayer = playerArr.find(p => p.color === 'WHITE');
+
+        await this.prisma.game.create({ 
+            data: { 
+                id: setGameId, 
+                status: 'IN_PROGRESS', 
+                blackPlayerId: blackPlayer ? blackPlayer.userId : playerArr[0].userId, 
+                whitePlayerId: whitePlayer ? whitePlayer.userId : playerArr[1].userId 
+            } 
+        });
+
+        return {
+            gameId: setGameId,
+            roomStatus: 'ready',
+            roomId: room.roomId
+        };
     }
 
     /* -------------------------------------------------------------------------- */
