@@ -7,8 +7,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 
 import type { PlayerRoom } from './interfaces/player-room.interface';
-import { OthelloService } from '../othello/othello.service';
-import type { GameState } from '../othello/interfaces/game-state.interface';
 
 /* -------------------------------------------------------------------------- */
 
@@ -49,7 +47,7 @@ export class GameRoomService    {
     private readonly rooms = new Map<string, GameRoom>();
 
 
-    constructor(private readonly othelloService: OthelloService) {}
+    //constructor() {}
 
 /* -------------------------------------------------------------------------- */
 
@@ -60,19 +58,19 @@ export class GameRoomService    {
     /*  4. La room est prête → on lance la partie et on supprime la room          */
     /* -------------------------------------------------------------------------- */
 
-/*    newPlayerEntry(player: PlayerRoom): string | Promise<GameState> {
+    newPlayerEntry(player: PlayerRoom): GameRoom {
 
-        const waitingRoom = this._findWaitingRoom(player);
+        const waitingRoom: GameRoom | undefined = this._findWaitingRoom(player);
         if (!waitingRoom)   {
             
-            return( this._createRoom(player.userId, player) );
+            const roomId: string = this._createRoom(player.userId, player)
+            return( this._readRoom(roomId) );
         }
 
-        const readyRoom = this._updateRoom(waitingRoom.roomId, player);
-        const game = this.othelloService.createGame( readyRoom.player1.userId, readyRoom.player2!.userId );
+        const readyRoom: GameRoom = this._updateRoom(waitingRoom.roomId, player);
 
         this._deleteRoom(readyRoom.roomId);
-        return( game );
+        return( readyRoom );
     }
 
     /* -------------------------------------------------------------------------- */
@@ -102,7 +100,7 @@ export class GameRoomService    {
     /*  Pas de préférence de couleur → n'importe quelle room en attente convient  */
     /* -------------------------------------------------------------------------- */
 
-/*    private _findWaitingRoom(player: PlayerRoom): GameRoom | undefined {
+    private _findWaitingRoom(player: PlayerRoom): GameRoom | undefined {
 
         for ( const room of this.rooms.values() )  {
 

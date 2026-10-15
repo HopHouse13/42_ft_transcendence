@@ -25,6 +25,7 @@ import type { MoveResult } from './interfaces/move-result.interface';
 import type { GameResult } from './interfaces/game-result.interface';
 
 import { ComputePlayerService } from '../compute-player/compute-player.service';
+import { GameRoomService } from '../game-room/game-room.service';
 
 /* -------------------------------------------------------------------------- */
 
@@ -42,7 +43,12 @@ export class    OthelloService  {
 
     private readonly games = new Map<string, GameService>();
 
-    constructor( private readonly computePlayerService: ComputePlayerService, private readonly prisma: PrismaService) {}
+    constructor( 
+    
+        private readonly computePlayerService: ComputePlayerService, 
+        private readonly prisma: PrismaService,
+        private readonly gameRoom: GameRoomService 
+    ){}
 
     /* -------------------------------------------------------------------------- */
     /*                          ~~ Methode Local: ~~                              */
@@ -319,6 +325,15 @@ export class    OthelloService  {
         }
 
         return this.getGameState(gameId);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*                                                                            */
+    /* -------------------------------------------------------------------------- */
+
+    /*OnlineCreateGame(hostUserId: string): string {
+
+
     }
 
     /* -------------------------------------------------------------------------- */
