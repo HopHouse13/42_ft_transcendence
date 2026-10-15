@@ -44,8 +44,14 @@ else
 fi
 
 # Generate a list of all commit messages in this push (extracting just the first line of each)
-COMMIT_LIST=$(echo "$COMMITS_JSON" | jq -r 'map("> \(.message | gsub("\n"; "\n> "))") | join("\n\n")')
-                                                               # gsub (global substitution) to find every hidden newline (\n) in the commit body and automatically insert a \n>  in front of it.
+if [ "$IS_MERGE" = "true" ]; then
+  # If it is a merge, ignore GitHub's history dump and ONLY format the top merge commit
+  COMMIT_LIST=$(git log -1 --format=%B | sed 's/^/> /')
+else
+  # If it is a normal push, format all batched commits from the JSON array
+  COMMIT_LIST=$(echo "$COMMITS_JSON" | jq -r 'map("> \(.message | gsub("\n"; "\n> "))") | join("\n\n")')
+                                                                # gsub (global substitution) to find every hidden newline (\n) in the commit body and automatically insert a \n>  in front of it.
+fi
 
 # 3. Build the JSON Payload
 PAYLOAD=$(jq -n \
