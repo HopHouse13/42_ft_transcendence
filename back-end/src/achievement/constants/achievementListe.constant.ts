@@ -1,0 +1,22 @@
+export const achievementList: string[] = [
+	'win_first',
+	'win_both_sides',
+	'brd_corner',
+	'brd_4corners',
+	'brd_edges',
+	'mov_flip10',
+	'mov_pass1',
+	'mov_pass3',
+	'win_close',
+	'win_blowout',
+	'win_wipeout',
+	'win_comeback',
+	'win_3corners_down',
+	'stk_win5',
+	'cum_win50',
+	'soc_rival10',
+	'elo_1200',
+	'elo_1500',
+	'elo_1800',
+	'elo_giant_slayer'
+] as const;
