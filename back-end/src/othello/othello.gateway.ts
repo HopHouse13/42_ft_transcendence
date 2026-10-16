@@ -77,10 +77,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     /* -------------------------------------------------------------------------- */
 
     @SubscribeMessage('createBotGame')
-    async handleCreateBotGame( 
-        @MessageBody() payload: { color?: 'BLACK' | 'WHITE' }, 
-        @ConnectedSocket() client: Socket 
-    ) {
+    async handleCreateBotGame( @MessageBody() payload: { color?: 'BLACK' | 'WHITE' }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId as string;
             const chosenColor = payload?.color || 'BLACK'; 
@@ -150,10 +147,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     /* -------------------------------------------------------------------------- */
 
     @SubscribeMessage('joinOnlineQueue')
-    async handleJoinOnlineQueue(
-        @MessageBody() payload: { color?: 'BLACK' | 'WHITE' },
-        @ConnectedSocket() client: Socket,
-    ) {
+    async handleJoinOnlineQueue( @MessageBody() payload: { color?: 'BLACK' | 'WHITE' }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
             if (!userId) {
@@ -200,10 +194,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     @SubscribeMessage('onlinePlayMove')
     @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-    async handleOnlinePlayMove(
-        @MessageBody() payload: { gameId: string; move: { row: number; col: number } },
-        @ConnectedSocket() client: Socket,
-    ) {
+    async handleOnlinePlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
             const updatedState = await this.othelloService.onlinePlayMove(payload.gameId, payload.move, userId);
@@ -214,10 +205,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
 
     @SubscribeMessage('onlineGiveUp')
-    async handleOnlineGiveUp(
-        @MessageBody() payload: { gameId: string },
-        @ConnectedSocket() client: Socket,
-    ) {
+    async handleOnlineGiveUp( @MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
             const updatedState = await this.othelloService.onlineGiveUp(payload.gameId, userId);
@@ -226,6 +214,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
             client.emit('gameError', { message: error.message });
         }
     }
+    
     /* -------------------------------------------------------------------------- */
     /*  Mode Bot Stream (Bot vs Bot)                                              */
     /* -------------------------------------------------------------------------- */

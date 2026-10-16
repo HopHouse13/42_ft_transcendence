@@ -134,6 +134,10 @@ export class    OthelloService  {
     /* -------------------------------------------------------------------------- */
     /*                     ~~ Methode Compute Player: ~~                          */
     /*                                                                            */
+    /*  - ComputeCreateGame: fonc for set a var GameService                       */
+    /*  - ComputePlayMove: fonc for Update state interface                        */
+    /*  - computePlayTurn: fonc for use a computePlayer obj                       */
+    /*  - ComputelineGiveUp: fonc for clean ending                                */
     /* -------------------------------------------------------------------------- */
 
     computeCreateGame(hostUserId: string, userColor: 'BLACK' | 'WHITE' = 'BLACK'): string {
@@ -170,6 +174,7 @@ export class    OthelloService  {
     }
 
     // 1. Exécute uniquement le coup de l'humain
+    // async computePlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
     async humanPlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
         const service: GameService = this.getLocalGame(gameId);
 
@@ -196,6 +201,7 @@ export class    OthelloService  {
     }
 
     // 2. Exécute le tour du bot ensuite
+    // async computePlayTurn(gameId: string): Promise<GameState> {
     async botPlayTurn(gameId: string): Promise<GameState> {
         const service: GameService = this.getLocalGame(gameId);
 
@@ -249,6 +255,7 @@ export class    OthelloService  {
         return this.getGameState(gameId);
     }
 
+    // botGiveUp(gameId: string): GameState {
     botGiveUp(gameId: string): GameState {
         const service: GameService = this.getLocalGame(gameId);
 
@@ -261,75 +268,11 @@ export class    OthelloService  {
     }
 
     /* -------------------------------------------------------------------------- */
-
-    // Crée une partie Bot vs Bot pour le mode Stream
-    createBotVsBotGame(): string {
-
-        const setGameId = randomUUID(); 
-        const setEngine = new OthelloEngine();
-        
-        const playerArr: PlayerInfo[] = [
-            { userId: 'bot-black-id', color: 'BLACK', connected: true },
-            { userId: 'bot-white-id', color: 'WHITE', connected: true }
-        ];
-        
-        const service: GameService = { 
-            gameId: setGameId, 
-            engine: setEngine, 
-            state: {
-                gameId: setGameId,
-                mode: 'BOT', 
-                status: 'IN_PROGRESS',
-                board: setEngine.getBoard().getAllCell(),
-                players: playerArr,
-                currentPlayer: 'BLACK',
-                validMoves: setEngine.allValidMove('BLACK'),
-                createdAt: new Date 
-            }
-        }; 
-        
-        this.games.set(service.gameId, service);
-        return service.gameId;
-    }
-
-    async botVsBotPlayTurn(gameId: string): Promise<GameState> {
-        const service: GameService = this.getLocalGame(gameId);
-
-        if (service.state.status === GameStatus.FINISHED) {
-            return this.getGameState(gameId);
-        }
-
-        const currentColor = service.engine.getCurrentPlayer();
-        const legalMoves = service.engine.allValidMove(currentColor);
-
-        if (legalMoves.length > 0) {
-            // Demande au service de calcul de trouver le meilleur coup pour la couleur actuelle
-            const botMove = await this.computePlayerService.requestMove(
-                service.engine.getBoard().getAllCell(),
-                currentColor, 
-                legalMoves
-            );
-
-            if (botMove) {
-                service.engine.playMove(botMove, currentColor);
-                service.engine.getBoard().getAllCell();
-            }
-        }
-
-        // Mettre à jour l'état après le coup du bot
-        const nextTurnPlayer = service.engine.getCurrentPlayer();
-        service.state.currentPlayer = nextTurnPlayer;
-        service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
-
-        if (service.engine.isGameOver()) {
-            service.state.status = GameStatus.FINISHED;
-        }
-
-        return this.getGameState(gameId);
-    }
-
-    /* -------------------------------------------------------------------------- */
+    /*                         ~~ Methode Online Player: ~~                       */
     /*                                                                            */
+    /*  - OnlineCreateGame: fonc for set a var GameService                        */
+    /*  - OnlinePlayMove: fonc for Update state interface                         */
+    /*  - OnlineGiveUp: fonc for clean ending                                     */
     /* -------------------------------------------------------------------------- */
 
     async OnlineCreateGame(hostPlayer: { userId: string; socketId: string; color?: 'BLACK' | 'WHITE' }): Promise<{ gameId: string; roomStatus: 'waiting' | 'ready'; roomId?: string }> {
@@ -398,8 +341,7 @@ export class    OthelloService  {
         };
     }
 
-    // 1. Jouer un coup en ligne
-    async onlinePlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
+ async onlinePlayMove(gameId: string, move: Move, userId: string): Promise<GameState> {
         const service: GameService = this.getLocalGame(gameId);
 
         if (service.state.status === GameStatus.FINISHED) {
@@ -413,28 +355,83 @@ export class    OthelloService  {
             throw new Error(`Ce n'est pas votre tour de jouer.`);
         }
 
+        // 💡 Calcul robuste du numéro de coup basé sur la base de données
+        const existingMovesCount = await this.prisma.move.count({
+            where: { gameId: gameId }
+        });
+        const currentMoveNumber = existingMovesCount + 1;
+
         // Jouer le coup
         service.engine.playMove(move, player.color);
-        service.state.board = service.engine.getBoard().getAllCell();
+        const newBoardCells = service.engine.getBoard().getAllCell();
+        service.state.board = newBoardCells;
 
         const nextTurnPlayer = service.engine.getCurrentPlayer();
         service.state.currentPlayer = nextTurnPlayer;
         service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
 
-        if (service.engine.isGameOver()) {
+        const isOver = service.engine.isGameOver();
+        if (isOver) {
             service.state.status = GameStatus.FINISHED;
-            
-            // Optionnel : Mettre à jour le statut dans la base de données Prisma
-            await this.prisma.game.update({
-                where: { id: gameId },
-                data: { status: 'FINISHED' }
-            }).catch(() => {}); // Sécurité si la partie n'est pas en DB
+        }
+
+        const boardAfterString = newBoardCells
+            .map(cell => (cell === 'BLACK' ? 'B' : cell === 'WHITE' ? 'W' : '-'))
+            .join('')
+            .padEnd(64, '-');
+
+        const positionIndex = move.row * 8 + move.col;
+        const blackScore = newBoardCells.filter(c => c === 'BLACK').length;
+        const whiteScore = newBoardCells.filter(c => c === 'WHITE').length;
+
+        try {
+            await this.prisma.$transaction(async (tx) => {
+                await tx.move.create({
+                    data: {
+                        gameId: gameId,
+                        moveNumber: currentMoveNumber, // 👈 S'incrémente proprement : 1, 2, 3...
+                        Color: player.color as any,
+                        position: positionIndex,
+                        boardAfter: boardAfterString,
+                    }
+                });
+
+                if (isOver) {
+                    let winnerId: string | null = null;
+                    if (blackScore > whiteScore) {
+                        winnerId = service.state.players.find(p => p.color === 'BLACK')?.userId || null;
+                    } else if (whiteScore > blackScore) {
+                        winnerId = service.state.players.find(p => p.color === 'WHITE')?.userId || null;
+                    }
+
+                    await tx.game.update({
+                        where: { id: gameId },
+                        data: {
+                            status: 'FINISHED',
+                            blackScore: blackScore,
+                            whiteScore: whiteScore,
+                            winnerId: winnerId,
+                            currentPlayer: nextTurnPlayer as any,
+                        }
+                    });
+                } else {
+                    await tx.game.update({
+                        where: { id: gameId },
+                        data: {
+                            currentPlayer: nextTurnPlayer as any,
+                        }
+                    });
+                }
+            });
+            console.log(`✅ Coup n°${currentMoveNumber} enregistré avec succès pour la partie ${gameId}`);
+        } catch (dbError) {
+            console.error("❌ Erreur lors de l'enregistrement du coup en base de données :", dbError);
         }
 
         return this.getGameState(gameId);
     }
 
-    // 2. Abandonner une partie en ligne
+    // 2. Abandonner une partie en ligne (Défaite immédiate pour celui qui abandonne)
     async onlineGiveUp(gameId: string, userId: string): Promise<GameState> {
         const service: GameService = this.getLocalGame(gameId);
 
@@ -448,13 +445,103 @@ export class    OthelloService  {
             throw new Error("Vous ne faites pas partie de cette partie.");
         }
 
+        // Marquer la partie comme terminée en mémoire
         service.state.status = GameStatus.FINISHED;
 
-        // Mise à jour en base de données
-        await this.prisma.game.update({
-            where: { id: gameId },
-            data: { status: 'FINISHED' }
-        }).catch(() => {});
+        // Calculer les scores actuels sur le plateau pour les sauvegarder
+        const boardCells = service.engine.getBoard().getAllCell();
+        const blackScore = boardCells.filter(c => c === 'BLACK').length;
+        const whiteScore = boardCells.filter(c => c === 'WHITE').length;
+
+        // Trouver le joueur adverse qui remporte la victoire par forfait
+        const opponentPlayer = service.state.players.find(p => p.userId !== userId);
+        const winnerId = opponentPlayer ? opponentPlayer.userId : null;
+
+        // Mettre à jour la base de données via Prisma
+        try {
+            await this.prisma.game.update({
+                where: { id: gameId },
+                data: {
+                    status: 'FINISHED', // ou 'ABANDONED' si ton enum Prisma le supporte
+                    blackScore: blackScore,
+                    whiteScore: whiteScore,
+                    winnerId: winnerId, // L'adversaire gagne quoi qu'il arrive
+                }
+            });
+            console.log(`🏳️ Partie ${gameId} abandonnée par le joueur ${userId}. Gagnant par forfait : ${winnerId}`);
+        } catch (dbError) {
+            console.error("❌ Erreur lors de l'enregistrement de l'abandon en base de données :", dbError);
+        }
+
+        return this.getGameState(gameId);
+    }
+
+
+    /* -------------------------------------------------------------------------- */
+    /*  Mode Online (Matchmaking & PvP réseau)                                    */
+    /* -------------------------------------------------------------------------- */
+
+    createBotVsBotGame(): string {
+
+        const setGameId = randomUUID(); 
+        const setEngine = new OthelloEngine();
+        
+        const playerArr: PlayerInfo[] = [
+            { userId: 'bot-black-id', color: 'BLACK', connected: true },
+            { userId: 'bot-white-id', color: 'WHITE', connected: true }
+        ];
+        
+        const service: GameService = { 
+            gameId: setGameId, 
+            engine: setEngine, 
+            state: {
+                gameId: setGameId,
+                mode: 'BOT', 
+                status: 'IN_PROGRESS',
+                board: setEngine.getBoard().getAllCell(),
+                players: playerArr,
+                currentPlayer: 'BLACK',
+                validMoves: setEngine.allValidMove('BLACK'),
+                createdAt: new Date 
+            }
+        }; 
+        
+        this.games.set(service.gameId, service);
+        return service.gameId;
+    }
+
+    async botVsBotPlayTurn(gameId: string): Promise<GameState> {
+        const service: GameService = this.getLocalGame(gameId);
+
+        if (service.state.status === GameStatus.FINISHED) {
+            return this.getGameState(gameId);
+        }
+
+        const currentColor = service.engine.getCurrentPlayer();
+        const legalMoves = service.engine.allValidMove(currentColor);
+
+        if (legalMoves.length > 0) {
+            // Demande au service de calcul de trouver le meilleur coup pour la couleur actuelle
+            const botMove = await this.computePlayerService.requestMove(
+                service.engine.getBoard().getAllCell(),
+                currentColor, 
+                legalMoves
+            );
+
+            if (botMove) {
+                service.engine.playMove(botMove, currentColor);
+                service.engine.getBoard().getAllCell();
+            }
+        }
+
+        // Mettre à jour l'état après le coup du bot
+        const nextTurnPlayer = service.engine.getCurrentPlayer();
+        service.state.currentPlayer = nextTurnPlayer;
+        service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
+
+        if (service.engine.isGameOver()) {
+            service.state.status = GameStatus.FINISHED;
+        }
 
         return this.getGameState(gameId);
     }
