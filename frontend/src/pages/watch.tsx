@@ -1,6 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import Game from "./game";
+import type { BoardState } from "../types/gameTypes";
+import Board from "../components/Board";
+
 
 const timeNow : string = "2026-10-16T19:20:00Z"
 
@@ -18,6 +21,7 @@ export interface GameState {
   duration: string;
   status: string;
   endedAt?: string;
+  board: BoardState;
 }
 
 export interface PlayerData {
@@ -27,27 +31,86 @@ export interface PlayerData {
   score: number;
 }
 
+// Helper function that converts a text grid into your BoardState array
+const createBoard = (layout: string): BoardState => {
+  // Remove all spaces and newlines, then map characters to Cell types
+  return layout.replace(/\s+/g, '').split('').map(char => {
+    if (char === 'B') return 'BLACK';
+    if (char === 'W') return 'WHITE';
+    return null;
+  });
+};
+
+// GAME 2: Early Game (Score: 2 - 2)
+const STARTING_BOARD = createBoard(`
+  . . . . . . . .
+  . . . . . . . .
+  . . . B . . . .
+  . . . B B . . .
+  . . . B W . . .
+  . . . . . . . .
+  . . . . . . . .
+  . . . . . . . .
+`);
+
+// GAME 1: Mid-Late Game (Score: Black 20, White 30)
+const MID_GAME_BOARD = createBoard(`
+  . W W W W W W .
+  B B W W W W B .
+  B B B W W B B W
+  B B B B W B B W
+  . W W W W B B B
+  . . W W W W W .
+  . . . W W B B .
+  . . . . . . . .
+`);
+
+// GAME 3: Finished Game (Score: Black 40, White 24)
+const FINISHED_BOARD_40_24 = createBoard(`
+  B B B B B B B B
+  B B B B B B B B
+  B B B W W W W B
+  B B W W W W W B
+  B W W W W W W B
+  B W W W W W W B
+  B B W W W B B B
+  B B B B B B B B
+`);
+
+// GAME 4: Finished Game (Score: Black 34, White 30)
+const FINISHED_BOARD_34_30 = createBoard(`
+  W W W W W W W W
+  W W W W W W W W
+  W W W B B B B B
+  W W B B B B B B
+  W B B B B B B B
+  W B B B B B B B
+  W W B B B B W W
+  W W W B B B B B
+`);
+
 const MOCK_LIVE_GAMES = [
   {
     id: "game-001",
-    player1: { username: "Alice_Pro", avatarUrl: "/api/avatars/alice.png", color: "Black", score: 34 },
+    player1: { username: "Alice_Pro", avatarUrl: "/api/avatars/alice.png", color: "Black", score: 34, },
     player2: { username: "BobTheBuilder", avatarUrl: "/api/avatars/bob.png", color: "White", score: 30 },
     turn: "Black",
     spectators: 12,
     duration: "10:45",
     status: "ongoing",
     endedAt: "n/a",
+    board: MID_GAME_BOARD,
   },
   {
     id: "game-002",
-    player1: { username: "Charlie", avatarUrl: "/api/avatars/charlie.png", color: "Black", score: 2 },
-    player2: { username: "Dave", avatarUrl: "/api/avatars/dave.png", color: "White", score: 2 },
+    player1: { username: "Charlie", avatarUrl: "/api/avatars/charlie.png", color: "Black", score: 4 },
+    player2: { username: "Dave", avatarUrl: "/api/avatars/dave.png", color: "White", score: 1 },
     turn: "White",
     spectators: 3,
     duration: "01:20",
     status: "ongoing",
     endedAt: "n/a",
-
+    board: STARTING_BOARD,
   },
   {
     id: "game-003",
@@ -58,6 +121,7 @@ const MOCK_LIVE_GAMES = [
     duration: "15:30",
     status: "finished",
     endedAt: "2026-10-16T19:15:00Z",
+    board: FINISHED_BOARD_40_24,
   },
     {
     id: "game-004",
@@ -68,6 +132,7 @@ const MOCK_LIVE_GAMES = [
     duration: "18:30",
     status: "finished",
     endedAt: "2026-10-16T19:00:00Z",
+    board: FINISHED_BOARD_34_30,
   },
 ];
 
@@ -145,6 +210,28 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   );
 }
 
+// const BoardPreview = (): React.ReactElement => {
+//   return (
+//     // The main board wrapper (green background, square aspect ratio)
+//     <div className="aspect-square w-full max-w-xs mx-auto bg-green-800 rounded-lg p-1.5 grid grid-cols-8 gap-0.5 mb-6 shadow-inner border-2 border-base-300">
+
+//       {/* Generate 64 squares dynamically */}
+//       {Array.from({ length: 64 }).map((_, index) => {
+//         // Hardcode the 4 center starting pieces for the visual mockup
+//         const isWhite = index === 27 || index === 36;
+//         const isBlack = index === 28 || index === 35;
+
+//         return (
+//           <div key={index} className="w-full h-full bg-green-600 flex items-center justify-center rounded-sm">
+//             {isWhite && <div className="w-4/5 h-4/5 bg-white rounded-full shadow-sm"></div>}
+//             {isBlack && <div className="w-4/5 h-4/5 bg-neutral rounded-full shadow-sm border border-neutral-focus"></div>}
+//           </div>
+//         );
+//       })}
+//     </div>
+//   );
+// };
+
 // Player component
 const Player = ({ player, turn }: PlayerProps): React.ReactElement => (
   <div className="flex flex-col items-center gap-2 w-1/3">
@@ -195,6 +282,39 @@ const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactEle
   );
 }
 
+const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
+  return (
+    <div
+      onClick={() => onJoin(game.id)}
+      className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300"
+    >
+      <div className="card-body p-6">
+        {/* Card Header: Live indicator & Stats */}
+        <Status spectators={game.spectators} duration={game.duration} status={game.status} />
+
+        <div className="w-full max-w-xs mx-auto mb-6 pointer-events-none">
+          <Board
+            board={game.board} // Later, replace with game.board
+            validMoves={[]}        // Empty array prevents move indicators
+            disabled={true}        // Prevents any click interactions
+            onMove={() => {}}      // Dummy function since it's disabled
+          />
+        </div>
+
+        {/* Card Middle: Score and Players Layout */}
+        <div className="flex justify-between items-center w-full">
+          <Player player={game.player1} turn={game.turn} />
+          <Score score1={game.player1.score} score2={game.player2.score} />
+          <Player player={game.player2} turn={game.turn} />
+        </div>
+
+        {/* Card Footer */}
+        <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
+      </div>
+    </div>
+  )
+}
+
 /* --------------------------------------------------------------------------------------------- */
 /*                                  4. HELPER FUNCTIONS                                          */
 /* --------------------------------------------------------------------------------------------- */
@@ -218,30 +338,6 @@ const getVisibleGames = (games: GameState[], currentTime: string): GameState[] =
 /* --------------------------------------------------------------------------------------------- */
 /*                                  5. MAIN COMPONENTS                                           */
 /* --------------------------------------------------------------------------------------------- */
-
-const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
-  return (
-    <div
-      onClick={() => onJoin(game.id)}
-      className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300"
-    >
-      <div className="card-body p-6">
-        {/* Card Header: Live indicator & Stats */}
-        <Status spectators={game.spectators} duration={game.duration} status={game.status} />
-
-        {/* Card Middle: Score and Players Layout */}
-        <div className="flex justify-between items-center w-full">
-          <Player player={game.player1} turn={game.turn} />
-          <Score score1={game.player1.score} score2={game.player2.score} />
-          <Player player={game.player2} turn={game.turn} />
-        </div>
-
-        {/* Card Footer */}
-        <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
-      </div>
-    </div>
-  )
-}
 
 const Watch = (): React.ReactElement => {
   const navigate = useNavigate();

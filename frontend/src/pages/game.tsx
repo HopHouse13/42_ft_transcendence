@@ -19,24 +19,24 @@ import { ChatPanel, ChatMessage, ChatRoom } from "../components/Chat"
 
 function MyCarousel() {
 
-  return ( 
+  return (
 
-    
+
       <div className="hover-3d">
         <div className="aura aura-glow rounded-2xl">
           <div className="carousel carousel-vertical rounded-2xl h-40 w-full overflow-y-auto bg-transparent" >
-            
+
             <div className="carousel-item h-full" >
               <div className="card bg-white text-primary-content w-96 rounded-2xl">
                 <div className="card-body">
-                  
+
                   <h2 className="card-title">🤖 Partie Botello</h2>
                   <p>Entraîne-toi face au Bot Othello.. </p>
-                  
+
                   <div className="card-actions justify-end">
                     <NavLink className="btn btn-soft" to={"/botGame"}> Play now !! </NavLink>
                   </div>
-                
+
                 </div>
               </div>
             </div>
@@ -44,14 +44,14 @@ function MyCarousel() {
             <div className="carousel-item h-full" >
               <div className="card bg-white text-primary-content w-96 rounded-2xl">
                 <div className="card-body">
-                  
+
                   <h2 className="card-title">📺 Stream Bot TV</h2>
                   <p>Regarde une partie entre deux IA en direct.</p>
-                  
+
                   <div className="card-actions justify-end">
                     <NavLink className="btn btn-soft" to="/streamBotGame"> Play now !! </NavLink>
                   </div>
-                
+
                 </div>
               </div>
             </div>
@@ -62,23 +62,23 @@ function MyCarousel() {
 
 )};
 
-function MyCard({ title, text, route, }) {
-  
-  return ( 
+function MyCard({ title, text, route } : {title:string, text:string, route:string}) {
 
-    
+  return (
+
+
       <div className="hover-3d">
         <div className="aura aura-glow rounded-2xl">
           <div className="card bg-white text-primary-content w-96 rounded-2xl">
             <div className="card-body">
-              
+
               <h2 className="card-title">{title}</h2>
               <p>{text}</p>
-              
+
               <div className="card-actions justify-end">
                 <NavLink className="btn btn-soft" to={route}> Play now !! </NavLink>
               </div>
-            
+
             </div>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function Game() {
     <div className="bg-base-200 p-6 flex justify-center items-center">
       {/* Conteneur principal 2 colonnes */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl items-center">
-        
+
         {/* Colonne de gauche : Menu des modes de jeu */}
         <div className="flex flex-col gap-4">
           <MyCard title="🎮 Partie Locale" text="Joue en local sur le même écran." route="/LocalGame" />
@@ -109,7 +109,7 @@ export default function Game() {
     </div>
   );
 }
-   
+
 
 
 /*
@@ -124,14 +124,14 @@ export default function Game() {
             <div className="card-actions justify-end">
               <button className="btn btn-primary"> PLAY </button>
             </div>
-        </div> 
+        </div>
       </div>
 
 
 
 
 
-const Game = (): React.ReactElement => {  
+const Game = (): React.ReactElement => {
   const { mode, selectMode } = useCreateGame();
   const {
     isConnected,
@@ -147,7 +147,7 @@ const Game = (): React.ReactElement => {
     isMovePending,
     isBotThinking,
   } = useGameSocket(mode !== "LOCAL");
-  
+
   const { user } = useAuthContext();
   const { history, showLatestFirst, toggleOrder } = useMoveHistory(gameState);
 
@@ -252,7 +252,7 @@ const Game = (): React.ReactElement => {
             onMove={handlePlay}
             disabled={isMovePending || isBotThinking || gameState.status === "FINISHED"}
           />
-          
+
           {gameState.status === "IN_PROGRESS" && (
             <div className="flex justify-center mt-4">
               <button
