@@ -1,112 +1,76 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Socket } from "socket.io-client";
+import  useChatRoomSocket  from "../hooks/useChatRoomSocket"
 
-interface SocketMessage {
-  id: string | number;
-  text: string;
-  senderId: string;
-  author?: string;
-  time?: string;
+/* --------------------------------------------------------------------------------------------- */
+/*                                          ~~ ChatRoom ~~                                       */
+/* --------------------------------------------------------------------------------------------- */
+interface ChatRoomProps {
+  roomId?: string;
 }
+  /* -------------------------------------------------------------------------- */
 
-export interface ChatPanelProps {
-  socket: Socket;
-  gameId: string;
-}
+export function ChatRoom({ roomId = "room-demo" }: ChatRoomProps ) {
+  
+  const [input, setInput] = useState("");
+  
+  // Utilisation de notre hook mis à jour
+  const { isConnected, messages, sendMessage, currentUserId } = useChatRoomSocket(roomId);
 
-interface ChatMessage {
-  id: string | number;
-  author?: string;
-  own: boolean;
-  time: string;
-  text: string;
-}
-
-export function ChatPanel({
-  messages,
-  value,
-  onChange,
-  onSubmit,
-  endRef,
-}: {
-  messages: ChatMessage[];
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-  endRef: React.RefObject<HTMLDivElement | null>;
-}) {
+  // Élément de référence situé tout en bas de la liste de messages
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // 📜 Défilement automatique vers le bas dès que la liste `messages` change
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }, [messages, endRef]);
+  
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  
+  }, [messages]);
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    
+    e.preventDefault();
+    if (!input.trim() || !isConnected) return;
 
-  return (
-    <>
-      <div
-        className="flex-1 overflow-y-auto px-3 py-4 flex flex-col gap-3 min-h-0"
-        aria-live="polite"
-      >
-        <div className="text-center text-xs text-[#6b6865]">
-          Les messages sont visibles par les joueurs de la partie.
-        </div>
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex flex-col gap-1 ${
-              message.own ? "items-end" : "items-start"
-            }`}
-          >
-            <div className="flex items-center gap-1.5 px-1">
-              <span
-                className={`text-xs font-medium ${
-                  message.own ? "text-[#81b64c]" : "text-[#9e9b97]"
-                }`}
-              >
-                {message.own ? "Vous" : message.author}
-              </span>
-              <span className="text-xs text-[#6b6865] font-['DM_Mono']">
-                {message.time}
-              </span>
-            </div>
-            <div
-              className={`max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed chat-message text-[#e8e6e3] ${
-                message.own
-                  ? "bg-[#4a7c59] rounded-br-[4px]"
-                  : "bg-[#302e2b] rounded-bl-[4px]"
-              }`}
-            >
-              {message.text}
-            </div>
-          </div>
-        ))}
-        <div ref={endRef} />
+    // Envoi via WebSocket
+    sendMessage(input);
+    setInput("");
+  };
+
+return (
+    <div className="flex flex-col h-[450px] w-full max-w-sm bg-white border border-gray-100 rounded-2xl shadow-sm text-sm">
+      {/* En-tête avec voyant d'état */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <span className="font-medium text-gray-500 text-xs tracking-wider uppercase">
+          Discussion ({roomId})
+        </span>
+        <div className={`w-2.5 h-2.5 rounded-full transition-colors ${ (isConnected) ? "bg-emerald-400 animate-pulse" : "bg-gray-300" }`} />
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="flex shrink-0 gap-2 border-t border-[#3d3a36] p-3"
-      >
-        <label htmlFor="match-chat" className="sr-only">
-          Votre message
-        </label>
-        <input
-          id="match-chat"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          maxLength={180}
-          placeholder="Écrire un message…"
-          autoComplete="off"
-          className="min-w-0 flex-1 rounded-lg border border-[#3d3a36] bg-[#1f1e1c] px-3 py-2 text-xs text-[#e8e6e3] outline-none"
-        />
-        <button
-          type="submit"
-          disabled={!value.trim()}
-          aria-label="Envoyer le message"
-          className="cursor-pointer rounded-lg border-none bg-[#81b64c] px-3 text-xs font-semibold text-white transition-all disabled:cursor-default disabled:opacity-40"
-        >
-          Envoyer
-        </button>
+      {/* Zone de messages */}
+      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-white">
+        { (messages.length === 0) ? ( <div className="h-full flex items-center justify-center text-xs text-gray-400"> Aucun message pour le moment.</div> ) : ( messages.map((msg) => { const isMe = msg.userId === currentUserId;
+
+            return (
+
+              <div key={msg.id} className={`flex flex-col ${isMe ? "items-end" : "items-start"}`} >
+                <div className="text-[10px] text-gray-400 mb-0.5 px-1">
+                  {isMe ? "Vous" : (msg.userName ? msg.userName : "Inconnu")}
+                </div>
+                <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-xs leading-relaxed ${ (isMe )? "bg-blue-500 text-white rounded-br-xs" : "bg-gray-100 text-gray-700 rounded-bl-xs"}`} >
+                  {msg.text}
+                </div>
+              </div>
+            );
+          })
+        )}
+        {/* Ancre invisible ciblée par le défilement automatique */}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Formulaire de saisie */}
+      <form onSubmit={handleSubmit} className="p-2.5 border-t border-gray-100 flex items-center gap-2 bg-gray-50/30" >
+        <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isConnected ? "Écrire un message..." : "Connexion en cours..."} disabled={!isConnected} className="input input-sm flex-1 bg-gray-100/80 border-none focus:outline-none focus:bg-gray-100 text-gray-800 placeholder-gray-400 text-xs rounded-xl" />
+        <button type="submit" disabled={!isConnected || !input.trim()} className="btn btn-sm btn-ghost btn-circle text-blue-500 hover:bg-blue-50 disabled:bg-transparent disabled:text-gray-300"> ➔ </button>
       </form>
-    </>
+    </div>
   );
 }
-export default ChatPanel
