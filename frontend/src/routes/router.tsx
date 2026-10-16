@@ -19,7 +19,7 @@ const UserProfile = lazy(() => import('../pages/userProfile'));
 const Friend = lazy(() => import('../pages/friend'));
 const LocalGame = lazy(() => import('../pages/localGame'));
 const BotGame = lazy(() => import('../pages/botGame'));
-const StreamBotGame = lazy(() => import('../pages/streambotGame'));
+const StreamBotGame = lazy(() => import('../pages/streamBotGame'));
 const OnlineGame = lazy(() => import('../pages/onlineGame'));
 
 
