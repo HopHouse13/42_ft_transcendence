@@ -68,6 +68,11 @@ export class OthelloBoard {
 
     return( this._cells[row * 8 + col]);
   }
+
+  getAllCell(): Cell[]  {
+    
+    return( this._cells );
+  }
   
   setCell(row: number, col: number, value: Cell): void  {
 
