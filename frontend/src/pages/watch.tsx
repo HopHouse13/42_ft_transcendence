@@ -1,8 +1,29 @@
 import React from "react";
 import { useNavigate } from "react-router";
 
-// 1. Mock Data: Representing the state before connecting your WebSockets
-  const MOCK_LIVE_GAMES = [
+
+/* --------------------------------------------------------------------------------------------- */
+/*            1. Mock Data: Representing the state before connecting your WebSockets             */
+/* --------------------------------------------------------------------------------------------- */
+
+export interface GameState {
+  id: string;
+  player1: PlayerData;
+  player2: PlayerData;
+  turn: string;
+  spectators: number;
+  duration: string;
+  status: string;
+}
+
+export interface PlayerData {
+  username: string;
+  avatarUrl: string;
+  color: string;
+  score: number;
+}
+
+const MOCK_LIVE_GAMES = [
   {
     id: "game-001",
     player1: { username: "Alice_Pro", avatarUrl: "/api/avatars/alice.png", color: "Black", score: 34 },
@@ -30,69 +51,56 @@ import { useNavigate } from "react-router";
     duration: "15:30",
     status: "finished",
   }
-  ];
+];
 
-interface ScoreProps {
-  score1 : number;
-  score2 : number;
-}
+/* --------------------------------------------------------------------------------------------- */
+/*                                 2. COMPONENT PROP INTERFACES                                  */
+/* --------------------------------------------------------------------------------------------- */
 
 interface PlayerProps {
-  username :   string;
-  avatarUrl :  string;
-  color :      string;
-  turn :       string;
+  player: PlayerData;
+  turn: string;
+}
+
+interface ScoreProps {
+  score1: number;
+  score2: number;
 }
 
 interface StatusProps {
-  spectators :  number;
-  duration :    string;
-  status :      string;
+  spectators: number;
+  duration: string;
+  status: string;
 }
+
+interface FooterProps {
+  player1: PlayerData;
+  player2: PlayerData;
+  status: string;
+  turn: string;
+}
+
+/* --------------------------------------------------------------------------------------------- */
+/*                                 3. CHILD COMPONENTS                                           */
+/* --------------------------------------------------------------------------------------------- */
 
 // Title component
-const Title = () : React.ReactElement => {
+const Title = (): React.ReactElement => {
   return (
-      <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-2">Watch Live</h1>
-        <p className="text-lg text-base-content/70">Spectate ongoing Othello matches in real-time.</p>
-      </div>
-  );
-}
-
-// Score component
-const Score = ({ score1, score2 } : ScoreProps) : React.ReactElement => {
-  return (
-  <div className="flex flex-col items-center justify-center w-1/3">
-    <div className="text-4xl font-black mb-1">
-      {score1} <span className="text-base-content/30">-</span> {score2}
+    <div className="mb-10 text-center">
+      <h1 className="text-4xl font-bold mb-2">Watch Live</h1>
+      <p className="text-lg text-base-content/70">Spectate ongoing Othello matches in real-time.</p>
     </div>
-  </div>
   );
 }
 
-const Player = ({ username, avatarUrl, color, turn } : PlayerProps) : React.ReactElement => {
-  return (
-  <div className="flex flex-col items-center gap-2 w-1/3">
-    <div className={`avatar ${turn === color ? 'online' : ''}`}>
-      <div className="w-16 h-16 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2">
-        {/* Fallback image logic included for development */}
-        <img src={avatarUrl} alt={username} onError={(e) => {e.currentTarget.src = `https://ui-avatars.com/api/?name=${username}&background=random`}} />
-      </div>
-    </div>
-    <span className="font-bold truncate w-full text-center" title={username}>{username}</span>
-    <span className={`badge badge-sm ${color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
-      {color}
-    </span>  </div>
-  );
-}
-
-const Status = ({ spectators, duration, status } : StatusProps) : React.ReactElement => {
+// Status component
+const Status = ({ spectators, duration, status }: StatusProps): React.ReactElement => {
   return (
     <div className="flex justify-between items-center mb-6">
-      <div className={`badge gap-2 font-bold ${status === "ongoing" ? "animate-pulse" : "badge-neutral"}`}>
+      <div className={`badge gap-2 font-bold ${status === "ongoing" ? "badge" : "badge-neutral"}`}>
         {status === "ongoing" && (
-          <span className="w-2 h-2 bg-white rounded-full"></span>
+          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
         )}
 
         {status === "ongoing" ? "LIVE" : "FINISHED"}
@@ -105,6 +113,60 @@ const Status = ({ spectators, duration, status } : StatusProps) : React.ReactEle
     </div>
   );
 }
+
+// Player component
+const Player = ({ player, turn }: PlayerProps): React.ReactElement => (
+  <div className="flex flex-col items-center gap-2 w-1/3">
+    <div className={`avatar ${turn === player.color ? 'online' : ''}`}>
+      <div className="w-16 h-16 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2">
+        <img
+          src={player.avatarUrl}
+          alt={player.username}
+          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${player.username}&background=random` }}
+        />
+      </div>
+    </div>
+    <span className="font-bold truncate w-full text-center" title={player.username}>
+      {player.username}
+    </span>
+    <span className={`badge badge-sm ${player.color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
+      {player.color}
+    </span>
+  </div>
+);
+
+// Score component
+const Score = ({ score1, score2 }: ScoreProps): React.ReactElement => {
+  return (
+    <div className="flex flex-col items-center justify-center w-1/3">
+      <div className="text-4xl font-black mb-1">
+        {score1} <span className="text-base-content/30">-</span> {score2}
+      </div>
+    </div>
+  );
+}
+// Footer component
+const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactElement => {
+  return (
+    <div className="mt-6 pt-4 border-t border-base-300 text-center text-sm">
+      {status === "ongoing" ? (
+        // ongoing: show the turn
+        <>Turn: <span className="font-semibold text-primary">{turn === 'Black' ? player1.username : player2.username}</span></>
+      ) : player1.score === player2.score ? (
+        // tied: draw
+        <span className="font=bold text-warning">DRAW</span>
+      ) : ( // calculate and show winner
+        <span className="font-bold text-success">
+          WINNER: {player1.score > player2.score ? player1.username : player2.username}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* --------------------------------------------------------------------------------------------- */
+/*                                  4. MAIN COMPONENTS                                           */
+/* --------------------------------------------------------------------------------------------- */
 
 
 const Watch = (): React.ReactElement => {
@@ -134,18 +196,13 @@ const Watch = (): React.ReactElement => {
 
                 {/* Card Middle: Score and Players Layout */}
                 <div className="flex justify-between items-center w-full">
-                  {/* Player 1 (Black) */}
-                  <Player username={game.player1.username} avatarUrl={game.player1.avatarUrl} color={game.player1.color} turn={game.turn} />
-                  {/* Score */}
+                  <Player player={game.player1} turn={game.turn} />
                   <Score score1={game.player1.score} score2={game.player2.score} />
-                  {/* Player 2 (White) */}
-                  <Player username={game.player2.username} avatarUrl={game.player2.avatarUrl} color={game.player2.color} turn={game.turn} />
+                  <Player player={game.player2} turn={game.turn} />
                 </div>
 
                 {/* Card Footer */}
-                <div className="mt-6 pt-4 border-t border-base-300 text-center text-sm">
-                  Turn: <span className="font-semibold text-primary">{game.turn === 'Black' ? game.player1.username : game.player2.username}</span>
-                </div>
+                <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
               </div>
             </div>
           ))}
