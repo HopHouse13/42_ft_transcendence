@@ -1,5 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router";
+import Game from "./game";
+
+const timeNow : string = "2026-10-16T19:20:00Z"
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -14,6 +17,7 @@ export interface GameState {
   spectators: number;
   duration: string;
   status: string;
+  endedAt?: string;
 }
 
 export interface PlayerData {
@@ -32,6 +36,7 @@ const MOCK_LIVE_GAMES = [
     spectators: 12,
     duration: "10:45",
     status: "ongoing",
+    endedAt: "n/a",
   },
   {
     id: "game-002",
@@ -41,6 +46,8 @@ const MOCK_LIVE_GAMES = [
     spectators: 3,
     duration: "01:20",
     status: "ongoing",
+    endedAt: "n/a",
+
   },
   {
     id: "game-003",
@@ -50,12 +57,28 @@ const MOCK_LIVE_GAMES = [
     spectators: 45,
     duration: "15:30",
     status: "finished",
-  }
+    endedAt: "2026-10-16T19:15:00Z",
+  },
+    {
+    id: "game-004",
+    player1: { username: "bobby", avatarUrl: "/api/avatars/bobby.png", color: "Black", score: 34 },
+    player2: { username: "scylla", avatarUrl: "/api/avatars/scylla.png", color: "White", score: 30 },
+    turn: "Black",
+    spectators: 32,
+    duration: "18:30",
+    status: "finished",
+    endedAt: "2026-10-16T19:00:00Z",
+  },
 ];
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 2. COMPONENT PROP INTERFACES                                  */
 /* --------------------------------------------------------------------------------------------- */
+
+interface GameCardProps {
+  game: GameState;
+  onJoin: (gameId: string) => void;
+}
 
 interface PlayerProps {
   player: PlayerData;
@@ -106,9 +129,17 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
         {status === "ongoing" ? "LIVE" : "FINISHED"}
       </div>
       <div className="text-sm text-base-content/70 flex items-center gap-1">
-        <span>👁️ {spectators}</span>
-        <span className="mx-1">•</span>
-        <span>⏱️ {duration}</span>
+        {status === "ongoing" ? (
+          // if ongoing: show spectators and current duration
+        <>
+          <span>👁️ {spectators}</span>
+          <span className="mx-1">•</span>
+          <span>⏱️ {duration}</span>
+        </>
+        ) : (
+          // if finished : hide spectators count, display game total duration
+          <span>⏱️ Total Duration: {duration}</span>
+        )}
       </div>
     </div>
   );
@@ -165,9 +196,52 @@ const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactEle
 }
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                  4. MAIN COMPONENTS                                           */
+/*                                  4. HELPER FUNCTIONS                                          */
 /* --------------------------------------------------------------------------------------------- */
 
+// Helper function to filter games
+const getVisibleGames = (games: GameState[], currentTime: string): GameState[] => {
+  return games.filter((game) => {
+    if (game.status === "ongoing") return true;
+
+    if (game.status === "finished" && game.endedAt) {
+      const nowMs = new Date(currentTime).getTime();
+      const endedMs = new Date(game.endedAt).getTime();
+      const diffInMinutes = Math.floor((nowMs - endedMs) / 60000);
+      return diffInMinutes <= 10;
+    }
+
+    return false;
+  });
+}
+
+/* --------------------------------------------------------------------------------------------- */
+/*                                  5. MAIN COMPONENTS                                           */
+/* --------------------------------------------------------------------------------------------- */
+
+const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
+  return (
+    <div
+      onClick={() => onJoin(game.id)}
+      className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300"
+    >
+      <div className="card-body p-6">
+        {/* Card Header: Live indicator & Stats */}
+        <Status spectators={game.spectators} duration={game.duration} status={game.status} />
+
+        {/* Card Middle: Score and Players Layout */}
+        <div className="flex justify-between items-center w-full">
+          <Player player={game.player1} turn={game.turn} />
+          <Score score1={game.player1.score} score2={game.player2.score} />
+          <Player player={game.player2} turn={game.turn} />
+        </div>
+
+        {/* Card Footer */}
+        <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
+      </div>
+    </div>
+  )
+}
 
 const Watch = (): React.ReactElement => {
   const navigate = useNavigate();
@@ -177,34 +251,23 @@ const Watch = (): React.ReactElement => {
     navigate(`/game/${gameId}?mode=spectator`);
   };
 
+  const visibleGames = getVisibleGames(MOCK_LIVE_GAMES, timeNow);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Title />
-      {MOCK_LIVE_GAMES.length === 0 ? (
+
+      {visibleGames.length === 0 ? (
         <div className="text-center text-xl mt-12">No live games at the moment. Check back later!</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {MOCK_LIVE_GAMES.map((game) => (
-            <div
+          {/* Map through the data and render the extracted GameCard */}
+          {visibleGames.map((game) => (
+            <GameCard
               key={game.id}
-              onClick={() => handleJoinSpectator(game.id)}
-              className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300"
-            >
-              <div className="card-body p-6">
-                {/* Card Header: Live indicator & Stats */}
-                <Status spectators={game.spectators} duration={game.duration} status={game.status} />
-
-                {/* Card Middle: Score and Players Layout */}
-                <div className="flex justify-between items-center w-full">
-                  <Player player={game.player1} turn={game.turn} />
-                  <Score score1={game.player1.score} score2={game.player2.score} />
-                  <Player player={game.player2} turn={game.turn} />
-                </div>
-
-                {/* Card Footer */}
-                <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
-              </div>
-            </div>
+              game={game}
+              onJoin={handleJoinSpectator}
+            />
           ))}
         </div>
       )}
