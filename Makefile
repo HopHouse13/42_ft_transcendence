@@ -6,6 +6,7 @@ $(NAME): up
 
 up: check-env check-ssl
 	$(COMPOSE) up -d --build
+	$(COMPOSE) logs -f
 
 check-env:
 	@if [ ! -f .env ]; then \
