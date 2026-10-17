@@ -279,7 +279,7 @@ export class AchievementService
 	//	return ( false );
 	//}
 
-		private mov_pass3( game: GameWithMoves, userId: string )
+	private mov_pass3( game: GameWithMoves, userId: string )
 	{
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
 		let		prevIsMine: boolean = false;
@@ -293,8 +293,8 @@ export class AchievementService
 				{
 					passCount++;
 					if ( passCount >= 3 )
-						return (  true );
-				}	
+						return ( true );
+				}
 				prevIsMine = true;
 			}
 			else
