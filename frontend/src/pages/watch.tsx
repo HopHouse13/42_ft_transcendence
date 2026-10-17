@@ -99,7 +99,7 @@ const MOCK_LIVE_GAMES = [
     spectators: 12,
     duration: "10:45",
     status: "ongoing",
-    endedAt: "n/a",
+    endedAt: "2026-10-16T19:15:00Z",
     board: MID_GAME_BOARD,
   },
   {
@@ -146,10 +146,18 @@ interface GameCardProps {
   onJoin: (gameId: string) => void;
 }
 
-interface PlayerProps {
+interface PlayerRowProps {
   player: PlayerData;
   turn: string;
+  status: string;
+  isWinner: boolean;
+  isDraw: boolean;
 }
+
+// interface PlayerProps {
+//   player: PlayerData;
+//   turn: string;
+// }
 
 // interface ScoreProps {
 //   score1: number;
@@ -162,12 +170,12 @@ interface StatusProps {
   status: string;
 }
 
-interface FooterProps {
-  player1: PlayerData;
-  player2: PlayerData;
-  status: string;
-  turn: string;
-}
+// interface FooterProps {
+//   player1: PlayerData;
+//   player2: PlayerData;
+//   status: string;
+//   turn: string;
+// }
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 3. CHILD COMPONENTS                                           */
@@ -205,7 +213,7 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
         {status === "ongoing" ? (
           // if ongoing: show spectators and current duration
         <>
-          <span>👁️ {spectators}</span>
+          <span>👀 {spectators}</span>
           <span className="opacity-50">•</span>
           <span>⏳ {duration}</span>
         </>
@@ -218,11 +226,11 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   </>
 );
 
-const PlayerRowAvatar = ({ player, turn } : PlayerProps): React.ReactElement => {
-  const isTurn = turn === player.color;
+const PlayerRowAvatar = ({ player, turn, status } : { player: PlayerData, turn: string, status: string }): React.ReactElement => {
+  const isOnline = status === "ongoing" && turn === player.color;
 
   return (
-        <div className={`avatar shrink-0 ${isTurn ? 'online' : ''}`}>
+        <div className={`avatar shrink-0 ${isOnline ? 'online' : ''}`}>
           <div className="w-12 h-12 rounded-full bg-base-300">
             <img
               src={player.avatarUrl}
@@ -234,7 +242,7 @@ const PlayerRowAvatar = ({ player, turn } : PlayerProps): React.ReactElement => 
   );
 }
 
-const PlayerRowName = ({ player } : {player : PlayerData }): React.ReactElement => {
+const PlayerRowName = ({ player } : { player: PlayerData }): React.ReactElement => {
   return (
     <div className="flex flex-col min-w-0 flex-1 pr-2">
       <span className="font-bold text-base truncate" title={player.username}>
@@ -247,12 +255,12 @@ const PlayerRowName = ({ player } : {player : PlayerData }): React.ReactElement 
   );
 }
 
-const PlayerRowDot = ({ player, turn } : PlayerProps ): React.ReactElement => {
-  const isTurn = turn === player.color;
+const PlayerRowDot = ({ player, turn, status } : { player: PlayerData, turn: string, status: string } ): React.ReactElement => {
+  const showSpinner = status === "ongoing" && turn === player.color;
 
   return (
     <div className="relative shrink-0 flex items-center justify-center w-8 h-8">
-      {isTurn && (
+      {showSpinner && (
         <div className="absolute -inset-0.5 rounded-full bg-[conic-gradient(transparent_0deg,rgba(255,255,255,0.7)_360deg)] animate-[spin_3s_linear_infinite]"></div>      )}
       <div
         className={`relative z-10 w-8 h-8 rounded-full shadow-md border border-base-300/30 ${
@@ -272,94 +280,83 @@ const PlayerRowScore = ({ player } : {player : PlayerData }): React.ReactElement
   );
 }
 
-const PlayerRow = ({ player, turn }: PlayerProps): React.ReactElement=> {
-  const isTurn = turn === player.color;
-  const rowStyle = isTurn
-    ? "bg-base-100 shadow-[0_0_15px_rgba(255,255,255,0.3)] z-10 border-white/10"
-    : "opacity-80 border border-transparent"; // Default state (not their turn)
+const PlayerRow = ({ player, turn, status, isWinner, isDraw }: PlayerRowProps): React.ReactElement=> {
+const isTurn = status === "ongoing" && turn === player.color;
+// const rowStyle = isTurn
+//     ? "bg-base-100 shadow-[0_0_15px_rgba(255,255,255,0.3)] z-10 border-white/10"
+//     : "opacity-80 border border-transparent"; // Default state (not their turn)
+
+let rowStyle = "opacity-80 border border-transparent";
+
+  if (status === "ongoing" && isTurn) {
+    // Normal ongoing active turn glow
+    rowStyle = "bg-base-100 shadow-[0_0_15px_rgba(255,255,255,0.3)] z-10 border border-white/10";
+  } else if (status === "finished") {
+    if (isWinner) {
+      // Winner styling: Green tinted background, green border, green glow, full opacity
+      rowStyle = "bg-success/10 shadow-[0_0_15px_rgba(34,197,94,0.15)] z-10 border border-success/40 opacity-100";
+    } else if (isDraw) {
+      // Draw styling: Subtle warning tint
+      rowStyle = "bg-warning/5 border border-warning/20 opacity-80";
+    } else {
+      // Loser styling: Dimmed out so the winner pops
+      rowStyle = "opacity-40 border border-transparent";
+    }
+  }
 
 
   return (
     // background highlight for player's turn
-    <div className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${rowStyle}`}>
+    <div className={`relative flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${rowStyle}`}>
 
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        < PlayerRowAvatar player={player} turn={turn} />
+        < PlayerRowAvatar player={player} turn={turn} status={status} />
         < PlayerRowName player={player} />
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
-        < PlayerRowDot player={player} turn={turn} />
+      {isWinner &&
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+          <span className="badge badge-success border-none font-black text-md tracking-widest uppercase px-5 py-5 shadow-md">
+            WINNER
+          </span>
+        </div>
+      }
+
+      <div className="flex items-center justify-end gap-3 shrink-0">
+        < PlayerRowDot player={player} turn={turn} status={status} />
         < PlayerRowScore player={player} />
       </div>
     </div>
   );
 }
 
-// // Player component
-// const Player = ({ player, turn }: PlayerProps): React.ReactElement => (
-//   <div className="flex flex-col items-center gap-2 w-1/3">
 
-//     {/* Avatar */}
-//     <div className={`avatar ${turn === player.color ? 'online' : ''}`}>
-//       <div className="w-16 h-16 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2">
-//         <img
-//           src={player.avatarUrl}
-//           alt={player.username}
-//           onError={(e) => { e.currentTarget.src = '/api/uploads/avatars/default.png' }}
-//         />
-//       </div>
-//     </div>
-
-//     {/* Username */}
-//     <span className="font-bold truncate w-full text-center" title={player.username}>
-//       {player.username}
-//     </span>
-
-//     {/* Badges Container */}
-//     <div className="flex flex-col items-center gap-1">
-//       <span className={`badge badge-sm ${player.color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
-//       {player.color}
-//       </span>
-//       {/* ELO Display inspired by Leaderboard & FriendCard */}
-//       <span className="font-mono text-xs font-bold text-base-content/60">
-//         {player.elo} ELO
-//       </span>
-//     </div>
-//   </div>
-// );
-
-// // Score component
-// const Score = ({ score1, score2 }: ScoreProps): React.ReactElement => {
+// // Footer component
+// const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactElement => {
 //   return (
-//     <div className="flex flex-col items-center justify-center w-1/3">
-//       <div className="text-4xl font-black mb-1">
-//         {score1} <span className="text-base-content/30">-</span> {score2}
-//       </div>
+//     <div className="mt-6 pt-4 border-t border-base-300 text-center text-sm">
+//       {status === "ongoing" ? (
+//         // ongoing: show the turn
+//         <>Turn: <span className="font-semibold text-primary">{turn === 'Black' ? player1.username : player2.username}</span></>
+//       ) : player1.score === player2.score ? (
+//         // tied: draw
+//         <span className="font=bold text-warning">DRAW</span>
+//       ) : ( // calculate and show winner
+//         <span className="font-bold text-success">
+//           WINNER: {player1.score > player2.score ? player1.username : player2.username}
+//         </span>
+//       )}
 //     </div>
 //   );
 // }
 
-// Footer component
-const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactElement => {
-  return (
-    <div className="mt-6 pt-4 border-t border-base-300 text-center text-sm">
-      {status === "ongoing" ? (
-        // ongoing: show the turn
-        <>Turn: <span className="font-semibold text-primary">{turn === 'Black' ? player1.username : player2.username}</span></>
-      ) : player1.score === player2.score ? (
-        // tied: draw
-        <span className="font=bold text-warning">DRAW</span>
-      ) : ( // calculate and show winner
-        <span className="font-bold text-success">
-          WINNER: {player1.score > player2.score ? player1.username : player2.username}
-        </span>
-      )}
-    </div>
-  );
-}
-
 const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
+  const isFinished = game.status === "finished";
+  const isDraw = isFinished && game.player1.score === game.player2.score;
+  const winnerColor = isFinished && !isDraw
+    ? (game.player1.score > game.player2.score ? game.player1.color : game.player2.color)
+    : null;
+
   return (
     <div
       onClick={() => onJoin(game.id)}
@@ -382,13 +379,20 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 
         {/* Card Middle: Score and Players Layout */}
         <div className="card-body p-4 gap-1">
-
-          <PlayerRow player={game.player1} turn={game.turn} />
+          <PlayerRow
+            player={game.player1}
+            turn={game.turn}
+            status={game.status}
+            isWinner={winnerColor === game.player1.color}
+            isDraw={isDraw}
+          />
           <div className="divider m-0 h-0 opacity-30"></div>
-          <PlayerRow player={game.player2} turn={game.turn} />
-
-        {/* Card Footer */}
-        <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
+          <PlayerRow player={game.player2}
+            turn={game.turn}
+            status={game.status}
+            isWinner={winnerColor === game.player2.color}
+            isDraw={isDraw}
+          />
       </div>
     </div>
   )
