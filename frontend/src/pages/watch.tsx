@@ -93,7 +93,7 @@ const FINISHED_BOARD_34_30 = createBoard(`
 const MOCK_LIVE_GAMES = [
   {
     id: "game-001",
-    player1: { username: "Alice_Pro", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Grandmaster", color: "Black", score: 34, elo: 2450, },
+    player1: { username: "Alice_Proooooooooooooooooooooo", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Grandmaster", color: "Black", score: 34, elo: 2450, },
     player2: { username: "BobTheBuilder", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=CornerTrapper", color: "White", score: 30, elo: 2310, },
     turn: "Black",
     spectators: 12,
@@ -151,10 +151,10 @@ interface PlayerProps {
   turn: string;
 }
 
-interface ScoreProps {
-  score1: number;
-  score2: number;
-}
+// interface ScoreProps {
+//   score1: number;
+//   score2: number;
+// }
 
 interface StatusProps {
   spectators: number;
@@ -188,11 +188,11 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   <>
     {/* Floating Top-Left: LIVE Badge */}
       <div className="absolute top-5 left-5 z-10">
-        <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}>
-        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge-error text-white" : "badge-neutral"}`}> */}
+        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}> */}
+        <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge-error text-white" : "badge-neutral"}`}>
         {status === "ongoing" && (
-          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
-          // <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
+          // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
         )}
         {status === "ongoing" ? "LIVE" : "FINISHED"}
         </div>
@@ -218,49 +218,128 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   </>
 );
 
-// Player component
-const Player = ({ player, turn }: PlayerProps): React.ReactElement => (
-  <div className="flex flex-col items-center gap-2 w-1/3">
+const PlayerRowAvatar = ({ player, turn } : PlayerProps): React.ReactElement => {
+  const isTurn = turn === player.color;
 
-    {/* Avatar */}
-    <div className={`avatar ${turn === player.color ? 'online' : ''}`}>
-      <div className="w-16 h-16 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2">
-        <img
-          src={player.avatarUrl}
-          alt={player.username}
-          onError={(e) => { e.currentTarget.src = '/api/uploads/avatars/default.png' }}
-        />
-      </div>
-    </div>
-
-    {/* Username */}
-    <span className="font-bold truncate w-full text-center" title={player.username}>
-      {player.username}
-    </span>
-
-    {/* Badges Container */}
-    <div className="flex flex-col items-center gap-1">
-      <span className={`badge badge-sm ${player.color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
-      {player.color}
-      </span>
-      {/* ELO Display inspired by Leaderboard & FriendCard */}
-      <span className="font-mono text-xs font-bold text-base-content/60">
-        {player.elo} ELO
-      </span>
-    </div>
-  </div>
-);
-
-// Score component
-const Score = ({ score1, score2 }: ScoreProps): React.ReactElement => {
   return (
-    <div className="flex flex-col items-center justify-center w-1/3">
-      <div className="text-4xl font-black mb-1">
-        {score1} <span className="text-base-content/30">-</span> {score2}
+        <div className={`avatar shrink-0 ${isTurn ? 'online' : ''}`}>
+          <div className="w-12 h-12 rounded-full bg-base-300">
+            <img
+              src={player.avatarUrl}
+              alt={player.username}
+              onError={(e) => { e.currentTarget.src = '/api/uploads/avatars/default.png' }}
+            />
+          </div>
+        </div>
+  );
+}
+
+const PlayerRowName = ({ player } : {player : PlayerData }): React.ReactElement => {
+  return (
+    <div className="flex flex-col min-w-0 flex-1 pr-2">
+      <span className="font-bold text-base truncate" title={player.username}>
+        {player.username}
+      </span>
+      <span className="font-mono text-xs text-base-content/60">
+        {player.elo}
+      </span>
+    </div>
+  );
+}
+
+const PlayerRowDot = ({ player, turn } : PlayerProps ): React.ReactElement => {
+  const isTurn = turn === player.color;
+
+  return (
+    <div className="relative shrink-0 flex items-center justify-center w-8 h-8">
+      {isTurn && (
+        <div className="absolute -inset-0.5 rounded-full bg-[conic-gradient(transparent_0deg,rgba(255,255,255,0.7)_360deg)] animate-[spin_3s_linear_infinite]"></div>      )}
+      <div
+        className={`relative z-10 w-8 h-8 rounded-full shadow-md border border-base-300/30 ${
+          player.color === 'Black' ? 'bg-[#1d1d1d] border-1 border-white/50 shadow-[0_0_8px_rgba(255,255,255,0.2)]'
+          : 'bg-white border border-black/10 shadow-[0_0_8px_rgba(0,0,0,0.4)]'}`}
+        title={player.color}
+      />
+    </div>
+  );
+}
+
+const PlayerRowScore = ({ player } : {player : PlayerData }): React.ReactElement => {
+  return (
+    <div className="font-black text-3xl tabular-nums text-right w-12 shrink-0">
+      {player.score}
+    </div>
+  );
+}
+
+const PlayerRow = ({ player, turn }: PlayerProps): React.ReactElement=> {
+  const isTurn = turn === player.color;
+  const rowStyle = isTurn
+    ? "bg-base-100 shadow-[0_0_15px_rgba(255,255,255,0.3)] z-10 border-white/10"
+    : "opacity-80 border border-transparent"; // Default state (not their turn)
+
+
+  return (
+    // background highlight for player's turn
+    <div className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${rowStyle}`}>
+
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        < PlayerRowAvatar player={player} turn={turn} />
+        < PlayerRowName player={player} />
+      </div>
+
+      <div className="flex items-center gap-3 shrink-0">
+        < PlayerRowDot player={player} turn={turn} />
+        < PlayerRowScore player={player} />
       </div>
     </div>
   );
 }
+
+// // Player component
+// const Player = ({ player, turn }: PlayerProps): React.ReactElement => (
+//   <div className="flex flex-col items-center gap-2 w-1/3">
+
+//     {/* Avatar */}
+//     <div className={`avatar ${turn === player.color ? 'online' : ''}`}>
+//       <div className="w-16 h-16 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2">
+//         <img
+//           src={player.avatarUrl}
+//           alt={player.username}
+//           onError={(e) => { e.currentTarget.src = '/api/uploads/avatars/default.png' }}
+//         />
+//       </div>
+//     </div>
+
+//     {/* Username */}
+//     <span className="font-bold truncate w-full text-center" title={player.username}>
+//       {player.username}
+//     </span>
+
+//     {/* Badges Container */}
+//     <div className="flex flex-col items-center gap-1">
+//       <span className={`badge badge-sm ${player.color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
+//       {player.color}
+//       </span>
+//       {/* ELO Display inspired by Leaderboard & FriendCard */}
+//       <span className="font-mono text-xs font-bold text-base-content/60">
+//         {player.elo} ELO
+//       </span>
+//     </div>
+//   </div>
+// );
+
+// // Score component
+// const Score = ({ score1, score2 }: ScoreProps): React.ReactElement => {
+//   return (
+//     <div className="flex flex-col items-center justify-center w-1/3">
+//       <div className="text-4xl font-black mb-1">
+//         {score1} <span className="text-base-content/30">-</span> {score2}
+//       </div>
+//     </div>
+//   );
+// }
+
 // Footer component
 const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactElement => {
   return (
@@ -288,27 +367,25 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
       >
         {/* Card Header: Live indicator & Stats */}
         <figure className="relative w-full p-0 border-b border-base-300">
-        <Status spectators={game.spectators} duration={game.duration} status={game.status} />
+          <Status spectators={game.spectators} duration={game.duration} status={game.status} />
 
-        {/* Board Preview */}
-        <div className="w-full pointer-events-none">
-          <Board
-            board={game.board} // Later, replace with game.board
-            validMoves={[]}        // Empty array prevents move indicators
-            disabled={true}        // Prevents any click interactions
-            onMove={() => {}}      // Dummy function since it's disabled
-          />
-        </div>
-
+          {/* Board Preview */}
+          <div className="w-full pointer-events-none">
+            <Board
+              board={game.board} // Later, replace with game.board
+              validMoves={[]}        // Empty array prevents move indicators
+              disabled={true}        // Prevents any click interactions
+              onMove={() => {}}      // Dummy function since it's disabled
+            />
+          </div>
         </figure>
 
         {/* Card Middle: Score and Players Layout */}
-        <div className="card-body p-5">
-          <div className="flex justify-between items-center w-full">
-          <Player player={game.player1} turn={game.turn} />
-          <Score score1={game.player1.score} score2={game.player2.score} />
-          <Player player={game.player2} turn={game.turn} />
-        </div>
+        <div className="card-body p-4 gap-1">
+
+          <PlayerRow player={game.player1} turn={game.turn} />
+          <div className="divider m-0 h-0 opacity-30"></div>
+          <PlayerRow player={game.player2} turn={game.turn} />
 
         {/* Card Footer */}
         <Footer player1={game.player1} player2={game.player2} turn={game.turn} status={game.status} />
