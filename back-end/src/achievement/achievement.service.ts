@@ -112,21 +112,21 @@ export class AchievementService
 			case 'brd_corner':			return ( this.brd_corner( game, userId ));
 			case 'brd_4corners':		return ( this.brd_4corners( game, userId ));
 			case 'brd_edges':			return ( this.brd_edges( game, userId ));
-			case 'mov_flip10':			return ( this.mov_flip10( game, userId ));
-			case 'mov_pass1':			return ( this.mov_pass1( game, userId ));
-			case 'mov_pass3':			return ( this.mov_pass3( game, userId ));
-			case 'win_close':			return ( this.win_close( game, userId ));
-			case 'win_blowout':			return ( this.win_blowout( game, userId ));
-			case 'win_wipeout':			return ( this.win_wipeout( game, userId ));
-			case 'win_comeback':		return ( this.win_comeback( game, userId ));
-			case 'win_3corners_down':	return ( this.win_3corners_down( game, userId ));
-			case 'stk_win5':			return ( this.stk_win5( game, userId ));
-			case 'cum_win50':			return ( this.cum_win50( game, userId ));
-			case 'soc_rival10':			return ( this.soc_rival10( game, userId ));
-			case 'elo_1200':			return ( this.elo_1200( game, userId ));
-			case 'elo_1500':			return ( this.elo_1500( game, userId ));
-			case 'elo_1800':			return ( this.elo_1800( game, userId ));
-			case 'elo_giant_slayer':	return ( this.elo_giant_slayer( game, userId ));
+			//case 'mov_flip10':			return ( this.mov_flip10( game, userId ));
+			//case 'mov_pass1':			return ( this.mov_pass1( game, userId ));
+			//case 'mov_pass3':			return ( this.mov_pass3( game, userId ));
+			//case 'win_close':			return ( this.win_close( game, userId ));
+			//case 'win_blowout':			return ( this.win_blowout( game, userId ));
+			//case 'win_wipeout':			return ( this.win_wipeout( game, userId ));
+			//case 'win_comeback':		return ( this.win_comeback( game, userId ));
+			//case 'win_3corners_down':	return ( this.win_3corners_down( game, userId ));
+			//case 'stk_win5':			return ( this.stk_win5( game, userId ));
+			//case 'cum_win50':			return ( this.cum_win50( game, userId ));
+			//case 'soc_rival10':			return ( this.soc_rival10( game, userId ));
+			//case 'elo_1200':			return ( this.elo_1200( game, userId ));
+			//case 'elo_1500':			return ( this.elo_1500( game, userId ));
+			//case 'elo_1800':			return ( this.elo_1800( game, userId ));
+			//case 'elo_giant_slayer':	return ( this.elo_giant_slayer( game, userId ));
 
 			default:					return( false );
 		}

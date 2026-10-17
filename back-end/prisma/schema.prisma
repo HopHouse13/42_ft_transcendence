@@ -113,6 +113,9 @@ model Move {
 	Color			PlayerColor @map( "color_player" )
 	position		Int? // peut etre null si pass
 
+	blackScore		Int? @map( "black_score" )
+	whiteScore		Int? @map( "white_score" )
+
 	boardAfter		String @db.Char( 64 ) @map( "board_after" )
 
 	createdAt		DateTime @default( now() ) @map( "created_at" )
