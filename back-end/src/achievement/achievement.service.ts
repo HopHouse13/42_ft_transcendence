@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Game, GameStatus } from '@prisma/client';
 import { achievementList } from './constants/achievementListe.constant';
 import { GameWithMoves } from './types/gameWithMoves.type';
+import { boolean } from 'joi';
 
 @Injectable()
 export class AchievementService
@@ -62,7 +63,13 @@ export class AchievementService
 				},
 				include:
 				{
-					moves:	true
+					moves:
+						{
+							orderBy: 
+							{
+								moveNumber: 'asc' // besoin de les extraites par ordre ascendant (<)
+							}
+						}
 				}
 			}
 		)
@@ -212,14 +219,86 @@ export class AchievementService
 
 	///
 
+	//private mov_flip10( game: GameWithMoves, userId: string )
+	//{
+
+	//}
+
+	///
+
+	//private mov_pass1( game: GameWithMoves, userId: string )
+	//{
+	//	const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
+		
+	//	for ( const move of game.moves )
+	//	{
+	//		if ( move.Color !== myColor && move.position === null )
+	//			return ( true );
+	//	}
+
+	//	return ( false );
+	//}
+
 	private mov_pass1( game: GameWithMoves, userId: string )
 	{
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
-		
-		for( const move of game.moves )
+		let		prevIsMine: boolean = false;
+
+		for ( const move of game.moves )
 		{
-			if ( move.Color !== myColor && move.position === null )
-				return ( true );
+			if ( move.Color === myColor )
+			{
+				if ( prevIsMine )
+					return ( true );
+				prevIsMine = true;
+			}
+			else
+				prevIsMine = false;
+		}
+
+		return ( false );
+	}
+
+	///
+
+	//private mov_pass3( game: GameWithMoves, userId: string )
+	//{
+	//	const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
+	//	let		passCount: number = 0;
+
+	//	for ( const move of game.moves )
+	//	{
+	//		if ( move.Color !== myColor && move.position === null )
+	//		{
+	//			passCount++;
+
+	//			if ( passCount >= 3 )
+	//				return ( true );
+	//		}
+	//	}
+	//	return ( false );
+	//}
+
+		private mov_pass3( game: GameWithMoves, userId: string )
+	{
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
+		let		prevIsMine: boolean = false;
+		let		passCount: number = 0;
+
+		for ( const move of game.moves )
+		{
+			if ( move.Color === myColor )
+			{
+				if ( prevIsMine )
+				{
+					passCount++;
+					if ( passCount >= 3 )
+						return (  true );
+				}	
+				prevIsMine = true;
+			}
+			else
+				prevIsMine = false;
 		}
 
 		return ( false );
@@ -249,9 +328,9 @@ brd_corner			Investisseur immobilier		Prends ton premier coin du plateau.
 brd_4corners		Monopole des coins			Contrôle les 4 coins à la fin de la partie.
 brd_edges			Résidence sécurisée			Verrouille chaque case du bord avec ta couleur.
 * mov_flip10			Effet domino				Retourne 10 pions ou plus en un seul coup.
-mov_pass1			Accès refusé				Force ton adversaire à passer son tour.
+-> mov_pass1			Accès refusé				Force ton adversaire à passer son tour.
+-> mov_pass3			Tu es viré !				Force ton adversaire à passer son tour au moins 3 fois dans une même partie.
 
-mov_pass3			Tu es viré !				Force ton adversaire à passer son tour au moins 3 fois dans une même partie.
 win_close			Au poil						Gagne une partie avec 2 pions d’écart ou moins.
 win_blowout			Aucune chance				Gagne largement avec plus de 50 pions sur le plateau.
 win_wipeout			Table rase					Efface tous les pions de ton adversaire du plateau avant la fin.
