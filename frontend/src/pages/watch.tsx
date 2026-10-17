@@ -358,7 +358,7 @@ const Watch = (): React.ReactElement => {
       {visibleGames.length === 0 ? (
         <div className="text-center text-xl mt-12">No live games at the moment. Check back later!</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
           {/* Map through the data and render the extracted GameCard */}
           {visibleGames.map((game) => (
             <GameCard
