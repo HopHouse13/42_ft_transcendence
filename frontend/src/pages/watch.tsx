@@ -21,6 +21,7 @@ export interface GameState {
   duration: string;
   status: string;
   endedAt?: string;
+  isBot?: boolean;
   board: BoardState;
 }
 
@@ -154,28 +155,11 @@ interface PlayerRowProps {
   isDraw: boolean;
 }
 
-// interface PlayerProps {
-//   player: PlayerData;
-//   turn: string;
-// }
-
-// interface ScoreProps {
-//   score1: number;
-//   score2: number;
-// }
-
 interface StatusProps {
   spectators: number;
   duration: string;
   status: string;
 }
-
-// interface FooterProps {
-//   player1: PlayerData;
-//   player2: PlayerData;
-//   status: string;
-//   turn: string;
-// }
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 3. CHILD COMPONENTS                                           */
@@ -235,7 +219,10 @@ const PlayerRowAvatar = ({ player, turn, status } : { player: PlayerData, turn: 
 
   return (
         <div className={`avatar shrink-0 ${isOnline ? 'online' : ''}`}>
-          <div className="w-12 h-12 rounded-full bg-base-300">
+          <div className={`w-12 h-12 border-2 rounded-full bg-base-300 ${
+            player.color === 'Black'
+              ? 'border-black/50'
+              : 'border-whit/50'}`}>
             <img
               src={player.avatarUrl}
               alt={player.username}
@@ -286,9 +273,6 @@ const PlayerRowScore = ({ player } : {player : PlayerData }): React.ReactElement
 
 const PlayerRow = ({ player, turn, status, isWinner, isDraw }: PlayerRowProps): React.ReactElement=> {
 const isTurn = status === "ongoing" && turn === player.color;
-// const rowStyle = isTurn
-//     ? "bg-base-100 shadow-[0_0_15px_rgba(255,255,255,0.3)] z-10 border-white/10"
-//     : "opacity-80 border border-transparent"; // Default state (not their turn)
 
 let rowStyle = "opacity-80 border border-transparent";
 
@@ -333,26 +317,6 @@ let rowStyle = "opacity-80 border border-transparent";
     </div>
   );
 }
-
-
-// // Footer component
-// const Footer = ({ player1, player2, turn, status }: FooterProps): React.ReactElement => {
-//   return (
-//     <div className="mt-6 pt-4 border-t border-base-300 text-center text-sm">
-//       {status === "ongoing" ? (
-//         // ongoing: show the turn
-//         <>Turn: <span className="font-semibold text-primary">{turn === 'Black' ? player1.username : player2.username}</span></>
-//       ) : player1.score === player2.score ? (
-//         // tied: draw
-//         <span className="font=bold text-warning">DRAW</span>
-//       ) : ( // calculate and show winner
-//         <span className="font-bold text-success">
-//           WINNER: {player1.score > player2.score ? player1.username : player2.username}
-//         </span>
-//       )}
-//     </div>
-//   );
-// }
 
 const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
   const isFinished = game.status === "finished";
@@ -410,18 +374,42 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 
 // Helper function to filter games
 const getVisibleGames = (games: GameState[], currentTime: string): GameState[] => {
-  return games.filter((game) => {
-    if (game.status === "ongoing") return true;
+  return games
+    .filter((game) => {
+      // 1. Keep all ongoing games
+      if (game.status === "ongoing") return true;
 
-    if (game.status === "finished" && game.endedAt) {
-      const nowMs = new Date(currentTime).getTime();
-      const endedMs = new Date(game.endedAt).getTime();
-      const diffInMinutes = Math.floor((nowMs - endedMs) / 60000);
-      return diffInMinutes <= 10;
-    }
+      // 2. Keep finished game from less than 10min
+      if (game.status === "finished" && game.endedAt) {
+        const nowMs = new Date(currentTime).getTime();
+        const endedMs = new Date(game.endedAt).getTime();
+        const diffInMinutes = Math.floor((nowMs - endedMs) / 60000);
+        return diffInMinutes <= 10;
+      }
+      return false;
+    })
 
-    return false;
-  });
+    .sort((a, b) => {
+      // 1. Finished games last
+      // if 'a' is ongoing and 'b' is finished, 'a' goes first (-1)
+      if (a.status !== b.status) {
+        return a.status === "ongoing" ? -1 : 1;
+      }
+
+      // 2. Bot matches placeholder
+      const aIsBot = a.isBot || false;
+      const bIsBot = b.isBot || false;
+      if (a.status === "ongoing" && aIsBot !== bIsBot) {
+        return aIsBot ? 1 : -1; // Human (-1) comes before Bot (1)
+      }
+
+      // 3. Highest ELO
+      const aElo = a.player1.elo + a.player2.elo;
+      const bElo = b.player1.elo + b.player2.elo;
+
+      // Sort in descending order (highest ELO first)
+      return bElo - aElo;
+    });
 }
 
 /* --------------------------------------------------------------------------------------------- */
