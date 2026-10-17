@@ -188,11 +188,11 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   <>
     {/* Floating Top-Left: LIVE Badge */}
       <div className="absolute top-5 left-5 z-10">
-        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}> */}
-        <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge-error text-white" : "badge-neutral"}`}>
+        <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}>
+        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge-error text-white" : "badge-neutral"}`}> */}
         {status === "ongoing" && (
-          // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
+          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
+          // <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
         )}
         {status === "ongoing" ? "LIVE" : "FINISHED"}
         </div>
