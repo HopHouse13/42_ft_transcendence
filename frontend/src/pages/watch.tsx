@@ -29,6 +29,7 @@ export interface PlayerData {
   avatarUrl: string;
   color: string;
   score: number;
+  elo: number;
 }
 
 // Helper function that converts a text grid into your BoardState array
@@ -92,8 +93,8 @@ const FINISHED_BOARD_34_30 = createBoard(`
 const MOCK_LIVE_GAMES = [
   {
     id: "game-001",
-    player1: { username: "Alice_Pro", avatarUrl: "/api/avatars/alice.png", color: "Black", score: 34, },
-    player2: { username: "BobTheBuilder", avatarUrl: "/api/avatars/bob.png", color: "White", score: 30 },
+    player1: { username: "Alice_Pro", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Grandmaster", color: "Black", score: 34, elo: 2450, },
+    player2: { username: "BobTheBuilder", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=CornerTrapper", color: "White", score: 30, elo: 2310, },
     turn: "Black",
     spectators: 12,
     duration: "10:45",
@@ -103,8 +104,8 @@ const MOCK_LIVE_GAMES = [
   },
   {
     id: "game-002",
-    player1: { username: "Charlie", avatarUrl: "/api/avatars/charlie.png", color: "Black", score: 4 },
-    player2: { username: "Dave", avatarUrl: "/api/avatars/dave.png", color: "White", score: 1 },
+    player1: { username: "Charlie", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=BlackDisc", color: "Black", score: 4, elo: 2240, },
+    player2: { username: "Dave", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Flipper", color: "White", score: 1, elo: 2150, },
     turn: "White",
     spectators: 3,
     duration: "01:20",
@@ -114,8 +115,8 @@ const MOCK_LIVE_GAMES = [
   },
   {
     id: "game-003",
-    player1: { username: "Eve_Hacker", avatarUrl: "/api/avatars/eve.png", color: "Black", score: 40 },
-    player2: { username: "Frank", avatarUrl: "/api/avatars/frank.png", color: "White", score: 24 },
+    player1: { username: "Eve_Hacker", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Reversi", color: "Black", score: 40, elo: 2090, },
+    player2: { username: "Frank", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Tactical", color: "White", score: 24, elo: 2010, },
     turn: "Black",
     spectators: 45,
     duration: "15:30",
@@ -125,8 +126,8 @@ const MOCK_LIVE_GAMES = [
   },
     {
     id: "game-004",
-    player1: { username: "bobby", avatarUrl: "/api/avatars/bobby.png", color: "Black", score: 34 },
-    player2: { username: "scylla", avatarUrl: "/api/avatars/scylla.png", color: "White", score: 30 },
+    player1: { username: "bobby", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=NoPass", color: "Black", score: 34, elo: 1980, },
+    player2: { username: "scylla", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Edge", color: "White", score: 30, elo: 1920, },
     turn: "Black",
     spectators: 32,
     duration: "18:30",
@@ -183,73 +184,70 @@ const Title = (): React.ReactElement => {
 }
 
 // Status component
-const Status = ({ spectators, duration, status }: StatusProps): React.ReactElement => {
-  return (
-    <div className="flex justify-between items-center mb-6">
-      <div className={`badge gap-2 font-bold ${status === "ongoing" ? "badge" : "badge-neutral"}`}>
+const Status = ({ spectators, duration, status }: StatusProps): React.ReactElement => (
+  <>
+    {/* Floating Top-Left: LIVE Badge */}
+      <div className="absolute top-5 left-5 z-10">
+        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}> */}
+        <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge-error text-white" : "badge-neutral"}`}>
         {status === "ongoing" && (
-          <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+          // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
+          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
         )}
-
         {status === "ongoing" ? "LIVE" : "FINISHED"}
+        </div>
       </div>
-      <div className="text-sm text-base-content/70 flex items-center gap-1">
+
+
+      {/* Floating Top-Right: Stats */}
+      <div className="absolute top-5 right-5 z-10">
+      <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
         {status === "ongoing" ? (
           // if ongoing: show spectators and current duration
         <>
           <span>👁️ {spectators}</span>
-          <span className="mx-1">•</span>
-          <span>⏱️ {duration}</span>
+          <span className="opacity-50">•</span>
+          <span>⏳ {duration}</span>
         </>
         ) : (
           // if finished : hide spectators count, display game total duration
-          <span>⏱️ Total Duration: {duration}</span>
+          <span>⌛ {duration}</span>
         )}
       </div>
     </div>
-  );
-}
-
-// const BoardPreview = (): React.ReactElement => {
-//   return (
-//     // The main board wrapper (green background, square aspect ratio)
-//     <div className="aspect-square w-full max-w-xs mx-auto bg-green-800 rounded-lg p-1.5 grid grid-cols-8 gap-0.5 mb-6 shadow-inner border-2 border-base-300">
-
-//       {/* Generate 64 squares dynamically */}
-//       {Array.from({ length: 64 }).map((_, index) => {
-//         // Hardcode the 4 center starting pieces for the visual mockup
-//         const isWhite = index === 27 || index === 36;
-//         const isBlack = index === 28 || index === 35;
-
-//         return (
-//           <div key={index} className="w-full h-full bg-green-600 flex items-center justify-center rounded-sm">
-//             {isWhite && <div className="w-4/5 h-4/5 bg-white rounded-full shadow-sm"></div>}
-//             {isBlack && <div className="w-4/5 h-4/5 bg-neutral rounded-full shadow-sm border border-neutral-focus"></div>}
-//           </div>
-//         );
-//       })}
-//     </div>
-//   );
-// };
+  </>
+);
 
 // Player component
 const Player = ({ player, turn }: PlayerProps): React.ReactElement => (
   <div className="flex flex-col items-center gap-2 w-1/3">
+
+    {/* Avatar */}
     <div className={`avatar ${turn === player.color ? 'online' : ''}`}>
       <div className="w-16 h-16 rounded-full bg-neutral text-neutral-content ring ring-primary ring-offset-base-100 ring-offset-2">
         <img
           src={player.avatarUrl}
           alt={player.username}
-          onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${player.username}&background=random` }}
+          onError={(e) => { e.currentTarget.src = '/api/uploads/avatars/default.png' }}
         />
       </div>
     </div>
+
+    {/* Username */}
     <span className="font-bold truncate w-full text-center" title={player.username}>
       {player.username}
     </span>
-    <span className={`badge badge-sm ${player.color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
+
+    {/* Badges Container */}
+    <div className="flex flex-col items-center gap-1">
+      <span className={`badge badge-sm ${player.color === 'Black' ? 'badge-neutral' : 'badge-outline'}`}>
       {player.color}
-    </span>
+      </span>
+      {/* ELO Display inspired by Leaderboard & FriendCard */}
+      <span className="font-mono text-xs font-bold text-base-content/60">
+        {player.elo} ELO
+      </span>
+    </div>
   </div>
 );
 
@@ -286,13 +284,14 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
   return (
     <div
       onClick={() => onJoin(game.id)}
-      className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300"
-    >
-      <div className="card-body p-6">
+      className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300 overflow-hidden"
+      >
         {/* Card Header: Live indicator & Stats */}
+        <figure className="relative w-full p-0 border-b border-base-300">
         <Status spectators={game.spectators} duration={game.duration} status={game.status} />
 
-        <div className="w-full max-w-xs mx-auto mb-6 pointer-events-none">
+        {/* Board Preview */}
+        <div className="w-full pointer-events-none">
           <Board
             board={game.board} // Later, replace with game.board
             validMoves={[]}        // Empty array prevents move indicators
@@ -301,8 +300,11 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
           />
         </div>
 
+        </figure>
+
         {/* Card Middle: Score and Players Layout */}
-        <div className="flex justify-between items-center w-full">
+        <div className="card-body p-5">
+          <div className="flex justify-between items-center w-full">
           <Player player={game.player1} turn={game.turn} />
           <Score score1={game.player1.score} score2={game.player2.score} />
           <Player player={game.player2} turn={game.turn} />
