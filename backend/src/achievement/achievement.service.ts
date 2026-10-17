@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Game, GameStatus } from '@prisma/client';
+import { Game, GameStatus, Move } from '@prisma/client';
 import { achievementList } from './constants/achievementListe.constant';
 import { GameWithMoves } from './types/gameWithMoves.type';
-import { boolean } from 'joi';
 
 @Injectable()
 export class AchievementService
@@ -74,6 +73,9 @@ export class AchievementService
 			}
 		)
 
+		if ( !game.moves.length ) // une game avec zero coup joué ne doit pas etre evaluée
+			return ( [] );
+
 		for ( const userId of [ game.blackPlayerId, game.whitePlayerId ]) // calcul pour les deux users
 		{
 			const	unlockedBefore: Readonly<string[]> = ( await this.prisma.achievement.findMany( // genere une array string d'id de achiev. unlocked du user
@@ -95,7 +97,7 @@ export class AchievementService
 			const	unlockedAfter: string[] = []; // tableau des achievments debloqués pour cette partie
 
 			for ( const achievId of lockedBefore ) // boucle sur tous les achievement bloqués de la liste
-				if( await this.isUnlocked_( achievId, game, userId )) // si true -> rajoue d'un nouveau element avec l'id du achievement debloqué
+				if ( await this.isUnlocked_( achievId, game, userId )) // si true -> rajoue d'un nouveau element avec l'id du achievement debloqué
 					unlockedAfter.push( achievId );
 		}
 	}
@@ -112,21 +114,21 @@ export class AchievementService
 			case 'brd_corner':			return ( this.brd_corner( game, userId ));
 			case 'brd_4corners':		return ( this.brd_4corners( game, userId ));
 			case 'brd_edges':			return ( this.brd_edges( game, userId ));
-			//case 'mov_flip10':			return ( this.mov_flip10( game, userId ));
-			//case 'mov_pass1':			return ( this.mov_pass1( game, userId ));
-			//case 'mov_pass3':			return ( this.mov_pass3( game, userId ));
-			//case 'win_close':			return ( this.win_close( game, userId ));
-			//case 'win_blowout':			return ( this.win_blowout( game, userId ));
-			//case 'win_wipeout':			return ( this.win_wipeout( game, userId ));
-			//case 'win_comeback':		return ( this.win_comeback( game, userId ));
-			//case 'win_3corners_down':	return ( this.win_3corners_down( game, userId ));
-			//case 'stk_win5':			return ( this.stk_win5( game, userId ));
-			//case 'cum_win50':			return ( this.cum_win50( game, userId ));
-			//case 'soc_rival10':			return ( this.soc_rival10( game, userId ));
-			//case 'elo_1200':			return ( this.elo_1200( game, userId ));
-			//case 'elo_1500':			return ( this.elo_1500( game, userId ));
-			//case 'elo_1800':			return ( this.elo_1800( game, userId ));
-			//case 'elo_giant_slayer':	return ( this.elo_giant_slayer( game, userId ));
+			case 'mov_flip10':			return ( this.mov_flip10( game, userId ));
+			case 'mov_pass1':			return ( this.mov_pass1( game, userId ));
+			case 'mov_pass3':			return ( this.mov_pass3( game, userId ));
+			case 'win_close':			return ( this.win_close( game, userId ));
+			case 'win_blowout':			return ( this.win_blowout( game, userId ));
+			case 'win_wipeout':			return ( this.win_wipeout( game, userId ));
+			case 'win_comeback':		return ( this.win_comeback( game, userId ));
+			case 'win_3corners_down':	return ( this.win_3corners_down( game, userId ));
+			case 'stk_win5':			return ( this.stk_win5( game, userId ));
+			case 'cum_win50':			return ( this.cum_win50( game, userId ));
+			case 'soc_rival10':			return ( this.soc_rival10( game, userId ));
+			case 'elo_1200':			return ( this.elo_1200( game, userId ));
+			case 'elo_1500':			return ( this.elo_1500( game, userId ));
+			case 'elo_1800':			return ( this.elo_1800( game, userId ));
+			case 'elo_giant_slayer':	return ( this.elo_giant_slayer( game, userId ));
 
 			default:					return( false );
 		}
@@ -175,10 +177,7 @@ export class AchievementService
 
 	private brd_corner( game: GameWithMoves, userId: string ) // 0,7,56,63  // B W -
 	{
-		const	board: string | undefined = game.moves.at( -1 )?.boardAfter;
-		
-		if ( !board )
-			return ( false );
+		const	board: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
@@ -189,10 +188,7 @@ export class AchievementService
 
 	private brd_4corners( game: GameWithMoves, userId: string )
 	{
-		const	board: string | undefined = game.moves.at( -1 )?.boardAfter;
-		
-		if ( !board )
-			return ( false );
+		const	board: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
@@ -205,10 +201,7 @@ export class AchievementService
 
 	private brd_edges( game: GameWithMoves, userId: string )
 	{
-		const	board: string | undefined = game.moves.at( -1 )?.boardAfter;
-
-		if ( !board )
-			return ( false );
+		const	board: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W'; // marqueurs de couleurs sur boardAfer en db
 
@@ -219,25 +212,28 @@ export class AchievementService
 
 	///
 
-	//private mov_flip10( game: GameWithMoves, userId: string )
-	//{
+	private mov_flip10( game: GameWithMoves, userId: string )
+	{
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE';
 
-	//}
+		for ( let idx: number = game.moves.length - 1; idx > 0; idx-- )
+		{
+			const	move: Move = game.moves[ idx ];
+			const	prev: Move = game.moves[ idx - 1 ];
+
+			if ( move.Color !== myColor )
+				continue;
+
+			const	pointsNb: number = ( myColor === 'BLACK' ) ? move.blackScore - prev.blackScore - 1 : move.whiteScore - prev.whiteScore - 1;
+
+			if ( pointsNb >= 10 )
+				return ( true );
+		}
+
+		return ( false );
+	}
 
 	///
-
-	//private mov_pass1( game: GameWithMoves, userId: string )
-	//{
-	//	const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
-		
-	//	for ( const move of game.moves )
-	//	{
-	//		if ( move.Color !== myColor && move.position === null )
-	//			return ( true );
-	//	}
-
-	//	return ( false );
-	//}
 
 	private mov_pass1( game: GameWithMoves, userId: string )
 	{
@@ -260,24 +256,6 @@ export class AchievementService
 	}
 
 	///
-
-	//private mov_pass3( game: GameWithMoves, userId: string )
-	//{
-	//	const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
-	//	let		passCount: number = 0;
-
-	//	for ( const move of game.moves )
-	//	{
-	//		if ( move.Color !== myColor && move.position === null )
-	//		{
-	//			passCount++;
-
-	//			if ( passCount >= 3 )
-	//				return ( true );
-	//		}
-	//	}
-	//	return ( false );
-	//}
 
 	private mov_pass3( game: GameWithMoves, userId: string )
 	{
@@ -303,6 +281,73 @@ export class AchievementService
 
 		return ( false );
 	}
+
+	///
+
+	private win_close( game: GameWithMoves, userId: string )
+	{
+		if ( game.winnerId !== userId )
+			return ( false );
+
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE';
+		const	gap: number = ( myColor === 'BLACK' ) ? ( game.blackScore! - game.whiteScore! ) : ( game.whiteScore! - game.blackScore! );
+
+		return ( gap >= 1 && gap <= 2 );
+	}
+
+	///
+
+	private win_blowout( game: GameWithMoves, userId: string )
+	{
+		if ( game.winnerId !== userId )
+			return ( false );
+
+		const	myScore: number = ( game.blackPlayerId === userId ) ? game.blackScore! : game.whiteScore!;
+
+		return ( myScore >= 50 );
+	}
+
+	///
+
+	private win_wipeout( game: GameWithMoves, userId: string )
+	{
+		if ( game.winnerId !== userId )
+			return ( false );
+
+		const	lastBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
+		const	opponentColor: string = game.blackPlayerId === userId ? 'W' : 'B';
+
+		return ( ![ ...lastBoard ].some(( letter ) => letter === opponentColor ));
+	}
+
+	///
+
+	private win_comeback( game: GameWithMoves, userId: string )
+	{
+		if( game.winnerId !== userId )
+			return ( false );
+
+		const	moves: Move[] = game.moves;
+		const	isBlack: boolean = ( game.blackPlayerId === userId );
+
+		for( const move of moves )
+		{
+			const	myScore: number  = isBlack ? move.blackScore : move.whiteScore;
+			const	oppScore: number = isBlack ? move.whiteScore : move.blackScore;
+
+			if ( oppScore - myScore >= 15 )
+				return ( true );
+		}
+
+		return ( false );
+	}
+
+	///
+
+	private win_3corners_down(  game: GameWithMoves, userId: string )
+	{
+		
+	}
 }
 
 /*
@@ -327,15 +372,15 @@ win_both_sides		Ambidextre					Gagne une partie avec les Noirs et une partie ave
 brd_corner			Investisseur immobilier		Prends ton premier coin du plateau.
 brd_4corners		Monopole des coins			Contrôle les 4 coins à la fin de la partie.
 brd_edges			Résidence sécurisée			Verrouille chaque case du bord avec ta couleur.
-* mov_flip10			Effet domino				Retourne 10 pions ou plus en un seul coup.
--> mov_pass1			Accès refusé				Force ton adversaire à passer son tour.
--> mov_pass3			Tu es viré !				Force ton adversaire à passer son tour au moins 3 fois dans une même partie.
-
+mov_flip10			Effet domino				Retourne 10 pions ou plus en un seul coup.
+mov_pass1			Accès refusé				Force ton adversaire à passer son tour.
+mov_pass3			Tu es viré !				Force ton adversaire à passer son tour au moins 3 fois dans une même partie.
 win_close			Au poil						Gagne une partie avec 2 pions d’écart ou moins.
 win_blowout			Aucune chance				Gagne largement avec plus de 50 pions sur le plateau.
 win_wipeout			Table rase					Efface tous les pions de ton adversaire du plateau avant la fin.
 win_comeback		Retour d’entre les morts	Remonte et gagne après avoir été mené de 15 pions ou plus.
 win_3corners_down	Contre toute attente		Gagne alors que ton adversaire a contrôlé 3 coins pendant la partie.
+
 stk_win5			En feu						Enchaîne 5 victoires classées d’affilée.
 cum_win50			Heures sup					Atteins 50 victoires au total sur la plateforme.
 soc_rival10			Rivalité lancée				Joue 10 parties contre le même joueur de ta liste d’amis.

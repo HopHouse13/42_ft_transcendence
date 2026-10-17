@@ -111,10 +111,10 @@ model Move {
 	moveNumber		Int @map( "move_number" )
 
 	Color			PlayerColor @map( "color_player" )
-	position		Int? // peut etre null si pass
+	position		Int // peut etre null si pass
 
-	blackScore		Int? @map( "black_score" )
-	whiteScore		Int? @map( "white_score" )
+	blackScore		Int @map( "black_score" )
+	whiteScore		Int @map( "white_score" )
 
 	boardAfter		String @db.Char( 64 ) @map( "board_after" )
 
