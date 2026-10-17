@@ -36,9 +36,9 @@ export function ChatRoom({ roomId = "room-demo" }: ChatRoomProps ) {
   };
 
 return (
-    <div className="flex flex-col h-[450px] w-full max-w-sm bg-white border border-gray-100 rounded-2xl shadow-sm text-sm">
+    <div className="flex flex-col h-[480px] w-full max-w-sm bg-stone-300 border border-gray-400 rounded-2xl shadow-sm text-sm">
       {/* En-tête avec voyant d'état */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div className="px-4 py-3 border-b border-gray-400 flex items-center justify-between ">
         <span className="font-medium text-gray-500 text-xs tracking-wider uppercase">
           Discussion ({roomId})
         </span>
@@ -46,7 +46,7 @@ return (
       </div>
 
       {/* Zone de messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-white">
+      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-stone-200">
         { (messages.length === 0) ? ( <div className="h-full flex items-center justify-center text-xs text-gray-400"> Aucun message pour le moment.</div> ) : ( messages.map((msg) => { const isMe = msg.userId === currentUserId;
 
             return (
@@ -55,7 +55,7 @@ return (
                 <div className="text-[10px] text-gray-400 mb-0.5 px-1">
                   {isMe ? "Vous" : (msg.userName ? msg.userName : "Inconnu")}
                 </div>
-                <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-xs leading-relaxed ${ (isMe )? "bg-blue-500 text-white rounded-br-xs" : "bg-gray-100 text-gray-700 rounded-bl-xs"}`} >
+                <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-xs leading-relaxed ${(isMe) ? "bg-blue-600/80 text-stone-100 rounded-br-xs" : "bg-stone-500 text-stone-100 rounded-bl-xs"}`} >
                   {msg.text}
                 </div>
               </div>
@@ -67,9 +67,9 @@ return (
       </div>
 
       {/* Formulaire de saisie */}
-      <form onSubmit={handleSubmit} className="p-2.5 border-t border-gray-100 flex items-center gap-2 bg-gray-50/30" >
+      <form onSubmit={handleSubmit} className="p-2.5 border-t border-gray-400 flex items-center gap-2" >
         <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isConnected ? "Écrire un message..." : "Connexion en cours..."} disabled={!isConnected} className="input input-sm flex-1 bg-gray-100/80 border-none focus:outline-none focus:bg-gray-100 text-gray-800 placeholder-gray-400 text-xs rounded-xl" />
-        <button type="submit" disabled={!isConnected || !input.trim()} className="btn btn-sm btn-ghost btn-circle text-blue-500 hover:bg-blue-50 disabled:bg-transparent disabled:text-gray-300"> ➔ </button>
+        <button type="submit" disabled={!isConnected || !input.trim()} className="btn btn-sm btn-ghost btn-circle text-blue-500 hover:bg-blue-50 disabled:bg-transparent disabled:text-gray-400"> ➔ </button>
       </form>
     </div>
   );
