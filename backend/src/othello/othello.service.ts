@@ -392,6 +392,8 @@ export class    OthelloService  {
                         moveNumber: currentMoveNumber, // 👈 S'incrémente proprement : 1, 2, 3...
                         Color: player.color as any,
                         position: positionIndex,
+						blackScore,
+						whiteScore,
                         boardAfter: boardAfterString,
                     }
                 });
@@ -411,14 +413,14 @@ export class    OthelloService  {
                             blackScore: blackScore,
                             whiteScore: whiteScore,
                             winnerId: winnerId,
-                            currentPlayer: nextTurnPlayer as any,
+                            nextPlayer: nextTurnPlayer as any,
                         }
                     });
                 } else {
                     await tx.game.update({
                         where: { id: gameId },
                         data: {
-                            currentPlayer: nextTurnPlayer as any,
+                            nextPlayer: nextTurnPlayer as any,
                         }
                     });
                 }
@@ -463,8 +465,8 @@ export class    OthelloService  {
                 where: { id: gameId },
                 data: {
                     status: 'FINISHED', // ou 'ABANDONED' si ton enum Prisma le supporte
-                    blackScore: blackScore,
-                    whiteScore: whiteScore,
+                    blackScore,
+                    whiteScore,
                     winnerId: winnerId, // L'adversaire gagne quoi qu'il arrive
                 }
             });
