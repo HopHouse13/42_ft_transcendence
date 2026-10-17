@@ -11,3 +11,10 @@ export function toClientCell(cell: ServerCell): Cell {
         return null;
     return (cell);
 }
+
+export function toClientBoard(cells: ServerCell[]): Cell[] {
+    const clientBoard = cells.map((cell) => toClientCell(cell));
+    return (
+        clientBoard
+    );
+}
