@@ -203,11 +203,26 @@ export class AchievementService
 		if ( !board )
 			return ( false );
 
-		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W'; // marqueurs de couleurs sur boardAfer en db
 
 		const	edgeCount: number = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 16, 23, 24, 31, 32, 39, 40, 47, 48, 55, 56, 57, 58, 59, 60, 61, 62, 63 ].filter(( idx ) =>  board[ idx ] === myColor ).length;
 
 		return ( edgeCount === 28 );
+	}
+
+	///
+
+	private mov_pass1( game: GameWithMoves, userId: string )
+	{
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
+		
+		for( const move of game.moves )
+		{
+			if ( move.Color !== myColor && move.position === null )
+				return ( true );
+		}
+
+		return ( false );
 	}
 }
 
@@ -233,9 +248,9 @@ win_both_sides		Ambidextre					Gagne une partie avec les Noirs et une partie ave
 brd_corner			Investisseur immobilier		Prends ton premier coin du plateau.
 brd_4corners		Monopole des coins			Contrôle les 4 coins à la fin de la partie.
 brd_edges			Résidence sécurisée			Verrouille chaque case du bord avec ta couleur.
-mov_flip10			Effet domino				Retourne 10 pions ou plus en un seul coup.
-
+* mov_flip10			Effet domino				Retourne 10 pions ou plus en un seul coup.
 mov_pass1			Accès refusé				Force ton adversaire à passer son tour.
+
 mov_pass3			Tu es viré !				Force ton adversaire à passer son tour au moins 3 fois dans une même partie.
 win_close			Au poil						Gagne une partie avec 2 pions d’écart ou moins.
 win_blowout			Aucune chance				Gagne largement avec plus de 50 pions sur le plateau.
