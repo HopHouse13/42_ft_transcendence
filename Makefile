@@ -6,7 +6,7 @@ $(NAME): up
 
 up: check-env check-ssl
 	$(COMPOSE) up -d --build
-	$(COMPOSE) logs -f
+	-$(COMPOSE) logs -f
 
 check-env:
 	@if [ ! -f .env ]; then \
@@ -31,8 +31,7 @@ down:
 clean: down
 
 fclean:
-	$(COMPOSE) down -v
-	docker system prune -af
+	$(COMPOSE) down -v --rmi all
 	@echo "⚠️ Warning: all containers, images, and named database volumes have been wiped ⚠️"
 
 re: fclean all
