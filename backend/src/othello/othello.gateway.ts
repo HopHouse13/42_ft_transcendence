@@ -19,246 +19,260 @@ import { MoveDto } from './dto/play-move.dto';
 
 /* -------------------------------------------------------------------------- */
 
-interface JoinGamePayload {
-    gameId:   string;
-    userId:   string;
-}
-
-interface PlayMovePayload {
-    gameId:   string;
-    userId?:  string;   // ignoré : on utilise l'userId du handshake (non falsifiable par le message)
-    move:     MoveDto;
-}
-
-/* -------------------------------------------------------------------------- */
-
-// Namespace par défaut ('/') : le front fait io(window.location.origin)
-// à restreindre en prod (ton front uniquement)
 @WebSocketGateway({ cors: { origin: '*' } })
 export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     @WebSocketServer() server: Server;
-
-    private readonly disconnectTimers = new Map<string, NodeJS.Timeout>();
-    // userId -> ids des sockets ouverts (évite un forfait à tort pendant un reload)
-    private readonly socketsByUser = new Map<string, Set<string>>();
-    // file d'attente du matchmaking (un seul joueur en attente à la fois)
-    private waiting: { userId: string; client: Socket } | null = null;
-
     constructor(private readonly othelloService: OthelloService) {}
 
     /* -------------------------------------------------------------------------- */
     /*  Connexion / déconnexion                                                   */
     /* -------------------------------------------------------------------------- */
 
-    async handleConnection(client: Socket) {
-        const userId = client.handshake.query.userId as string | undefined;
-        if (!userId) {
-            client.disconnect();
-            return;
-        }
-        client.data.userId = userId;
-
-        const sockets = this.socketsByUser.get(userId) ?? new Set<string>();
-        sockets.add(client.id);
-        this.socketsByUser.set(userId, sockets);
-
-        // annule le forfait programmé si le joueur revient à temps
-        const timer = this.disconnectTimers.get(userId);
-        if (timer) { clearTimeout(timer); this.disconnectTimers.delete(userId); }
-
-        // reload : on lui renvoie sa partie en cours
-        const state = this.othelloService.getActiveGameState(userId);
-        if (!state) return;
-
-        client.join(state.gameId);
-        this.othelloService.markConnected(state.gameId, userId);
-        client.emit('gameState', state);
-
-        // partie bot : si c'était au bot de jouer au moment du reload
-        if (state.mode === 'BOT' && this.othelloService.isBotTurn(state.gameId)) {
-            await this.runBotTurn(state.gameId);
-        }
+    handleConnection(client: Socket) {
+        console.log(`${new Date().toISOString()} by: client Conect(${client.id}) to: Othello engine`);
     }
 
     handleDisconnect(client: Socket) {
-        // il quitte la file d'attente s'il y était
-        if (this.waiting?.client.id === client.id) this.waiting = null;
-
-        const userId = client.data.userId as string | undefined;
-        if (!userId) return;
-
-        // Un autre socket du même joueur est encore ouvert (ex: reload) : rien à faire
-        const sockets = this.socketsByUser.get(userId);
-        sockets?.delete(client.id);
-        if (sockets && sockets.size > 0) return;
-        this.socketsByUser.delete(userId);
-
-        const state = this.othelloService.getActiveGameState(userId);
-        if (!state) return;
-
-        this.othelloService.markDisconnected(state.gameId, userId);
-
-        // Partie bot : elle reste en attente, pas de forfait
-        if (state.mode === 'BOT') return;
-
-        // Dans handleDisconnect (othello.gateway.ts)
-        const timer = setTimeout(async () => {
-            const finalState = await this.othelloService.forfeit(state.gameId, userId);
-            if (finalState) this.server.to(state.gameId).emit('gameState', finalState);
-            this.disconnectTimers.delete(userId);
-        }, 30_000);
-        this.disconnectTimers.set(userId, timer);
+        console.log(`${new Date().toISOString()} by: client Disconect(${client.id}) to: Othello engine`);
     }
 
     /* -------------------------------------------------------------------------- */
-    /*  Création de parties                                                       */
+    /*  Mode Local                                                                */
+    /* -------------------------------------------------------------------------- */
+
+    @SubscribeMessage('crateLocal')
+    handleLocalCreateGame(@ConnectedSocket() client: Socket) {
+        const userId = client.data.userId as string;
+        const gameId = this.othelloService.localCreateGame(userId);
+        
+        client.join(gameId);
+        const initialState = this.othelloService.getGameState(gameId);
+        client.emit('gameState', initialState);
+    }
+
+    @SubscribeMessage('localplayMove') 
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    handleLocalPlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
+        try {
+            const updatedState = this.othelloService.localPlayMove(payload.gameId, payload.move);
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error: any) {
+            client.emit('moveRejected', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('localGiveUp')
+    handleLocalGiveUp( @MessageBody() payload: { gameId: string; color: string }, @ConnectedSocket() client: Socket ) {
+        try {
+            const updatedState = this.othelloService.localGiveUp(payload.gameId, payload.color as any);
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /*  Mode Bot                                                                  */
     /* -------------------------------------------------------------------------- */
 
     @SubscribeMessage('createBotGame')
-    handleCreateBotGame(@ConnectedSocket() client: Socket) {
-        const userId = client.data.userId as string;
-        if (this.resumeIfActive(client, userId)) return;
-
-        // l'humain est BLACK et commence : le bot n'a rien à jouer tout de suite
-        const state = this.othelloService.createLocalGame(userId);
-        client.join(state.gameId);
-        client.emit('matchFound', state);
-    }
-
-    @SubscribeMessage('findMatch')
-    async handleFindMatch(@ConnectedSocket() client: Socket) {
-        const userId = client.data.userId as string;
-        if (this.resumeIfActive(client, userId)) return;
-
-        // personne en attente (ou c'est le même joueur dans un autre onglet) : on attend
-        if (!this.waiting || this.waiting.userId === userId) {
-            this.waiting = { userId, client };
-            client.emit('waiting', { roomId: client.id });
-            return;
-        }
-
-        // un adversaire attend : on crée la partie (premier arrivé = BLACK)
-        const opponent = this.waiting;
-        this.waiting = null;
-
+    async handleCreateBotGame( @MessageBody() payload: { color?: 'BLACK' | 'WHITE' }, @ConnectedSocket() client: Socket ) {
         try {
-            const state = await this.othelloService.createGame(opponent.userId, userId);
-            opponent.client.join(state.gameId);
-            client.join(state.gameId);
-            this.server.to(state.gameId).emit('matchFound', state);
-        } catch (err) {
-            opponent.client.emit('gameError', { message: err.message });
-            client.emit('gameError', { message: err.message });
-        }
-    }
+            const userId = client.data.userId as string;
+            const chosenColor = payload?.color || 'BLACK'; 
+            
+            const gameId = this.othelloService.computeCreateGame(userId, chosenColor);
+            client.join(gameId);
 
-    /* -------------------------------------------------------------------------- */
-    /*  Jouer un coup                                                             */
-    /* -------------------------------------------------------------------------- */
+            const initialState = this.othelloService.getGameState(gameId);
+            client.emit('gameState', initialState);
 
-    @SubscribeMessage('playMove') @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-    async handlePlayMove(@MessageBody() payload: PlayMovePayload, @ConnectedSocket() client: Socket) {
-        const userId = client.data.userId as string;   // jamais celui du message
-        const { gameId, move } = payload;
+            if (chosenColor === 'WHITE') {
+                this.server.to(gameId).emit('botThinking', { gameId });
 
-        try {
-            const result = this.othelloService.playMove(gameId, userId, move);
-            this.server.to(gameId).emit('moveApplied', result);
-        } catch (err) {
-            // seul celui qui a joué reçoit l'erreur
-            client.emit('moveRejected', { message: err.message });
-            return;
-        }
-
-        // partie bot : c'est maintenant au bot de jouer
-        if (this.othelloService.isBotTurn(gameId)) {
-            await this.runBotTurn(gameId);
-        }
-    }
-
-    /* -------------------------------------------------------------------------- */
-    /*  Utilitaires                                                               */
-    /* -------------------------------------------------------------------------- */
-
-    /** Fait jouer le bot et diffuse l'état complet (le front masque "botThinking" à la réception). */
-    private async runBotTurn(gameId: string): Promise<void> {
-        this.server.to(gameId).emit('botThinking');
-        try {
-            const state = await this.othelloService.playBotTurn(gameId);
-            if (state) this.server.to(gameId).emit('gameState', state);
-        } catch (err) {
-            this.server.to(gameId).emit('botError', { message: err.message });
-        }
-    }
-
-    /** Si le joueur a déjà une partie en cours, on la lui renvoie au lieu d'en créer une autre. */
-    private resumeIfActive(client: Socket, userId: string): boolean {
-        const active = this.othelloService.getActiveGameState(userId);
-        if (!active) return false;
-
-        client.join(active.gameId);
-        client.emit('gameState', active);
-        return true;
-    }
-
-    /** Si un jouer decide de give up */
-    @SubscribeMessage('forfeit')
-    async handleForfeit( @MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket ) { 
-        
-        const userId = client.data.userId as string;
-        const { gameId } = payload;
-
-        try {
-        
-            const finalState = await this.othelloService.forfeit(gameId, userId);
-            if (finalState) {
-
-                this.server.to(gameId).emit('gameState', finalState);
+                setTimeout(async () => {
+                    try {
+                        const updatedState = await this.othelloService.botPlayTurn(gameId);
+                        this.server.to(gameId).emit('gameState', updatedState);
+                    } catch (botError: any) {
+                        this.server.to(gameId).emit('botError', { message: botError.message });
+                    }
+                }, 800);
             }
-        
-        } catch (err) {
-            client.emit('gameError', { message: err.message });
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
         }
     }
 
-    /* -------------------------------------------------------------------------- */
-    /*  Anciens events (inchangés)                                                */
-    /* -------------------------------------------------------------------------- */
+    @SubscribeMessage('computePlayMove')
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    async handleComputePlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
+        try {
+            const userId = client.data.userId as string;
+            
+            const humanState = await this.othelloService.humanPlayMove(payload.gameId, payload.move, userId);
+            this.server.to(payload.gameId).emit('gameState', humanState);
 
-    @SubscribeMessage('stateGame')
-    async handleStateGame(@MessageBody() gameId: string) {
-        const state = await this.othelloService.getState(gameId);
-        this.server.to(gameId).emit('gameState', state);
+            if (humanState.status === 'FINISHED') return;
+
+            this.server.to(payload.gameId).emit('botThinking', { gameId: payload.gameId });
+
+            setTimeout(async () => {
+                try {
+                    const finalState = await this.othelloService.botPlayTurn(payload.gameId);
+                    this.server.to(payload.gameId).emit('gameState', finalState);
+                } catch (botError: any) {
+                    this.server.to(payload.gameId).emit('botError', { message: botError.message });
+                }
+            }, 700);
+
+        } catch (error: any) {
+            client.emit('moveRejected', { message: error.message });
+        }
     }
 
-    @SubscribeMessage('joinGame')
-    async handleJoinGame( @MessageBody() payload: string | JoinGamePayload, @ConnectedSocket() client: Socket ) { 
-        
-        const gameId = typeof payload === 'string' ? payload : payload?.gameId;
-        if (!gameId) return;
+    @SubscribeMessage('botGiveUp')
+    handleBotGiveUp(@MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket) {
+        try {
+            const updatedState = this.othelloService.botGiveUp(payload.gameId);
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+    
+    /* -------------------------------------------------------------------------- */
+    /*  Mode Online (Matchmaking & PvP réseau)                                    */
+    /* -------------------------------------------------------------------------- */
 
-        const isAlreadyInRoom = client.rooms.has(gameId);
-        client.join(gameId);
+    @SubscribeMessage('joinOnlineQueue')
+    async handleJoinOnlineQueue( @MessageBody() payload: { color?: 'BLACK' | 'WHITE' }, @ConnectedSocket() client: Socket ) {
+        try {
+            const userId = client.data.userId || client.handshake.query.userId as string;
+            if (!userId) {
+                client.emit('gameError', { message: 'Utilisateur non authentifié' });
+                return;
+            }
 
-        // Ne renvoie le gameState que si la socket n'était PAS encore dans la room
-        if (!isAlreadyInRoom) {
+            const hostPlayer = {
+                userId,
+                socketId: client.id,
+                color: payload?.color,
+            };
+
+            const result = await this.othelloService.OnlineCreateGame(hostPlayer);
+
+            if (result.roomStatus === 'waiting') {
+                // Le premier joueur rejoint sa room d'attente
+                client.join(result.roomId!);
+                client.emit('waitingForOpponent', { roomId: result.roomId });
+            } else if (result.roomStatus === 'ready' && result.gameId) {
+                // Le second joueur rejoint la room d'attente pour récupérer son ID
+                client.join(result.roomId!);
+                
+                // Récupération de l'état du jeu créé
+                const gameState = this.othelloService.getGameState(result.gameId);
+
+                // 🔑 CORRECTION CRUCIALE : 
+                // On fait joindre la nouvelle room de jeu (gameId) aux deux sockets présents dans la room d'attente, 
+                // OU on diffuse directement à toute la room d'attente (résultat.roomId) pour que player1 ET player2 soient notifiés !
+                
+                // Fait basculer tout le monde de la room d'attente vers la room du jeu
+                this.server.to(result.roomId!).emit('matchFound', gameState);
+                
+                // Optionnel : faire rejoindre explicitement les clients à la room du jeu
+                const socketsInRoom = await this.server.in(result.roomId!).fetchSockets();
+                for (const s of socketsInRoom) {
+                    s.join(result.gameId);
+                }
+            }
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('onlinePlayMove')
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    async handleOnlinePlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
+        try {
+            const userId = client.data.userId || client.handshake.query.userId as string;
+            const updatedState = await this.othelloService.onlinePlayMove(payload.gameId, payload.move, userId);
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error: any) {
+            client.emit('moveRejected', { message: error.message });
+        }
+    }
+
+    @SubscribeMessage('onlineGiveUp')
+    async handleOnlineGiveUp( @MessageBody() payload: { gameId: string }, @ConnectedSocket() client: Socket ) {
+        try {
+            const userId = client.data.userId || client.handshake.query.userId as string;
+            const updatedState = await this.othelloService.onlineGiveUp(payload.gameId, userId);
+            this.server.to(payload.gameId).emit('gameState', updatedState);
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+    
+    /* -------------------------------------------------------------------------- */
+    /*  Mode Bot Stream (Bot vs Bot)                                              */
+    /* -------------------------------------------------------------------------- */
+
+    @SubscribeMessage('createBotStreamGame')
+    async handleCreateBotStreamGame(@ConnectedSocket() client: Socket) {
+        try {
+            const gameId = this.othelloService.createBotVsBotGame();
+            client.join(gameId);
+
+            const initialState = this.othelloService.getGameState(gameId);
+            client.emit('gameState', initialState);
+
+            this.runBotStreamLoop(gameId);
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
+        }
+    }
+
+    private runBotStreamLoop(gameId: string) {
+        const interval = setInterval(async () => {
             try {
-                const state = await this.othelloService.getState(gameId);
-                client.emit('gameState', state);
-            } catch (err) {
-                client.emit('gameError', { message: err.message });
+                const state = this.othelloService.getGameState(gameId);
+                
+                if (state.status === 'FINISHED') {
+                    clearInterval(interval);
+                    return;
+                }
+
+                this.server.to(gameId).emit('botThinking', { gameId });
+
+                setTimeout(async () => {
+                    const updatedState = await this.othelloService.botVsBotPlayTurn(gameId);
+                    this.server.to(gameId).emit('gameState', updatedState);
+                    
+                    if (updatedState.status === 'FINISHED') {
+                        clearInterval(interval);
+                    }
+                }, 800);
+
+            } catch (error) {
+                clearInterval(interval);
             }
-        }
+        }, 2000);
     }
+        
+    /* -------------------------------------------------------------------------- */
+    /*  Gestion globale de l'état (Reconnexion / F5)                              */
+    /* -------------------------------------------------------------------------- */
 
-    @SubscribeMessage('leaveGame')
-    handleLeaveGame(@MessageBody() payload: { gameId: string; userId: string }, @ConnectedSocket() client: Socket) {
-        const { gameId, userId } = payload;
-
-        this.othelloService.markDisconnected(gameId, userId);
-        client.leave(gameId);
-
-        this.server.to(gameId).emit('playerLeft', { userId });
+    @SubscribeMessage('getGameState')
+    handleGetGameState( @ConnectedSocket() client: Socket, @MessageBody() data: { gameId: string } ) {
+        try {
+            const state = this.othelloService.getGameState(data.gameId);
+            client.join(data.gameId);
+            client.emit('gameState', state);
+        } catch (error: any) {
+            client.emit('gameError', { message: error.message });
+        }
     }
 }

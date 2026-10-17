@@ -1,0 +1,27 @@
+name: Discord Push Notifications v2
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Send Discord Notification
+        if: toJson(github.event.commits) != '[]'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          COMMITS_JSON: ${{ toJson(github.event.commits) }}
+          ACTOR: ${{ github.actor }}
+          REF_NAME: ${{ github.ref_name }}
+          COMPARE_URL: ${{ github.event.compare }}
+        run: |
+          chmod +x .github/scripts/discord-notify.sh
+          .github/scripts/discord-notify.sh

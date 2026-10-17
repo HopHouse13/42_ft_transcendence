@@ -51,16 +51,21 @@ const Header = () => {
 					onClick={closeMobileMenu}
 					className={NAV_BUTTON_CLASS}
 				>
-					My Profile
+					Profile
 				</NavLink>
-			</li>
-			<li>
 				<NavLink
 					to="/achievements"
 					onClick={closeMobileMenu}
 					className={NAV_BUTTON_CLASS}
 				>
-					My Achievements
+					Achievements
+				</NavLink>
+				<NavLink
+					to="/friend"
+					onClick={closeMobileMenu}
+					className={NAV_BUTTON_CLASS}
+				>
+					Friends
 				</NavLink>
 			</li>
 			<li>

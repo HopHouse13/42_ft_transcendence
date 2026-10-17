@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { HealthModule } from './health/health.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -16,12 +17,8 @@ import { AchievementModule } from './achievement/achievement.module';
 
 @Module({
   imports: [
-    PrometheusModule.register({
-      path: '/metrics',
-      defaultMetrics: {
-        enabled: true, // Automatically tracks Node.js CPU, RAM, event loop lag, and garbage collection
-      },
-    }),
+    MonitoringModule,
+    HealthModule,
     PrismaModule,
     UserModule,
     OthelloModule,

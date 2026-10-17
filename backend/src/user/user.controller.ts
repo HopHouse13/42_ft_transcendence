@@ -3,7 +3,6 @@ import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../common/guards/jwt.guard';
-import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { avatarUploadOptions } from './avatar-upload.config';
 import { UserUpdate } from './interfaces/user.interface';
@@ -61,13 +60,13 @@ export class UserController
 
 	///
 
-	@Delete( ':id' ) // associe la méthode HTTP DELETE sur /users/:id à la méthode remove()
-	remove( @Req() request, @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id du user dans l'url
+	@Delete( ':id' ) // associe la méthode HTTP DELETE sur /users/:id à la méthode delete()
+	delete( @Req() request, @Param( 'id', ParseUUIDPipe ) id: string ) // récupère l'id du user dans l'url
 	{
 		if ( request.user.id !== id )
 			throw new ForbiddenException( 'you can only delete your own account' );
 
-		return( this.usersService.remove( id ));
+		return( this.usersService.delete( id ));
 	}
 };
 

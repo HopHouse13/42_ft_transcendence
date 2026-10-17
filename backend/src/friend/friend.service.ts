@@ -16,39 +16,37 @@ export class FriendService
 			return; //throw new ForbiddenException( 'You can\'t send a friend request to yourself' );    <- fini le proccessus silencieusement
 
 		const	receiverFound: FriendUser | null = await this.prisma.user.findUnique(
+		{
+			where:
 			{
-				where:
-				{
-					id:	receiver,
-					isDelete: false
-				},
-				select:	friendUserSelect // objet au format FriendUser -> il defini select
-			}
-		);
+				id:	receiver,
+				isDelete: false
+			},
+			select:	friendUserSelect // objet au format FriendUser -> il defini select
+		});
 
 		// si userA -> ...
 		if ( !receiverFound )
 			return;
 		
 		const	friendshipExisting = await this.prisma.friendship.findFirst(
+		{
+			where:
 			{
-				where:
-				{
-					OR:
-					[
-						{ senderId: sender, receiverId: receiver }, // si demande de userA deja faites a userB
-						{ senderId: receiver, receiverId: sender } // si demande de userB deja faites a userA
-					]
-				},
-				select:
-				{
-					senderId:	true,
-					receiverId:	true,
-					status:		true,
-					createdAt:	true
-				}
+				OR:
+				[
+					{ senderId: sender, receiverId: receiver }, // si demande de userA deja faites a userB
+					{ senderId: receiver, receiverId: sender } // si demande de userB deja faites a userA
+				]
+			},
+			select:
+			{
+				senderId:	true,
+				receiverId:	true,
+				status:		true,
+				createdAt:	true
 			}
-		);
+		});
 		
 		// si aucune friendship existe
 		if ( !friendshipExisting )
@@ -56,14 +54,13 @@ export class FriendService
 			try
 			{
 				await this.prisma.friendship.create(
+				{
+					data:
 					{
-						data:
-						{
-							senderId:	sender,
-							receiverId:	receiverFound.id
-						}
+						senderId:	sender,
+						receiverId:	receiverFound.id
 					}
-				);
+				});
 			}
 			catch ( err )
 			{
@@ -75,44 +72,45 @@ export class FriendService
 		else if ( friendshipExisting.status === StatusFriendship.WAITING && friendshipExisting.senderId === receiverFound.id ) // acceptation automatique car une demande de userB -> userA etait deja en attente
 		{
 			await this.prisma.friendship.updateMany( // les methodes ...Many ne renvoient pas d'erreur si zero l'element trouvé, elles renvoient un objet avec zero element.
-				{
-					where:
-					{
-						senderId:		receiverFound.id,
-						receiverId:		sender,
-						status:			StatusFriendship.WAITING
-					},
-					data:
-					{
-						status:			StatusFriendship.ACCEPTED
-					}
-				}
-			);
-		}
-		// sinon (deja amis ou demande deja faite) : rien a faire
-	}
-
-	///
-
-	async accept( receiver: string, sender: string )
-	{
-		await this.prisma.friendship.updateMany( // updateMany renvoie un tableau des elements modifié -> renvoie un tableau vite si rien trouvé -> jamais de throw error
 			{
 				where:
 				{
-					senderId:	sender,
-					receiverId:	receiver,
-					status:		StatusFriendship.WAITING,
-
-					sender:		{isDelete: false},
-					receiver:	{isDelete: false},
+					senderId:		receiverFound.id,
+					receiverId:		sender,
+					status:			StatusFriendship.WAITING
 				},
 				data:
 				{
 					status:			StatusFriendship.ACCEPTED
 				}
+			});
+		}
+		else // cas ou deja amis ou demande deja faite
+			return;
+
+		//return ( receiverFound ); a voir si le front veut un retour ou pas si demande envoyé
+	}
+
+	///
+
+	async accept( receiverId: string, senderId: string )
+	{
+		await this.prisma.friendship.updateMany( // updateMany renvoie un tableau des elements modifié -> renvoie un tableau vide si rien trouvé -> jamais de throw error
+		{
+			where:
+			{
+				senderId,
+				receiverId,
+				status:		StatusFriendship.WAITING,
+
+				sender:		{isDelete: false},
+				receiver:	{isDelete: false},
+			},
+			data:
+			{
+				status:		StatusFriendship.ACCEPTED
 			}
-		);
+		});
 	}
 
 	///
@@ -120,17 +118,16 @@ export class FriendService
 	async delete( userId: string, otherId: string )
 	{
 		await this.prisma.friendship.deleteMany(
+		{
+			where:
 			{
-				where:
-				{
-					OR:
-					[
-						{ senderId: userId, receiverId: otherId },
-						{ senderId: otherId, receiverId: userId }
-					]
-				},
-			}
-		);
+				OR:
+				[
+					{ senderId: userId, receiverId: otherId },
+					{ senderId: otherId, receiverId: userId }
+				]
+			},
+		});
 	}
 
 	///
@@ -138,26 +135,25 @@ export class FriendService
 	async friendLists( userId: string ): Promise<FriendLists>
 	{
 		const	friendsRaws: FriendshipRaw[] = await this.prisma.friendship.findMany(
+		{
+			where:
 			{
-				where:
-				{
-					sender:		{ isDelete: false }, // se sont des relation: reference a la table de user
-					receiver:	{ isDelete:	false }, // same
+				sender:		{ isDelete: false }, // se sont des relation: reference a la table de user
+				receiver:	{ isDelete:	false }, // same
 
-					OR:
-					[
-						{ senderId:		userId },
-						{ receiverId:	userId }
-					]
-				},
-				select: 
-				{
-					status:		true,
-					sender: 	{ select:	friendUserSelect },
-					receiver:	{ select:	friendUserSelect },
-				}
+				OR:
+				[
+					{ senderId:		userId },
+					{ receiverId:	userId }
+				]
+			},
+			select: 
+			{
+				status:		true,
+				sender: 	{ select:	friendUserSelect },
+				receiver:	{ select:	friendUserSelect },
 			}
-		);
+		});
 
 		const	friends:	FriendUser[] = [];
 		const 	sent:		FriendUser[] = [];
@@ -194,17 +190,18 @@ export class FriendService
 			return ( [] );
 
 		const	suggestion: FriendUser[] = await this.prisma.user.findMany(
+		{
+			where:
 			{
-				where:
-				{
-					isDelete:	false, // pas de compte supprimé
-					username:	{ contains: searchName, mode: 'insensitive' }, // recherche partiel a partir de searchName, recherche insensible a la case
-					id:			{ not: userId } // pour ne pas retourner lui meme
-				},
-				take:			5,
-				select:			friendUserSelect
-			}
-		);
+				isDelete:				false, // pas de compte supprimé
+				id:						{ not: userId }, // pour ne pas retourner lui meme
+				friendshipsReceived:	{ none: { senderId: userId }}, // exclu les user ayant deja une demande envoyée par le user courant
+				friendshipsSent:		{ none: { receiverId: userId, status: StatusFriendship.ACCEPTED }}, // exclu les user ayant une relation accepté avec le user courant et etant l'initiateur de la relation
+				username:				{ contains: searchName, mode: 'insensitive' }, // recherche partiel a partir de searchName, recherche insensible a la case
+			},
+			take:			10,
+			select:			friendUserSelect
+		});
 
 		return( suggestion );
 	}

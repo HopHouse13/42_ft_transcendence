@@ -8,7 +8,7 @@ async function bootstrap() {
 
 	app.use( cookieParser() ); // middleware: parse les cookies dans le header de chaque requete et initialiser req.cookies pour avoir acces aux données des cookies a tous les endroits on req. est accessible
 	app.useGlobalPipes( new ValidationPipe({ whitelist: true }));  // applique la validation des DTO sur toutes les routes, et supprime les champs non déclarés dans le DTO
-	//app.enableCors({ origin: '*' }); // a verifier
+	//app.enableCors({ origin: '*' }); // Cross-Origin Resource Sharing - irrelevant with a reverse proxy
 	await app.listen( process.env.PORT ?? 3000 );
 }
 bootstrap();
@@ -21,7 +21,7 @@ transform: true,// convertit automatiquement les types (utile si body en JSON st
  */
 // useGlobalPipes est une methode de l'objet principe qui permets d'enregistrer les objets instances du/des pipes de validation.
 // Les methodes de ces objets "pipe" pourront etre appelés automatiquement par Nest lors de la phase des requétes entrantes.
-// Le but du pipe de validation est de controler la donnée entrant brute, transformer cette donnée et d'instancier des objets DTO au bon format (les contrats) 
+// Le but du pipe de validation est de controler la donnée entrant brute, transformer cette donnée et d'instancier des objets DTO au bon format (les contrats)
 // Lors d'une requéte avec des donnée dans le body, le/les pipe de validation recupère la donnée brute du body et la classe DTO lié a cette donnée brute.
 // Il check si la donnée brut correspondent aux rélges de l'objet DTO.
 // -> Si tout correspond, il instancie un objet généralement nommé "dto" et le transmet a la methode du controller.

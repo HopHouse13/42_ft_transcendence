@@ -10,29 +10,23 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { GitStrategy } from './strategies/github.strategy';
 import { MailService } from '../mail/mail.service';
 
-@Module(
-	{
-		imports: [
-			forwardRef( () => UserModule ), // pour accéder a `usersService.create` de register()
-			ConfigModule, // permet de lire dynamiquement les variables du .env
-			PassportModule,  // active le système générique de stratégies d'authentification
-			JwtModule.registerAsync(
-				{ // pour signer (générer les jwt) pour la reponse de la requéte
-					imports: [ ConfigModule ], // JwtModule a besoin d'accéder à ConfigModule
-					inject: [ ConfigService ], // ConfigService sera injecté (instanciê) dans useFactory
-					// factory appelée au démarrage pour construire la config du JwtModule
-					useFactory: ( config: ConfigService ) => (
-						{ 
-							secret: config.getOrThrow<string>( 'JWT_SECRET' ), // clé utilisée pour signer/vérifier les tokens
-							signOptions: { expiresIn: parseInt( config.getOrThrow<string>('JWT_EXPIRATION'), 10 ), algorithm: 'HS256' }, // durée de validité d'un token ; parseInt ~ atoi() et spéficiation de l'algo utilisé
-						}
-					),
-				}
-			)
-		],
-		controllers: [ AuthController ],
-		providers: [ AuthService, JwtStrategy, GoogleStrategy, GitStrategy, MailService ],
-		exports: [ JwtModule, AuthService ] // rend JwtService disponible pour les modules qui importeront AuthModule
-	}
-)
-export class AuthModule {};
+@Module({
+	imports: [
+		forwardRef( () => UserModule ), // pour accéder a `usersService.create` de register()
+		ConfigModule, // permet de lire dynamiquement les variables du .env
+		PassportModule,  // active le système générique de stratégies d'authentification
+		JwtModule.registerAsync({ // pour signer (générer les jwt) pour la reponse de la requéte
+			imports: [ ConfigModule ], // JwtModule a besoin d'accéder à ConfigModule
+			inject: [ ConfigService ], // ConfigService sera injecté (instanciê) dans useFactory
+			// factory appelée au démarrage pour construire la config du JwtModule
+			useFactory: ( config: ConfigService ) => ({ 
+				secret: config.getOrThrow<string>( 'JWT_SECRET' ), // clé utilisée pour signer/vérifier les tokens
+				signOptions: { expiresIn: parseInt( config.getOrThrow<string>('JWT_EXPIRATION'), 10 ), algorithm: 'HS256' }, // durée de validité d'un token ; parseInt ~ atoi() et spéficiation de l'algo utilisé
+			}),
+		}), 
+	],
+	controllers: [ AuthController ],
+	providers: [ AuthService, JwtStrategy, GoogleStrategy, GitStrategy, MailService ],
+	exports: [ JwtModule, AuthService ] // rend JwtService disponible pour les modules qui importeront AuthModule
+})
+export class AuthModule {}
