@@ -197,7 +197,11 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
     {/* Floating Top-Left: LIVE Badge */}
       <div className="absolute top-5 left-5 z-10">
         {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}> */}
-        <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge-error text-white" : "badge-neutral"}`}>
+        <div className={`badge border shadow-lg font-bold gap-2 ${
+          status === "ongoing"
+            ? "badge-error text-white border-white/30 shadow-red-500/20"
+            : "badge-neutral border-base-content/20 shadow-black/40"
+          }`}>
         {status === "ongoing" && (
           // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
           <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
@@ -209,7 +213,7 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
 
       {/* Floating Top-Right: Stats */}
       <div className="absolute top-5 right-5 z-10">
-      <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+      <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm border border-base-content/10 text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
         {status === "ongoing" ? (
           // if ongoing: show spectators and current duration
         <>
@@ -367,7 +371,9 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
           <Status spectators={game.spectators} duration={game.duration} status={game.status} />
 
           {/* Board Preview */}
-          <div className="w-full pointer-events-none">
+          <div className={`w-full pointer-events-none transition-all duration-700 ${
+            game.status === "finished" ? "grayscale[50] opacity-50" : ""
+          }`}>
             <Board
               board={game.board} // Later, replace with game.board
               validMoves={[]}        // Empty array prevents move indicators
