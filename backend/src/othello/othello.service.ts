@@ -287,7 +287,11 @@ export class    OthelloService  {
 
         const p1Color: Player = (room.player1.color as Player) || 'BLACK';
         const p2Color: Player = (room.player2?.color as Player) || (p1Color === 'BLACK' ? 'WHITE' : 'BLACK');
+        if( p1Color === p2Color )    {
 
+            p2Color = p1Color === 'BLACK' ? 'WHITE' : 'BLACK';
+        }
+        
         const playerArr: PlayerInfo[] = [
             { userId: room.player1.userId, color: p1Color, connected: true },
             { userId: room.player2!.userId, color: p2Color, connected: true }
