@@ -14,7 +14,7 @@ const AchievementsGrid = ({userUnlocked}: {userUnlocked: UserAchievement[]}) => 
                     <AchievementCard
                         key={achievement.id}
                         achievement={achievement}
-                        isUnlocked={true}//{isUnlocked}
+                        isUnlocked={isUnlocked}
                         unlockedAt={unlockedAt}
                     />
                 )
