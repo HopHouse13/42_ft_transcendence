@@ -337,7 +337,7 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 
           {/* Board Preview */}
           <div className={`w-full pointer-events-none transition-all duration-700 ${
-            game.status === "FINISHED" ? "grayscale[50] opacity-50" : ""
+            game.status === "FINISHED" ? "grayscale[50%] opacity-50" : ""
           }`}>
             <Board
               board={game.board} // Later, replace with game.board

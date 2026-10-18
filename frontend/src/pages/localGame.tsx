@@ -1,5 +1,5 @@
 import { useLocalSocket } from "../hooks/useLocalSocket";
-import GameEndModal from "../components/GameEndModal"; 
+import GameEndModal from "../components/GameEndModal";
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
 import type { Cell, Move } from "../types/gameTypes";
@@ -14,10 +14,10 @@ export default function Localgame() {
   const { isConnected, error, gameState, isMovePending, startLocalGame, playMove, giveUp } = useLocalSocket();
 
   const navigate = useNavigate();
-  
+
   const rawCells = gameState?.board;
 
-  const currentBoard: Cell[] = rawCells 
+  const currentBoard: Cell[] = rawCells
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
@@ -46,22 +46,27 @@ export default function Localgame() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 relative">
+// THE FIX: Added w-full to the top-level container
+    <div className="w-full flex flex-col items-center gap-4 p-6 relative">
       <h1 className="text-2xl font-bold">👥 Partie Locale (2 Joueurs)</h1>
 
       {!gameState ? (
-        <button 
-          className="btn btn-primary px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 cursor-pointer" 
-          onClick={startLocalGame} 
+        <button
+          className="btn btn-primary px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 cursor-pointer"
+          onClick={startLocalGame}
           disabled={!isConnected}
         >
           {isConnected ? "Démarrer la partie locale" : "Connexion au serveur..."}
         </button>
       ) : (
-        <>
+        <div className="w-full max-w-[600px] flex flex-col gap-4 items-center">
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
           <LocalGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} />
-          <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
+            <MyBoard
+              board={currentBoard}
+              validMoves={isFinished ? [] : validMovesIndexes}
+              onCellClick={handleCellClick}
+            />
           {/* Bouton Abandonner (affiché tant que la partie est en cours) */}
           {!isFinished && gameState && (
             <button
@@ -88,7 +93,7 @@ export default function Localgame() {
               navigate("/game");
             }}
           />
-        </>
+         </div>
       )}
     </div>
   );
