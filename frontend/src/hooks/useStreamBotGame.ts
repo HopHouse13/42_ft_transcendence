@@ -51,7 +51,7 @@ export function useStreamBotGame() {
       if (state.gameId) localStorage.setItem(STREAM_GAME_KEY, state.gameId);
       setGameState((prev) => ({
         ...state,
-        gameId: state.gameId || prev?.gameId || localStorage.getItem(STREAM_GAME_KEY) || undefined,
+        gameId: state.gameId ?? prev?.gameId ?? localStorage.getItem(STREAM_GAME_KEY) ?? undefined,
       }));
       setIsBotThinking(false);
       setError(null);

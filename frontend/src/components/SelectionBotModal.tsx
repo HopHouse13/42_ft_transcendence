@@ -1,6 +1,3 @@
-import React from "react";
-import type { PlayerColor } from "../types/gameTypes";
-
 interface ColorSelectionModalProps {
   isOpen: boolean;
   onSelectColor: (color: "BLACK" | "WHITE") => void;

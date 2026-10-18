@@ -67,7 +67,7 @@ export function useOnlineSocket() {
       }
       setGameState((prev) => ({
         ...state,
-        gameId: state.gameId || prev?.gameId || localStorage.getItem(ONLINE_GAME_KEY) || undefined,
+        gameId: state.gameId ?? prev?.gameId ?? localStorage.getItem(ONLINE_GAME_KEY) ?? undefined,
       }));
       setIsMovePending(false);
       setError(null);

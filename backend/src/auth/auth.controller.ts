@@ -39,7 +39,7 @@ export class AuthController
 
 	@UseGuards( JwtGuard )
 	@Post( 'logout' )
-	async logout( @Req() request, @Res({ passthrough: true }) response: Response ) // passthrough: true -> on accède à response (cookies, statut) mais Nest envoie toujours le return dans la reponse
+	async logout( @Req() request: any, @Res({ passthrough: true }) response: Response ) // passthrough: true -> on accède à response (cookies, statut) mais Nest envoie toujours le return dans la reponse
 	{
 		this.authService.clearTokensCookies( response ); // supprime les deux cookies d'auth
 
@@ -50,13 +50,13 @@ export class AuthController
 
 	@UseGuards( GoogleGuard ) // GoogleGuard intercepte toutes les requetes arrivantes de googleCall et applique googleStrategy
 	@Get( 'google' )
-	async googleCall() {}
+	googleCall() {}
    
 	///
 
 	@UseGuards( GoogleGuard )
 	@Get( 'google/callback' )
-	async googleCallback( @Req() request, @Res() response: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
+	async googleCallback( @Req() request: any, @Res() response: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
 		const	auth = await this.authService.login( request.user ); // stock le retour de login (les deux tokens + le userPublic )
 
@@ -68,13 +68,13 @@ export class AuthController
 	///
 	@UseGuards( GitGuard ) // GithubGuard intercepte toutes les requetes arrivantes de GithubCall et applique GithubStrategy
 	@Get( 'github' )
-	async githubCall() {}
+	githubCall() {}
 
 	///
 
 	@UseGuards( GitGuard )
 	@Get( 'github/callback' )
-	async githubCallback( @Req() request, @Res() response: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
+	async githubCallback( @Req() request: any, @Res() response: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
 		const	auth = await this.authService.login( request.user );
 
@@ -86,7 +86,7 @@ export class AuthController
 	///
 
 	@Post( 'forgot-password' )
-	async forgotPassword( @Body() dto: ForgotPasswordDto )
+	forgotPassword( @Body() dto: ForgotPasswordDto )
 	{
 		return( this.authService.forgotPassword( dto.email ));
 	}
@@ -102,7 +102,7 @@ export class AuthController
 	///
 	
 	@Post( 'refresh' )
-	async refresh( @Req() request )
+	async refresh( @Req() request: any )
 	{
 		const	refreshTokenRaw = request.cookies?.refresh_token;
 
@@ -117,7 +117,7 @@ export class AuthController
 	// SilentJwtGuard specialement concu pour la route "me". Rend silencieux le guard pour que "me" indiquer au navigateur si il y a une session active, sans lui renvoyer des status d'erreurs
 	@UseGuards( SilentJwtGuard )
 	@Get( 'me' )
-	async me( @Req() request, @Res({ passthrough: true }) reponse: Response )
+	me( @Req() request: any, @Res({ passthrough: true }) reponse: Response )
 	{
 		if ( !request.user )
 		{

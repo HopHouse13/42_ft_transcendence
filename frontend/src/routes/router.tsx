@@ -4,6 +4,7 @@ import { AuthRoute, GuestRoute } from '../components/ProtectedRoute';
 import Loader from "../pages/loader";
 import Home from "../pages/home";
 import Notfound from "../pages/notFound";
+import Achievement from "../pages/achievement";
 
 // lazy pour ne charger les pages qu'a la demande
 const Game = lazy(() => import('../pages/game'));
@@ -13,7 +14,7 @@ const ResetPassword = lazy(() => import('../pages/resetPassword'));
 const Rules = lazy(() => import('../pages/rules'));
 const Leaderboard = lazy(() => import('../pages/leaderboard'));
 const AboutUs = lazy(() => import('../pages/aboutUs'));
-const TermsOfUse = lazy(() => import('../pages/termsOfUse'));
+const TermsOfService = lazy(() => import('../pages/termsOfService'));
 const PrivacyPolicy = lazy(() => import('../pages/privacyPolicy'));
 const UserProfile = lazy(() => import('../pages/userProfile'));
 const Friend = lazy(() => import('../pages/friend'));
@@ -35,7 +36,7 @@ function AppRouter(): React.ReactElement {
                 <Route path="/watch" element={<Watch />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/aboutUs" element={<AboutUs />} />
-                <Route path="/termsOfUse" element={<TermsOfUse />} />
+                <Route path="/termsOfService" element={<TermsOfService />} />
                 <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
 
                 {/* Non-authenticated routes */}
@@ -110,6 +111,14 @@ function AppRouter(): React.ReactElement {
                     element={
                     <AuthRoute>
                         <UserProfile />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/achievements"
+                    element={
+                    <AuthRoute>
+                        <Achievement />
                     </AuthRoute>
                     }
                 />

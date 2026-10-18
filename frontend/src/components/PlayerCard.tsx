@@ -11,25 +11,27 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
     return (
         <div className={isTurn ? 'aura aura-sm aura-silver w-full' : 'w-full'}>
             <div className={`card card-md bg-base-100 w-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className="avatar">
+                { avatarUrl &&
+                    <div className="avatar">
                     <div
                         className={`h-10 w-10 rounded-full ring-1 ${isBlack ? 'ring-black' : 'ring-white'} ring-offset-base-100 ring-offset-2 outline outline-1 outline-base-300 outline-offset-3`}
                         title={isBlack ? 'Black' : 'White'}
                     >
                         <img
-                            src={avatarUrl ?? '/api/uploads/avatars/default.png'}
+                            src={`api/${avatarUrl}`}
                             alt={`${username} avatar`}
                         />
                     </div>
-                </div>
+                </div>}
                 <div className={`grow min-w-0 ${isRight ? 'text-right' : 'text-left'}`}>
-                    <div className="text-xl font-semibold truncate" title={username}>
+                    <div className="text-base md:text-xl font-semibold truncate" title={username}>
                         {username}
                     </div>
                     <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className="badge badge-xs badge-success">
-                            {elo !== null ? `ELO ${elo}` : 'ELO --'}
-                        </div>
+                        { elo &&
+                            <div className="badge badge-xs badge-success">
+                            ELO {elo}
+                        </div>}
                     </div>
                 </div>
                 {/* Lisere de couleur, cote oppose (bord interieur, vers le score) :
@@ -44,4 +46,4 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
     )
 }
 
-export default PlayerCard
+export default PlayerCard;
