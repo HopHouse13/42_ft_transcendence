@@ -25,13 +25,17 @@ export class SpectatorService {
 
     // map db entities to frontend LiveGame interface
     return games.map((game) => ({
-      id: game.id,
+      gameId: game.id,
       status: GameStatus.IN_PROGRESS,
-      currentPlayer: game.currentPlayer === 'BLACK' ? 'BLACK' : 'WHITE',
+      currentPlayer:
+        (game as any).currentPlayer === 'WHITE' ? 'WHITE' : 'BLACK',
+      // currentPlayer: game.currentPlayer === 'BLACK' ? 'BLACK' : 'WHITE',
+
       spectators: 0,
       duration: '00:00', // placeholder | to calculate
       isBot: false, // placeholder
       board: [], // placeholder | inject actual board stat here
+
       player1: {
         username: game.blackPlayer.username,
         avatarUrl: game.blackPlayer.avatarUrl,

@@ -10,10 +10,10 @@ export interface SpectatorPlayerData {
 }
 
 export interface LiveGamePayload {
-  id: string;
+  gameId: string;
   player1: SpectatorPlayerData;
   player2: SpectatorPlayerData;
-  turn: 'BLACK' | 'WHITE';
+  currentPlayer: 'BLACK' | 'WHITE';
   spectators: number;
   duration: string;
   status: GameStatus;

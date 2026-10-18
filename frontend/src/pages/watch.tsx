@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import Game from "./game";
-import Board from "../components/Board";
+// import Game from "./game";
 import type { BoardState, SpectatorPlayerData, LiveGamePayload } from "../types/gameTypes";
 import Board from "../components/Board";
 import { useSpectatorSocket } from "../hooks/useSpectatorSocket";
