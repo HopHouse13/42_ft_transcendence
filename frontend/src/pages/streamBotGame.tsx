@@ -1,10 +1,10 @@
-import React, { useState } from "react";
 import { useStreamBotGame } from "../hooks/useStreamBotGame";
 import GameEndModal from "../components/GameEndModal"; 
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
 import type { Cell } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
+import StreamBotGameHeader from "../components/StreamBotGameHeader";
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -12,7 +12,7 @@ import { toClientBoard } from "../utils/cellConverter";
 /* --------------------------------------------------------------------------------------------- */
 
 export default function StreambotGame() {
-  const { isConnected, error, gameState, isBotThinking, startStreamGame } = useStreamBotGame();
+  const { isConnected, error, gameState, startStreamGame } = useStreamBotGame();
 
   const navigate = useNavigate();
 
@@ -54,24 +54,9 @@ export default function StreambotGame() {
         </button>
       ) : (
         <>
-          <div className="flex items-center justify-between w-full max-w-md px-2">
-            <span className="text-sm text-amber-200">
-              {!isFinished ? (
-                <span>
-                  Tour actuel : <span className="font-bold">{gameState.currentPlayer}</span>
-                  {isBotThinking && <span className="ml-2 text-xs text-red-400 animate-pulse">(Réflexion...)</span>}
-                </span>
-              ) : (
-                <span className="font-bold text-amber-400">Diffusion terminée</span>
-              )}
-            </span>
-
-            <div className="text-xs bg-slate-800 text-slate-200 px-3 py-1 rounded-full border border-slate-700">
-              Noirs: <strong className="text-black bg-white px-1.5 py-0.5 rounded ml-1">{blackScore}</strong> | Blancs: <strong className="text-white bg-slate-600 px-1.5 py-0.5 rounded ml-1">{whiteScore}</strong>
-            </div>
-          </div>
-
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
+          
+          <StreamBotGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} /> 
 
           {/* Plateau de streaming (sans interactions utilisateur) */}
           <MyBoard board={currentBoard} />

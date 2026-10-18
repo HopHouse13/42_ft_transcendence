@@ -79,4 +79,4 @@ function MyBoard({ board, validMoves = [], onCellClick }: MyBoardProps) {
   );
 }
 
-export default MyBoard
+export default MyBoard;

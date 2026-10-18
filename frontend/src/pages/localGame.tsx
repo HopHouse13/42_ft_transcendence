@@ -1,10 +1,10 @@
-import React from "react";
 import { useLocalSocket } from "../hooks/useLocalSocket";
 import GameEndModal from "../components/GameEndModal"; 
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
-import type { Cell } from "../types/gameTypes";
+import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
+import LocalGameHeader from "../components/LocalGameHeader";
 
 /* --------------------------------------------------------------------------------------------- */
 /*                              ~~ Page Local Game (WebSocket) ~~                                */
@@ -21,7 +21,7 @@ export default function Localgame() {
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
-  const validMovesIndexes = gameState?.validMoves ? gameState.validMoves.map((m: any) => m.row * 8 + m.col) : [];
+  const validMovesIndexes: number[] = gameState?.validMoves ? gameState.validMoves.map((m: Move) => m.row * 8 + m.col) : [];
 
   const handleCellClick = (index: number) => {
     if (isMovePending || !gameState || gameState.status === 'FINISHED') return;
@@ -59,16 +59,8 @@ export default function Localgame() {
         </button>
       ) : (
         <>
-          <div className="text-sm text-amber-200">
-            {!isFinished ? (
-              <span>Tour actuel : <span className="font-bold">{gameState.currentPlayer}</span></span>
-            ) : (
-              <span className="font-bold text-amber-400">Partie terminée !</span>
-            )}
-          </div>
-
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
-
+          <LocalGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} />
           <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
           {/* Bouton Abandonner (affiché tant que la partie est en cours) */}
           {!isFinished && gameState && (

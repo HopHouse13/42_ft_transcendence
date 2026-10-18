@@ -62,7 +62,7 @@ export function useBotSocket() {
       if (state.gameId) localStorage.setItem(BOT_GAME_KEY, state.gameId);
       setGameState((prev) => ({
         ...state,
-        gameId: state.gameId || prev?.gameId || localStorage.getItem(BOT_GAME_KEY) || undefined,
+        gameId: state.gameId ?? prev?.gameId ?? localStorage.getItem(BOT_GAME_KEY) ?? undefined,
       }));
       setIsBotThinking(false);
       setIsMovePending(false);
