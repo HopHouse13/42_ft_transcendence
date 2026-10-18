@@ -1,7 +1,7 @@
 services:
   proxy:
     image: proxy-img
-    pull_policy: build
+    pull_policy: build # build the image from local Dockerfile, no registry check
     build:
       context: ./proxy
       dockerfile: Dockerfile
