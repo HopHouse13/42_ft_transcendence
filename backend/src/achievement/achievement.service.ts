@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Game, GameStatus, Move } from '@prisma/client';
+import { Game, GameStatus, Move, StatusFriendship, User, Prisma, Achievement } from '@prisma/client';
 import { achievementList } from './constants/achievementListe.constant';
 import { GameWithMoves } from './types/gameWithMoves.type';
 
@@ -63,18 +63,20 @@ export class AchievementService
 				include:
 				{
 					moves:
+					{
+						orderBy: 
 						{
-							orderBy: 
-							{
-								moveNumber: 'asc' // besoin de les extraites par ordre ascendant (<)
-							}
+							moveNumber: 'asc' // besoin de les extraites par ordre ascendant (<)
 						}
+					}
 				}
 			}
 		)
 
 		if ( !game.moves.length ) // une game avec zero coup joué ne doit pas etre evaluée
 			return ( [] );
+
+		const	newAchievements: Prisma.AchievementCreateManyInput[] = []; // init du tableau d'objet d'achievments pour stoker les nouveaux objets achiev. des deux joueurs -> un seul et unique appel a la db pour l'ecrire
 
 		for ( const userId of [ game.blackPlayerId, game.whitePlayerId ]) // calcul pour les deux users
 		{
@@ -94,12 +96,20 @@ export class AchievementService
 			// Pour chaque elem, .filter() execute la ft en arg. si truc -> ajoute cet element dans le nouveau tableau; .include() sur une array renvoie true si un elem du tableau est === a l'arg donné
 			const	lockedBefore: Readonly<string[]> = achievementList.filter(( achievId: string ) => !unlockedBefore.includes( achievId ));
 		
-			const	unlockedAfter: string[] = []; // tableau des achievments debloqués pour cette partie
-
 			for ( const achievId of lockedBefore ) // boucle sur tous les achievement bloqués de la liste
 				if ( await this.isUnlocked_( achievId, game, userId )) // si true -> rajoue d'un nouveau element avec l'id du achievement debloqué
-					unlockedAfter.push( achievId );
+					newAchievements.push({ userId, achievementId: achievId }); // genere l'objet dans le tableau d'objet qui seront ecrits en db
 		}
+
+		const	newAchievementsWritten: Achievement[] = await this.prisma.achievement.createManyAndReturn(
+			{
+				data:
+					newAchievements,
+				skipDuplicates:	true // pas d'erreur db si meme objet à créer
+			}
+		);
+
+		return ( newAchievementsWritten );
 	}
 
 	///
@@ -122,20 +132,36 @@ export class AchievementService
 			case 'win_wipeout':			return ( this.win_wipeout( game, userId ));
 			case 'win_comeback':		return ( this.win_comeback( game, userId ));
 			case 'win_3corners_down':	return ( this.win_3corners_down( game, userId ));
-			case 'stk_win5':			return ( this.stk_win5( game, userId ));
-			case 'cum_win50':			return ( this.cum_win50( game, userId ));
+			case 'stk_win5':			return ( this.stk_win5( userId ));
+			case 'cum_win50':			return ( this.cum_win50( userId ));
 			case 'soc_rival10':			return ( this.soc_rival10( game, userId ));
-			case 'elo_1200':			return ( this.elo_1200( game, userId ));
-			case 'elo_1500':			return ( this.elo_1500( game, userId ));
-			case 'elo_1800':			return ( this.elo_1800( game, userId ));
+			case 'elo_1200':			return ( this.elo_1200( userId ));
+			case 'elo_1500':			return ( this.elo_1500( userId ));
+			case 'elo_1800':			return ( this.elo_1800( userId ));
 			case 'elo_giant_slayer':	return ( this.elo_giant_slayer( game, userId ));
 
 			default:					return( false );
 		}
 	}
 
+/*
+Plan:
+
+- verif. si game existe et qu'elle soit FINISHED
+- charge en readonly: la game et l'historique des cou
+
+Pour chaque user:
+- recuperer (findMany) tous les achiev unlocked[] dans une tableau
+- genrerer le tableau inverser avec tous les lock (.filter)
+- parcourir chaque element dans un switch (alternative -> record<>) pour appeler la methode correspondant a la achievementId
+	-> si l achiavement est unlocked la methode push dans une 3eme array l'achievementId.
+- apres le traitement de l'ensemble des achievement -> un appel en db avec createMany() pour genrer l'ensemble des achievments unlock
+
+*/
+
 /// CALCULATION METHODS ///////////////////////////////////////////////////////////////////////////////////////////////
 
+	// Gagne ta toute première partie en ligne.
 	private win_first( game: GameWithMoves, userId: string )
 	{
 		return ( game.winnerId === userId );
@@ -143,6 +169,7 @@ export class AchievementService
 
 	///
 
+	// Gagne au moins une partie avec les Noirs et une avec les Blancs.
 	private async win_both_sides( userId: string )
 	{
 		const	blackGame = await this.prisma.game.count(
@@ -175,43 +202,47 @@ export class AchievementService
 
 	///
 
-	private brd_corner( game: GameWithMoves, userId: string ) // 0,7,56,63  // B W -
+	// Possède au moins un coin à la fin de la partie.
+	private brd_corner( game: GameWithMoves, userId: string )
 	{
-		const	board: string = game.moves[ game.moves.length - 1 ].boardAfter;
+		const	finalBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
-		return ([ 0, 7, 56, 63 ].some(( idx ) => board[ idx ] === myColor )); // .some() renvoie true si le callback de la fonction est au moins une fois true
+		return ([ 0, 7, 56, 63 ].some(( idx ) => finalBoard[ idx ] === myColor )); // .some() renvoie true si le callback de la fonction est au moins une fois true
 	};
 
 	///
 
+	// Possède les 4 coins à la fin de la partie.
 	private brd_4corners( game: GameWithMoves, userId: string )
 	{
-		const	board: string = game.moves[ game.moves.length - 1 ].boardAfter;
+		const	finalBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
-		const	cornerCount: number = [ 0, 7, 56, 63 ].filter(( idx ) =>  board[ idx ] === myColor ).length; // filter retourne un tableau avec les idx avec la couleur du player, lenght donne le nombre d'element de ce tableau
+		const	cornerCount: number = [ 0, 7, 56, 63 ].filter(( idx ) =>  finalBoard[ idx ] === myColor ).length; // filter retourne un tableau avec les idx avec la couleur du player, lenght donne le nombre d'element de ce tableau
 
 		return ( cornerCount === 4 );
 	}
 
 	///
 
+	// Possède toutes les cases du bord à la fin de la partie.
 	private brd_edges( game: GameWithMoves, userId: string )
 	{
-		const	board: string = game.moves[ game.moves.length - 1 ].boardAfter;
+		const	finalBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W'; // marqueurs de couleurs sur boardAfer en db
 
-		const	edgeCount: number = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 16, 23, 24, 31, 32, 39, 40, 47, 48, 55, 56, 57, 58, 59, 60, 61, 62, 63 ].filter(( idx ) =>  board[ idx ] === myColor ).length;
+		const	edgeCount: number = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 16, 23, 24, 31, 32, 39, 40, 47, 48, 55, 56, 57, 58, 59, 60, 61, 62, 63 ].filter(( idx ) =>  finalBoard[ idx ] === myColor ).length;
 
 		return ( edgeCount === 28 );
 	}
 
 	///
 
+	// Retourne 10 pions ou plus en un seul coup.
 	private mov_flip10( game: GameWithMoves, userId: string )
 	{
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE';
@@ -235,6 +266,7 @@ export class AchievementService
 
 	///
 
+	// Force l'adversaire à passer son tour au moins une fois.
 	private mov_pass1( game: GameWithMoves, userId: string )
 	{
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
@@ -257,6 +289,7 @@ export class AchievementService
 
 	///
 
+	// Force l'adversaire à passer son tour au moins 3 fois dans la partie.
 	private mov_pass3( game: GameWithMoves, userId: string )
 	{
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
@@ -284,6 +317,7 @@ export class AchievementService
 
 	///
 
+	// Gagne avec 1 ou 2 pions d'écart.
 	private win_close( game: GameWithMoves, userId: string )
 	{
 		if ( game.winnerId !== userId )
@@ -297,6 +331,7 @@ export class AchievementService
 
 	///
 
+	// Gagne avec 50 pions ou plus sur le plateau.
 	private win_blowout( game: GameWithMoves, userId: string )
 	{
 		if ( game.winnerId !== userId )
@@ -309,6 +344,7 @@ export class AchievementService
 
 	///
 
+	// Gagne sans laisser aucun pion à l'adversaire.
 	private win_wipeout( game: GameWithMoves, userId: string )
 	{
 		if ( game.winnerId !== userId )
@@ -317,11 +353,12 @@ export class AchievementService
 		const	lastBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
 		const	opponentColor: string = game.blackPlayerId === userId ? 'W' : 'B';
 
-		return ( ![ ...lastBoard ].some(( letter ) => letter === opponentColor ));
+		return ( [ ...lastBoard ].every(( letter ) => letter !== opponentColor ));
 	}
 
 	///
 
+	// Gagne après avoir été mené de 15 pions ou plus.
 	private win_comeback( game: GameWithMoves, userId: string )
 	{
 		if( game.winnerId !== userId )
@@ -344,48 +381,178 @@ export class AchievementService
 
 	///
 
+	// Gagne alors que l'adversaire possède 3 coins ou plus.
 	private win_3corners_down(  game: GameWithMoves, userId: string )
 	{
+		if( game.winnerId !== userId )
+			return ( false );
+
+		const	opponentColor: string = ( game.blackPlayerId === userId ) ? 'W' : 'B';
+		const	finalBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
+
+		const	opponentCornerCount: number = [ 0, 7, 56, 63 ].filter(( idx ) =>  finalBoard[ idx ] === opponentColor ).length;
+
+		return ( opponentCornerCount >= 3 );
+	}
+
+	///
+
+	// Enchaîne 5 victoires d'affilée.
+	private async stk_win5( userId: string )
+	{
+		const	lastGames: Game[] = await this.prisma.game.findMany(
+			{
+				where:
+				{
+					status:		GameStatus.FINISHED,
+					OR:
+						[{ blackPlayerId: userId },
+						{ whitePlayerId: userId }]
+				},
+				orderBy:
+				{
+					updatedAt:	'desc'
+				},
+				take: 5,
+			}
+		)
+
+		return ( lastGames.length >= 5 && lastGames.every( ( game ) => game.winnerId === userId ));
+	}
+
+	///
+
+	// Atteins 50 victoires au total.
+	private async cum_win50( userId: string )
+	{
+		const	wonGames: number = await this.prisma.game.count(
+			{
+				where:
+				{
+					status:		GameStatus.FINISHED,
+					winnerId:	userId
+				}
+			}
+		)
+
+		return ( wonGames >= 50 );
+	}
+
+	///
+
+	// Joue 10 parties contre le même ami.
+	private async soc_rival10( game: GameWithMoves, userId: string )
+	{
+		const	opponent = game.blackPlayerId === userId ? game.whitePlayerId : game.blackPlayerId;
 		
+		const	friend = await this.prisma.friendship.findFirst(
+			{
+				where:
+				{
+					status:	StatusFriendship.ACCEPTED,
+					OR:
+						[{ senderId: userId, receiverId: opponent },
+						{ senderId: opponent, receiverId: userId }],
+				}
+			}
+		)
+
+		if ( !friend )
+			return ( false );
+
+		const	gamesVsOpponent = await this.prisma.game.count(
+			{
+				where:
+				{
+					status:		GameStatus.FINISHED,
+					OR:
+						[{ blackPlayerId: userId, whitePlayerId: opponent },
+						{ blackPlayerId: opponent, whitePlayerId: userId }]
+				},
+			}
+		)
+		return ( gamesVsOpponent >= 10 );
+	}
+
+	///
+
+	// Atteins 1200 d'elo.
+	private async elo_1200( userId: string )
+	{
+		const	user: User = await this.prisma.user.findUniqueOrThrow(
+			{
+				where:
+				{
+					id:	userId
+				}
+			}
+		)
+
+		return ( user.elo >= 1200 );
+	}
+
+	///
+
+	// Atteins 1500 d'elo.
+	private async elo_1500( userId: string )
+	{
+		const	user: User = await this.prisma.user.findUniqueOrThrow(
+			{
+				where:
+				{
+					id:	userId
+				}
+			}
+		)
+
+		return ( user.elo >= 1500 );
+	}
+
+	///
+
+	// Atteins 1800 d'elo.
+	private async elo_1800( userId: string )
+	{
+		const	user: User = await this.prisma.user.findUniqueOrThrow(
+			{
+				where:
+				{
+					id:	userId
+				}
+			}
+		)
+
+		return ( user.elo >= 1800 );
+	}
+
+	///
+
+	// Bats un adversaire classé 150 d'elo ou plus au-dessus de toi.
+	private async elo_giant_slayer( game: GameWithMoves, userId: string )
+	{
+		if( game.winnerId !== userId )
+			return ( false );
+
+		const	opponentId: string = ( game.blackPlayerId === userId ) ? game.whitePlayerId : game.blackPlayerId;
+
+		const	user : User = await this.prisma.user.findUniqueOrThrow(
+			{
+				where:
+				{
+					id:	userId
+				}
+			}
+		)
+
+		const	opponent : User = await this.prisma.user.findUniqueOrThrow(
+			{
+				where:
+				{
+					id: opponentId
+				}
+			}
+		)
+
+		return ( opponent.elo - user.elo >= 150 );
 	}
 }
-
-/*
-Plan:
-
-- verif. si game existe et qu'elle soit FINISHED
-- charge en readonly: la game et l'historique des cou
-
-Pour chaque user:
-- recuperer (findMany) tous les achiev unlocked[] dans une tableau
-- genrerer le tableau inverser avec tous les lock (.filter)
-- parcourir chaque element dans un switch (alternative -> record<>) pour appeler la methode correspondant a la achievementId
-	-> si l achiavement est unlocked la methode psuh dans une 3eme array l'achievementId.
-- apres le traitement de l'ensemble des achievement -> un appel en db avec createMany() pour genrer l'ensemble des achievments unlock
-
-*/
-
-/*
-id					Titre						Description
-win_first			Premier sang				Gagne ta toute première partie d’Othello en ligne.
-win_both_sides		Ambidextre					Gagne une partie avec les Noirs et une partie avec les Blancs.
-brd_corner			Investisseur immobilier		Prends ton premier coin du plateau.
-brd_4corners		Monopole des coins			Contrôle les 4 coins à la fin de la partie.
-brd_edges			Résidence sécurisée			Verrouille chaque case du bord avec ta couleur.
-mov_flip10			Effet domino				Retourne 10 pions ou plus en un seul coup.
-mov_pass1			Accès refusé				Force ton adversaire à passer son tour.
-mov_pass3			Tu es viré !				Force ton adversaire à passer son tour au moins 3 fois dans une même partie.
-win_close			Au poil						Gagne une partie avec 2 pions d’écart ou moins.
-win_blowout			Aucune chance				Gagne largement avec plus de 50 pions sur le plateau.
-win_wipeout			Table rase					Efface tous les pions de ton adversaire du plateau avant la fin.
-win_comeback		Retour d’entre les morts	Remonte et gagne après avoir été mené de 15 pions ou plus.
-win_3corners_down	Contre toute attente		Gagne alors que ton adversaire a contrôlé 3 coins pendant la partie.
-
-stk_win5			En feu						Enchaîne 5 victoires classées d’affilée.
-cum_win50			Heures sup					Atteins 50 victoires au total sur la plateforme.
-soc_rival10			Rivalité lancée				Joue 10 parties contre le même joueur de ta liste d’amis.
-elo_1200			Promotion accordée			Franchis le seuil des 1 200 points Elo.
-elo_1500			Associé senior				Atteins un classement Elo de 1 500 ou plus.
-elo_1800			Directeur de la stratégie	Atteins un pic de 1 800 Elo ou plus.
-elo_giant_slayer	David contre Goliath		Écrase un joueur classé 150 points Elo ou plus au-dessus de toi.
-*/
