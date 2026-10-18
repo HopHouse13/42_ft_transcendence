@@ -7,7 +7,7 @@ const ScoreCard = ({ leftScore, rightScore }: ScoreCardProps): React.ReactElemen
             <p className="text-xl font-bold tabular-nums" title="your score">
                 {leftScore}
             </p>
-            <p className="text-xl font-bold opacity-40">-</p>
+            <p className="text-xl font-bold opacity-70">-</p>
             <p className="text-xl font-bold tabular-nums" title="opponent score">
                 {rightScore}
             </p>

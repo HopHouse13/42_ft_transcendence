@@ -133,8 +133,8 @@ export interface PlayerCardProps {
 	isTurn: boolean;
 	side: 'left' | 'right';
 	username: string;
-	elo: number | null;
-	avatarUrl: string | null;
+	elo?: number | null;
+	avatarUrl?: string | null;
 }
 
 /** Props pour le composant ScoreCard */

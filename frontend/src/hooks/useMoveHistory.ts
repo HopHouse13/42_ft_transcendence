@@ -73,7 +73,7 @@ function computeNextState(previous: MoveHistoryState, gameState: GameState | nul
 	if (!gameState)
 		return (INITIAL_STATE);
 
-	const board = gameState.cells.map(toClientCell);
+	const board = gameState.board.map(toClientCell);
 
 	// Nouvelle partie : réinitialise l'historique avec l'état initial du plateau
 	if (previous.gameId !== gameState.gameId) {

@@ -3,8 +3,9 @@ import GameEndModal from "../components/GameEndModal";
 import { ChatRoom } from "../components/Chat" 
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
-import type { Cell } from "../types/gameTypes";
+import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
+import OnlineGameHeader from "../components/OnlineGameHeader";
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 ~~ Page Online Game ~~                                        */
@@ -17,12 +18,11 @@ export default function OnlineGame() {
 
   const rawCells = gameState?.board;
 
-
   const currentBoard: Cell[] = rawCells 
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
-  const validMovesIndexes = gameState?.validMoves ? gameState.validMoves.map((m: any) => m.row * 8 + m.col) : [];
+  const validMovesIndexes: number[] = gameState?.validMoves ? gameState.validMoves.map((m: Move) => m.row * 8 + m.col) : [];
 
   const handleCellClick = (index: number) => {
     if (isMovePending || !gameState || gameState.status === 'FINISHED') return;
@@ -54,22 +54,25 @@ export default function OnlineGame() {
         >
           {isConnected ? "Rechercher une partie" : "Connexion au serveur..."}
         </button>
-      ) : isWaiting && !gameState ? (
+      ) : !gameState && isWaiting ? (
         <div className="flex flex-col items-center gap-3 p-8 bg-[#262421] rounded-2xl border border-[#3d3a36]">
           <span className="loading loading-spinner loading-lg text-emerald-500"></span>
           <p className="text-sm text-amber-200 animate-pulse">Recherche d'un adversaire en cours...</p>
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between w-full max-w-md px-2">
-            <span className="text-sm text-amber-200">
-              {!isFinished ? (
-                <span>Tour actuel : <span className="font-bold">{gameState?.currentPlayer}</span></span>
-              ) : (
-                <span className="font-bold text-amber-400">Partie terminée</span>
-              )}
-            </span>
 
+          {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
+          
+          {/* Conteneur principal 2 colonnes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
+            
+            {/* Colonne de gauche : Board de jeux */}
+            <div className="flex flex-col gap-4 shrink-0">
+              <OnlineGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState?.currentPlayer ?? "BLACK"} players={gameState?.players ?? []} />
+              <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
+
+            </div>
             {!isFinished && (
               <button
                 onClick={giveUp}
@@ -78,19 +81,6 @@ export default function OnlineGame() {
                 Abandonner
               </button>
             )}
-          </div>
-
-          {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
-
-          
-          {/* Conteneur principal 2 colonnes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
-            
-            {/* Colonne de gauche : Board de jeux */}
-            <div className="flex flex-col gap-4 shrink-0">
-              <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
-
-            </div>
 
             {/* Colonne de droite : Chat global / d'attente */}
             <div className="flex justify-center md:justify-end w-full">
@@ -98,7 +88,6 @@ export default function OnlineGame() {
             </div>
 
           </div>
-        
 
           {/* Modal de fin de partie */}
           <GameEndModal

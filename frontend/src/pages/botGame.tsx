@@ -4,18 +4,20 @@ import GameEndModal from "../components/GameEndModal";
 import ColorSelectionModal from "../components/SelectionBotModal";
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
-import type { Cell } from "../types/gameTypes";
+import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
+import BotGameHeader from "../components/BotGameHeader";
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                   ~~ Page Bot Game ~~                                         */
 /* --------------------------------------------------------------------------------------------- */
 
 export default function Botgame() {
-  const { isConnected, error, gameState, isMovePending, startBotGame, playMove, giveUp } = useBotSocket();
+  const { isConnected, gameState, isMovePending, startBotGame, playMove, giveUp } = useBotSocket();
 
   // État local pour contrôler l'affichage du modal de sélection de couleur
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [myColor, setMyColor] = useState<"BLACK" | "WHITE">("WHITE")
 
   const navigate = useNavigate();
 
@@ -25,7 +27,7 @@ export default function Botgame() {
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
-  const validMovesIndexes = gameState?.validMoves ? gameState.validMoves.map((m: any) => m.row * 8 + m.col) : [];
+  const validMovesIndexes: number[] = gameState?.validMoves ? gameState.validMoves.map((m: Move) => m.row * 8 + m.col) : [];
 
   const handleCellClick = (index: number) => {
     if (isMovePending || !gameState || gameState.status === 'FINISHED') return;
@@ -47,6 +49,7 @@ export default function Botgame() {
 
   // Fonction appelée lorsque l'utilisateur choisit sa couleur dans le modal
   const handleSelectColor = (color: "BLACK" | "WHITE") => {
+    setMyColor(color);
     setIsColorModalOpen(false);
     startBotGame(color); // 💡 Passe la couleur choisie à ton hook si supporté, ou appelle startBotGame() simplement
   };
@@ -65,29 +68,22 @@ export default function Botgame() {
         </button>
       ) : (
         <>
-          <div className="flex items-center justify-between w-full max-w-md px-2">
-            <span className="text-sm text-amber-200">
-              {!isFinished ? (
-                <span>Tour actuel : <span className="font-bold">{gameState.currentPlayer}</span></span>
-              ) : (
-                <span className="font-bold text-amber-400">Partie terminée</span>
-              )}
-            </span>
 
-            {!isFinished && (
-              <button
-                onClick={giveUp}
-                className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
-              >
-                Abandonner
-              </button>
-            )}
-          </div>
+            
 
           {/* {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>} */}
-          <span>{blackScore} - {whiteScore}</span>
+          <BotGameHeader blackScore={blackScore} whiteScore={whiteScore} myColor={myColor} nextPlayer={gameState.currentPlayer}/>
           <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
 
+          {!isFinished && (
+            <button
+              onClick={giveUp}
+              className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
+            >
+              Abandonner
+            </button>
+          )}
+          
           {/* Modal de fin de partie */}
           <GameEndModal
             isOpen={isFinished}
