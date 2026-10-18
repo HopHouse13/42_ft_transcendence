@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router';
-import { AuthProvider } from './contexts/AuthProvider.tsx';
 import Layout from './components/Layout.tsx';
 import AppRouter from './routes/router.tsx';
 
@@ -11,15 +10,13 @@ const queryClient = new QueryClient();
 
 const App = (): React.ReactElement =>(
 	<QueryClientProvider client={queryClient}>
-		<AuthProvider>
-			<BrowserRouter>
-				<Layout>
-					<main className="flex flex-col flex-grow items-center justify-center bg-base-100 py-2">
-						<AppRouter />
-					</main>
-				</Layout>
-			</BrowserRouter>
-		</AuthProvider>
+		<BrowserRouter>
+			<Layout>
+				<main className="flex flex-col flex-1 items-center justify-center bg-base-100 py-2">
+					<AppRouter />
+				</main>
+			</Layout>
+		</BrowserRouter>
 		<ReactQueryDevtools /> {/*DEBUG*/}
 	</QueryClientProvider>
 );

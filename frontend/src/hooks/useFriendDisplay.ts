@@ -1,11 +1,11 @@
-import { useAuthContext } from "./useAuthContext";
+import { useAuthSession } from "./useAuthSession";
 import { queryKeys } from "../queries/queryKeys";
 import type { FriendLists } from "../types/friendTypes";
 import { useQuery } from "@tanstack/react-query";
 
 export default function useFriendDisplay()
 {
-	const 	{ user }  = useAuthContext(); // recupere uniquement le user si session active (avec les cookies??)
+	const 	{ user }  = useAuthSession(); // recupere uniquement le user si session active (avec les cookies??)
 
 	// query represente le retour du hook 'useQuery'. Ce hook fait partie de la librairie Query qui gère la donnée au niveau du navigateur ( l'etat )
 	const	query = useQuery(

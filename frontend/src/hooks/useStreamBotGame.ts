@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAuthContext } from "./useAuthContext";
+import { useAuthSession } from "./useAuthSession";
 import type { GameState } from "../types/gameTypes";
 
 const STREAM_GAME_KEY = "othello_stream_game_id";
@@ -12,7 +12,7 @@ export function useStreamBotGame() {
   const [isBotThinking, setIsBotThinking] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
-  const { user, loading } = useAuthContext();
+  const { user, loading } = useAuthSession();
 
   useEffect(() => {
     if (loading || !user?.id) return;

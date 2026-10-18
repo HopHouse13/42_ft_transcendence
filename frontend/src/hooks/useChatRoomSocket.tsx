@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAuthContext } from "./useAuthContext";
+import { useAuthSession } from "./useAuthSession";
 
 
 export interface ChatMessage {
@@ -18,7 +18,7 @@ export function useChatRoomSocket( roomId?: string ) {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const socketRef = useRef<Socket | null>(null);
-  const { user, loading } = useAuthContext();
+  const { user, loading } = useAuthSession();
 
   useEffect(() => {
     // Si l'auth charge encore ou si l'utilisateur n'est pas connecté, on ne fait rien
