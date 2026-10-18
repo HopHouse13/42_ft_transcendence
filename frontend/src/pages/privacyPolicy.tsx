@@ -310,7 +310,7 @@ function PrivacyPolicy() {
       <h2 className="text-2xl font-bold mt-10 mb-6">Contact Us</h2>
       <p className="leading-relaxed mb-4 opacity-90">If You have any questions about this Privacy Policy, You can contact Us:</p>
       <ul className="list-disc pl-6 mb-8 space-y-1 opacity-90">
-        <li>By email: <a href="mailto:mockmail@mail.com" className="link link-primary">mockmail@mail.com</a></li>
+        <li>By email: <a href="mailto:othello.transcendence@gmail.com" className="link link-primary">othello.transcendence@gmail.com</a></li>
       </ul>
     </div>
   );
