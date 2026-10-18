@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import Game from "./game";
+import Board from "../components/Board";
 import type { BoardState, SpectatorPlayerData, LiveGamePayload } from "../types/gameTypes";
 import Board from "../components/Board";
+import { useSpectatorSocket } from "../hooks/useSpectatorSocket";
 
 
 const timeNow : string = "2026-10-16T19:20:00Z"
@@ -99,7 +101,7 @@ const MOCK_LIVE_GAMES = [
     turn: "Black",
     spectators: 12,
     duration: "10:45",
-    status: "ongoing",
+    status: "IN_PROGRESS",
     endedAt: "2026-10-16T19:15:00Z",
     board: MID_GAME_BOARD,
   },
@@ -110,7 +112,7 @@ const MOCK_LIVE_GAMES = [
     turn: "White",
     spectators: 3,
     duration: "01:20",
-    status: "ongoing",
+    status: "IN_PROGRESS",
     endedAt: "n/a",
     board: STARTING_BOARD,
   },
@@ -121,7 +123,7 @@ const MOCK_LIVE_GAMES = [
     turn: "Black",
     spectators: 45,
     duration: "15:30",
-    status: "finished",
+    status: "FINISHED",
     endedAt: "2026-10-16T19:15:00Z",
     board: FINISHED_BOARD_40_24,
   },
@@ -132,7 +134,7 @@ const MOCK_LIVE_GAMES = [
     turn: "Black",
     spectators: 32,
     duration: "18:30",
-    status: "finished",
+    status: "FINISHED",
     endedAt: "2026-10-16T19:00:00Z",
     board: FINISHED_BOARD_34_30,
   },
@@ -180,17 +182,17 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   <>
     {/* Floating Top-Left: LIVE Badge */}
       <div className="absolute top-5 left-5 z-10">
-        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "ongoing" ? "badge" : "badge-neutral"}`}> */}
+        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "IN_PROGRESS" ? "badge" : "badge-neutral"}`}> */}
         <div className={`badge border shadow-lg font-bold gap-2 ${
-          status === "ongoing"
+          status === "IN_PROGRESS"
             ? "badge-error text-white border-white/30 shadow-red-500/20"
             : "badge-neutral border-base-content/20 shadow-black/40"
           }`}>
-        {status === "ongoing" && (
+        {status === "IN_PROGRESS" && (
           // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
           <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
         )}
-        {status === "ongoing" ? "LIVE" : "FINISHED"}
+        {status === "IN_PROGRESS" ? "LIVE" : "FINISHED"}
         </div>
       </div>
 
@@ -198,7 +200,7 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
       {/* Floating Top-Right: Stats */}
       <div className="absolute top-5 right-5 z-10">
       <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm border border-base-content/10 text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
-        {status === "ongoing" ? (
+        {status === "IN_PROGRESS" ? (
           // if ongoing: show spectators and current duration
         <>
           <span>👀 {spectators}</span>
@@ -215,7 +217,7 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
 );
 
 const PlayerRowAvatar = ({ player, turn, status } : { player: PlayerData, turn: string, status: string }): React.ReactElement => {
-  const isOnline = status === "ongoing" && turn === player.color;
+  const isOnline = status === "IN_PROGRESS" && turn === player.color;
 
   return (
         <div className={`avatar shrink-0 ${isOnline ? 'online' : ''}`}>
@@ -247,7 +249,7 @@ const PlayerRowName = ({ player } : { player: PlayerData }): React.ReactElement 
 }
 
 const PlayerRowDot = ({ player, turn, status } : { player: PlayerData, turn: string, status: string } ): React.ReactElement => {
-  const showSpinner = status === "ongoing" && turn === player.color;
+  const showSpinner = status === "IN_PROGRESS" && turn === player.color;
 
   return (
     <div className="relative shrink-0 flex items-center justify-center w-8 h-8">
@@ -272,14 +274,14 @@ const PlayerRowScore = ({ player } : {player : PlayerData }): React.ReactElement
 }
 
 const PlayerRow = ({ player, turn, status, isWinner, isDraw }: PlayerRowProps): React.ReactElement=> {
-const isTurn = status === "ongoing" && turn === player.color;
+const isTurn = status === "IN_PROGRESS" && turn === player.color;
 
 let rowStyle = "opacity-80 border border-transparent";
 
-  if (status === "ongoing" && isTurn) {
+  if (status === "IN_PROGRESS" && isTurn) {
     // Normal ongoing active turn glow
     rowStyle = "bg-base-100 shadow-[0_0_15px_rgba(255,255,255,0.3)] z-10 border border-white/10";
-  } else if (status === "finished") {
+  } else if (status === "FINISHED") {
     if (isWinner) {
       // Winner styling: Green tinted background, green border, green glow, full opacity
       rowStyle = "bg-success/10 shadow-[0_0_15px_rgba(34,197,94,0.15)] z-10 border border-success/40 opacity-100";
@@ -319,7 +321,7 @@ let rowStyle = "opacity-80 border border-transparent";
 }
 
 const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
-  const isFinished = game.status === "finished";
+  const isFinished = game.status === "FINISHED";
   const isDraw = isFinished && game.player1.score === game.player2.score;
   const winnerColor = isFinished && !isDraw
     ? (game.player1.score > game.player2.score ? game.player1.color : game.player2.color)
@@ -336,12 +338,12 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 
           {/* Board Preview */}
           <div className={`w-full pointer-events-none transition-all duration-700 ${
-            game.status === "finished" ? "grayscale[50] opacity-50" : ""
+            game.status === "FINISHED" ? "grayscale[50] opacity-50" : ""
           }`}>
             <Board
               board={game.board} // Later, replace with game.board
               validMoves={[]}        // Empty array prevents move indicators
-              disabled={true}        // Prevents any click interactions
+              // disabled={true}        // Prevents any click interactions
               onMove={() => {}}      // Dummy function since it's disabled
             />
           </div>
@@ -377,10 +379,10 @@ const getVisibleGames = (games: GameState[], currentTime: string): GameState[] =
   return games
     .filter((game) => {
       // 1. Keep all ongoing games
-      if (game.status === "ongoing") return true;
+      if (game.status === "IN_PROGRESS") return true;
 
       // 2. Keep finished game from less than 10min
-      if (game.status === "finished" && game.endedAt) {
+      if (game.status === "FINISHED" && game.endedAt) {
         const nowMs = new Date(currentTime).getTime();
         const endedMs = new Date(game.endedAt).getTime();
         const diffInMinutes = Math.floor((nowMs - endedMs) / 60000);
@@ -393,13 +395,13 @@ const getVisibleGames = (games: GameState[], currentTime: string): GameState[] =
       // 1. Finished games last
       // if 'a' is ongoing and 'b' is finished, 'a' goes first (-1)
       if (a.status !== b.status) {
-        return a.status === "ongoing" ? -1 : 1;
+        return a.status === "IN_PROGRESS" ? -1 : 1;
       }
 
       // 2. Bot matches placeholder
       const aIsBot = a.isBot || false;
       const bIsBot = b.isBot || false;
-      if (a.status === "ongoing" && aIsBot !== bIsBot) {
+      if (a.status === "IN_PROGRESS" && aIsBot !== bIsBot) {
         return aIsBot ? 1 : -1; // Human (-1) comes before Bot (1)
       }
 
