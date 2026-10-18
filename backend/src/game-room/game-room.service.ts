@@ -113,6 +113,19 @@ export class GameRoomService    {
 
         return( undefined );
     }
+
+    removeWaitingRoomByUserId(userId: string):      void {
+
+        for (const [roomId, room] of this.rooms.entries())  {
+            
+            if (room.status === 'waiting' && room.player1.userId === userId) {
+                
+                this.rooms.delete(roomId);
+                console.log(`🧹 Room d'attente ${roomId} supprimée pour le joueur ${userId} (déconnexion/annulation)`);
+                break;
+            }
+        }
+    }
     
 /* -------------------------------------------------------------------------- */
     

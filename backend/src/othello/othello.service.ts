@@ -441,6 +441,12 @@ export class    OthelloService  {
         return( this.getGameState(gameId) );
     } 
 
+    OnlineRemovePlayerFromQueue(userId: string): void {
+    
+        this.gameRoom.removeWaitingRoomByUserId(userId);
+    
+    }
+
     /* -------------------------------------------------------------------------- */
     /*  Mode Online (Matchmaking & PvP réseau)                                    */
     /* -------------------------------------------------------------------------- */

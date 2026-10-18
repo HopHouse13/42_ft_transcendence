@@ -35,6 +35,11 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     handleDisconnect(client: Socket) {
         console.log(`${new Date().toISOString()} by: client Disconect(${client.id}) to: Othello engine`);
+
+        const userId = client.data.userId || client.handshake.query.userId as string;
+        if (userId) {
+            this.othelloService.OnlineRemovePlayerFromQueue(userId);
+        }
     }
 
     /* -------------------------------------------------------------------------- */
