@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import Game from "./game";
-import type { BoardState } from "../types/gameTypes";
+import type { BoardState, SpectatorPlayerData, LiveGamePayload } from "../types/gameTypes";
 import Board from "../components/Board";
 
 

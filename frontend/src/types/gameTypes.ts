@@ -1,4 +1,4 @@
-// ===== TYPES =====	
+// ===== TYPES =====
 
 /** Type pour représenter un joueur */
 export type Player = 'BLACK' | 'WHITE';
@@ -91,7 +91,7 @@ export interface GameResult {
 }
 
 export interface GameState {
-    
+
     gameId:         string;
     mode:           'BOT' | 'ONLINE';
     cells:          ServerCell[];
@@ -149,4 +149,25 @@ export interface ScoreCardProps {
 export interface GameHeaderProps {
 	gameState: GameState;
 	mode: GameMode;
+}
+
+/* Spectator interfaces */
+export interface SpectatorPlayerData {
+  username: string;
+  avatarUrl: string;
+  color: PlayerColor;
+  score: number;
+  elo: number;
+}
+
+export interface LiveGamePayload {
+  gameId: string;
+  player1: SpectatorPlayerData;
+  player2: SpectatorPlayerData;
+  currentPlayer: PlayerColor;
+  spectators: number;
+  duration: string;
+  status: GameStatus;
+  isBot: boolean;
+  board: ServerCell[];
 }

@@ -9,7 +9,17 @@ import { Server, Socket } from 'socket.io';
 import { SpectatorService } from './spectator.service';
 
 // @WebSocketGateway() : Définit une classe comme un point d’entrée pour les WebSockets.
-@WebSocketGateway({ cors: true, namespace: '/spectator' })
+@WebSocketGateway({
+  cors: {
+    origin: [
+      // 'http://localhost:5173,',
+      // 'https://localhost:8443',
+      '*',
+    ],
+    // credentials: true, // if cookies/sessions over the sockets
+  },
+  namespace: '/spectator',
+})
 export class SpectatorGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -23,12 +33,15 @@ export class SpectatorGateway
 
   handleConnection(client: Socket) {
     this.connectedSpectators++;
-    console.log('Spectator connected. Total: ${this.connectedSpectators}');
+    console.log(
+      `${new Date().toISOString()} by: client Connect(${client.id}) to: Spectator Feed. Total: ${this.connectedSpectators}`,
+    );
   }
   handleDisconnect(client: Socket) {
     this.connectedSpectators--;
     if (this.connectedSpectators < 0) this.connectedSpectators = 0;
-    console.log('Spectator disconnected. Total: ${this.connectedSpectators}');
+    console.log(
+      `${new Date().toISOString()} by: client Disconnect(${client.id}) to: Spectator Feed. Total: ${this.connectedSpectators}`);
   }
 
   // fontend calls this when the Watch component nounts
