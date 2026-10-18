@@ -25,6 +25,7 @@ import type { GameResult } from './interfaces/game-result.interface';
 
 import { ComputePlayerService } from '../compute-player/compute-player.service';
 import { GameRoomService, GameRoom } from '../game-room/game-room.service';
+import { AchievementService } from '../achievement/achievement.service'; 
 
 /* -------------------------------------------------------------------------- */
 
@@ -46,7 +47,8 @@ export class    OthelloService  {
     
         private readonly computePlayerService: ComputePlayerService, 
         private readonly prisma: PrismaService,
-        private readonly gameRoom: GameRoomService 
+        private readonly gameRoom: GameRoomService,
+        private readonly achievement: AchievementService,
     ){}
 
     /* -------------------------------------------------------------------------- */
@@ -287,10 +289,6 @@ export class    OthelloService  {
 
         const p1Color: Player = (room.player1.color as Player) || 'BLACK';
         const p2Color: Player = (room.player2?.color as Player) || (p1Color === 'BLACK' ? 'WHITE' : 'BLACK');
-        if( p1Color === p2Color )    {
-
-            p2Color = p1Color === 'BLACK' ? 'WHITE' : 'BLACK';
-        }
         
         const playerArr: PlayerInfo[] = [
             { userId: room.player1.userId, color: p1Color, connected: true },
@@ -372,6 +370,8 @@ export class    OthelloService  {
             
                 winnerId = service.state.players.find(p => p.color === 'WHITE')?.userId || null;
             }
+
+            
         }
 
         // Appel de la méthode privée pour sauvegarder le coup et l'état en transaction
@@ -390,7 +390,12 @@ export class    OthelloService  {
                 winnerId
             );
             
-            console.log(` Move n°${currentMoveNumber} success game save ${gameId}`);
+            console.log(` Move n°${currentMoveNumber} success game save ${gameId}` );
+            if ( isOver ) {
+
+                const aaa = await this.achievement.validateAchievement(gameId) ;
+                console.log( `test achiv ${aaa} ` );
+            }
         
         } catch (dbError) {
         
