@@ -1,10 +1,12 @@
+// declaration des dependances
 import { Module } from '@nestjs/common';
-import { OthelloModule } from '../othello/othello.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { SpectatorService } from './spectator.service';
 import { SpectatorGateway } from './spectator.gateway';
 
 @Module({
-  imports: [OthelloModule],
+  imports: [PrismaModule],
   providers: [SpectatorService, SpectatorGateway],
+  exports: [SpectatorGateway], // for use in OthelloService
 })
 export class SpectatorModule {}
