@@ -16,16 +16,18 @@ export function ChatRoom({ roomId = "room-demo" }: ChatRoomProps ) {
   // Utilisation de notre hook mis à jour
   const { isConnected, messages, sendMessage, currentUserId } = useChatRoomSocket(roomId);
 
-  // Élément de référence situé tout en bas de la liste de messages
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Référence vers le conteneur de messages
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  
   // 📜 Défilement automatique vers le bas dès que la liste `messages` change
+  // sans forcer le focus sur le chat
   useEffect(() => {
-  
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     
     e.preventDefault();
     if (!input.trim() || !isConnected) return;
@@ -46,7 +48,7 @@ return (
       </div>
 
       {/* Zone de messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-stone-200">
+      <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-stone-200">
         { (messages.length === 0) ? ( <div className="h-full flex items-center justify-center text-xs text-gray-400"> Aucun message pour le moment.</div> ) : ( messages.map((msg) => { const isMe = msg.userId === currentUserId;
 
             return (
@@ -62,8 +64,6 @@ return (
             );
           })
         )}
-        {/* Ancre invisible ciblée par le défilement automatique */}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Formulaire de saisie */}

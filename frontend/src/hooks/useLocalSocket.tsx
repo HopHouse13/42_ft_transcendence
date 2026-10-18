@@ -66,7 +66,7 @@ export function useLocalSocket() {
       }
       setGameState((prev) => ({
         ...state,
-        gameId: state.gameId || prev?.gameId || localStorage.getItem(LOCAL_GAME_KEY) || undefined,
+        gameId: state.gameId ?? prev?.gameId ?? localStorage.getItem(LOCAL_GAME_KEY) ?? undefined,
       }));
       setIsMovePending(false);
       setError(null);
