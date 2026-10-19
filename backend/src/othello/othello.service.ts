@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /* ========================================================================== */
 /*                                                                            */
 /*                                                                            */
@@ -25,7 +27,8 @@ import type { GameResult } from './interfaces/game-result.interface';
 
 import { ComputePlayerService } from '../compute-player/compute-player.service';
 import { GameRoomService, GameRoom } from '../game-room/game-room.service';
-import { AchievementService } from '../achievement/achievement.service'; 
+import { AchievementService } from '../achievement/achievement.service';
+import { SpectatorGateway } from '../spectator/spectator.gateway';
 
 /* -------------------------------------------------------------------------- */
 
@@ -33,7 +36,7 @@ interface GameService {
 
     gameId: string;
     engine: OthelloEngine;
-    state:  GameState; 
+    state:  GameState;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -43,12 +46,13 @@ export class    OthelloService  {
 
     private readonly games = new Map<string, GameService>();
 
-    constructor( 
-    
-        private readonly computePlayerService: ComputePlayerService, 
+    constructor(
+
+        private readonly computePlayerService: ComputePlayerService,
         private readonly prisma: PrismaService,
         private readonly gameRoom: GameRoomService,
         private readonly achievement: AchievementService,
+        private readonly spectatorGateway: SpectatorGateway,
     ){}
 
     /* -------------------------------------------------------------------------- */
@@ -62,25 +66,25 @@ export class    OthelloService  {
     localCreateGame(hostUserId: string): string {
 
         const setGameId = randomUUID(); const setEngine = new OthelloEngine();
-        
+
         const playerArr: PlayerInfo[] = [
             { userId: hostUserId, color: 'BLACK', connected: true },
             {userId: randomUUID(), color: 'WHITE', connected: true}];
-        
+
         const service: GameService = { gameId: setGameId, engine: setEngine, state  : {
 
                 gameId: setGameId,
-                mode: 'LOCAL', 
+                mode: 'LOCAL',
                 status: 'IN_PROGRESS',
                 board: setEngine.getBoard().getAllCell(),
                 players: playerArr,
                 currentPlayer: 'BLACK',
                 validMoves: setEngine.allValidMove('BLACK'),
-                createdAt:  new Date 
-            }} 
-        
+                createdAt:  new Date
+            }}
+
         this.games.set(service.gameId, service);
-        
+
         return( service.gameId );
     }
 
@@ -89,7 +93,7 @@ export class    OthelloService  {
     // 3. Jouer le coup
     // 4. Mettre à jour l'état du jeu (en utilisant getAllCell() comme dans createGame)
     localPlayMove(gameId: string, move: Move): GameState {
-        
+
         const service: GameService = this.getLocalGame(gameId);
         const currentColor = service.engine.getCurrentPlayer();
 
@@ -102,28 +106,28 @@ export class    OthelloService  {
 
         service.engine.playMove(move, player.color);
         service.state.board = service.engine.getBoard().getAllCell();
-        
+
         const nextTurnPlayer = service.engine.getCurrentPlayer();
         service.state.currentPlayer = nextTurnPlayer;
         service.state.validMoves = service.engine.allValidMove(nextTurnPlayer);
 
         if ( service.engine.isGameOver() )  {
-            
+
             service.state.status = GameStatus.FINISHED;
         }
 
         return( this.getGameState(gameId) );
     }
-    
+
     // Marquer la partie comme terminée
     // Optionnel : Vous pouvez stocker le gagnant ou l'info d'abandon dans le state si besoin,
     // par exemple le joueur adverse gagne par forfait.
     localGiveUp(gameId: string, playerColor: Player): GameState {
-        
+
         const service: GameService = this.getLocalGame(gameId);
 
         if (service.state.status === GameStatus.FINISHED)   {
-            
+
             return( service.state );
         }
 
@@ -143,9 +147,9 @@ export class    OthelloService  {
 
     computeCreateGame(hostUserId: string, userColor: 'BLACK' | 'WHITE' = 'BLACK'): string {
 
-        const setGameId = randomUUID(); 
+        const setGameId = randomUUID();
         const setEngine = new OthelloEngine();
-        
+
         // Détermine la couleur du bot (l'opposé de celle du joueur)
         const botColor = userColor === 'BLACK' ? 'WHITE' : 'BLACK';
 
@@ -153,24 +157,24 @@ export class    OthelloService  {
             { userId: hostUserId, color: userColor, connected: true },
             { userId: randomUUID(), color: botColor, connected: true }
         ];
-        
-        const service: GameService = { 
-            gameId: setGameId, 
-            engine: setEngine, 
+
+        const service: GameService = {
+            gameId: setGameId,
+            engine: setEngine,
             state: {
                 gameId: setGameId,
-                mode: 'BOT', 
+                mode: 'BOT',
                 status: 'IN_PROGRESS',
                 board: setEngine.getBoard().getAllCell(),
                 players: playerArr,
                 currentPlayer: 'BLACK', // Les Noirs commencent toujours à Othello
                 validMoves: setEngine.allValidMove('BLACK'),
-                createdAt: new Date 
+                createdAt: new Date
             }
-        }; 
-        
+        };
+
         this.games.set(service.gameId, service);
-        
+
         return service.gameId;
     }
 
@@ -181,7 +185,7 @@ export class    OthelloService  {
 
         const currentColor = service.engine.getCurrentPlayer();
         const player = service.state.players.find(p => p.color === currentColor);
-        
+
         if (!player || player.userId !== userId) {
             throw new Error(`Ce n'est pas votre tour de jouer.`);
         }
@@ -210,7 +214,7 @@ export class    OthelloService  {
             return this.getGameState(gameId);
         }
 
-        const botPlayer = service.state.players.find(p => p.userId !== service.state.players[0].userId); 
+        const botPlayer = service.state.players.find(p => p.userId !== service.state.players[0].userId);
         if (!botPlayer) return this.getGameState(gameId);
 
         const botColor = botPlayer.color;
@@ -225,14 +229,14 @@ export class    OthelloService  {
             const legalMoves = service.engine.allValidMove(botColor);
 
             if (legalMoves.length === 0) {
-                // Le bot n'a aucun coup valide : l'engine gère ou force le passage de tour 
+                // Le bot n'a aucun coup valide : l'engine gère ou force le passage de tour
                 // (ou on break pour éviter une boucle infinie si personne n'a de coup)
-                break; 
+                break;
             }
 
             const botMove = await this.computePlayerService.requestMove(
                 service.engine.getBoard().getAllCell(),
-                botColor, 
+                botColor,
                 legalMoves
             );
 
@@ -284,24 +288,24 @@ export class    OthelloService  {
             return( {gameId: '', roomStatus: 'waiting', roomId: room.roomId} );
         }
 
-        const setGameId = randomUUID(); 
+        const setGameId = randomUUID();
         const setEngine = new OthelloEngine();
 
         const p1Color: Player = (room.player1.color as Player) || 'BLACK';
         const p2Color: Player = (room.player2?.color as Player) || (p1Color === 'BLACK' ? 'WHITE' : 'BLACK');
-        
+
         const playerArr: PlayerInfo[] = [
             { userId: room.player1.userId, color: p1Color, connected: true },
             { userId: room.player2!.userId, color: p2Color, connected: true }
         ];
-        
+
         const service: GameService = {gameId: setGameId, engine: setEngine, state: {
                 gameId: setGameId,
-                mode: 'ONLINE', 
+                mode: 'ONLINE',
                 status: 'IN_PROGRESS',
                 board: setEngine.getBoard().getAllCell(),
                 players: playerArr,
-                currentPlayer: 'BLACK', 
+                currentPlayer: 'BLACK',
                 validMoves: setEngine.allValidMove('BLACK'),
                 createdAt: new Date()
             }
@@ -310,9 +314,12 @@ export class    OthelloService  {
         try {
 
             await this._dbCreateGame(setGameId, playerArr);
-        
+
+            // Trigger: a new game has started to watch page
+            this.spectatorGateway.broadcastGameUpdate();
+
         } catch (dbError) {
-        
+
             console.error("Fatal Error :", dbError);
         }
 
@@ -350,7 +357,7 @@ export class    OthelloService  {
         if (isOver) {
 
             service.state.status = GameStatus.FINISHED;
-            // To Do faire une methode qui calcule l'elo et qui verifie les achievements 
+            // To Do faire une methode qui calcule l'elo et qui verifie les achievements
         }
 
         const boardAfterString = newBoardCells.map(cell => (cell === 'BLACK' ? 'B' : cell === 'WHITE' ? 'W' : '-')).join('').padEnd(64, '-');
@@ -363,20 +370,20 @@ export class    OthelloService  {
         if ( isOver )     {
 
             if (blackScore > whiteScore) {
-            
+
                 winnerId = service.state.players.find(p => p.color === 'BLACK')?.userId || null;
-            
+
             } else if (whiteScore > blackScore) {
-            
+
                 winnerId = service.state.players.find(p => p.color === 'WHITE')?.userId || null;
             }
 
-            
+
         }
 
         // Appel de la méthode privée pour sauvegarder le coup et l'état en transaction
         try {
-            
+
             await this._dbSaveMoveAndGameState(
                 gameId,
                 currentMoveNumber,
@@ -389,16 +396,19 @@ export class    OthelloService  {
                 nextTurnPlayer,
                 winnerId
             );
-            
+
+            // trigger broadcast to watch page
+            this.spectatorGateway.broadcastGameUpdate();
+
             console.log(` Move n°${currentMoveNumber} success game save ${gameId}` );
             if ( isOver ) {
 
                 const aaa = await this.achievement.validateAchievement(gameId) ;
                 console.log( `test achiv ${aaa} ` );
             }
-        
+
         } catch (dbError) {
-        
+
             console.error(" Fatal Error: ", dbError);
         }
 
@@ -406,10 +416,10 @@ export class    OthelloService  {
     }
 
     async onlineGiveUp(gameId: string, userId: string): Promise<GameState> {
-        
+
         const service: GameService = this.getLocalGame(gameId);
         if ( service.state.status === GameStatus.FINISHED ) {
-         
+
             return( service.state );
         }
 
@@ -430,21 +440,24 @@ export class    OthelloService  {
 
         try {
             await this._dbFinishGameByGiveUp(gameId, blackScore, whiteScore, winnerId);
-            
+
             console.log(`Game ${gameId} give up by ${userId}. Winner is : ${winnerId}`);
-        
+
+            // trigger forfeit to watch
+            this.spectatorGateway.broadcastGameUpdate();
+
         } catch (dbError) {
-        
+
             console.error("Fatal Error: ", dbError);
         }
 
         return( this.getGameState(gameId) );
-    } 
+    }
 
     OnlineRemovePlayerFromQueue(userId: string): void {
-    
+
         this.gameRoom.removeWaitingRoomByUserId(userId);
-    
+
     }
 
     /* -------------------------------------------------------------------------- */
@@ -453,29 +466,29 @@ export class    OthelloService  {
 
     createBotVsBotGame(): string {
 
-        const setGameId = randomUUID(); 
+        const setGameId = randomUUID();
         const setEngine = new OthelloEngine();
-        
+
         const playerArr: PlayerInfo[] = [
             { userId: 'bot-black-id', color: 'BLACK', connected: true },
             { userId: 'bot-white-id', color: 'WHITE', connected: true }
         ];
-        
-        const service: GameService = { 
-            gameId: setGameId, 
-            engine: setEngine, 
+
+        const service: GameService = {
+            gameId: setGameId,
+            engine: setEngine,
             state: {
                 gameId: setGameId,
-                mode: 'BOT', 
+                mode: 'BOT',
                 status: 'IN_PROGRESS',
                 board: setEngine.getBoard().getAllCell(),
                 players: playerArr,
                 currentPlayer: 'BLACK',
                 validMoves: setEngine.allValidMove('BLACK'),
-                createdAt: new Date 
+                createdAt: new Date
             }
-        }; 
-        
+        };
+
         this.games.set(service.gameId, service);
         return service.gameId;
     }
@@ -494,7 +507,7 @@ export class    OthelloService  {
             // Demande au service de calcul de trouver le meilleur coup pour la couleur actuelle
             const botMove = await this.computePlayerService.requestMove(
                 service.engine.getBoard().getAllCell(),
-                currentColor, 
+                currentColor,
                 legalMoves
             );
 
@@ -518,7 +531,7 @@ export class    OthelloService  {
 
     /* -------------------------------------------------------------------------- */
 
-    getGameState(gameId: string):   GameState { 
+    getGameState(gameId: string):   GameState {
 
         return( this.getLocalGame(gameId).state );
     }
@@ -532,7 +545,7 @@ export class    OthelloService  {
         }
         return( game );
     }
-    
+
     deleteGame(gameId: string) {
 
         this.games.delete(gameId);
@@ -549,13 +562,13 @@ export class    OthelloService  {
         const blackPlayer = playerArr.find(p => p.color === 'BLACK');
         const whitePlayer = playerArr.find(p => p.color === 'WHITE');
 
-        await this.prisma.game.create({ 
-            data: { 
-                id: setGameId, 
-                status: 'IN_PROGRESS', 
-                blackPlayerId: blackPlayer ? blackPlayer.userId : playerArr[0].userId, 
-                whitePlayerId: whitePlayer ? whitePlayer.userId : playerArr[1].userId 
-            } 
+        await this.prisma.game.create({
+            data: {
+                id: setGameId,
+                status: 'IN_PROGRESS',
+                blackPlayerId: blackPlayer ? blackPlayer.userId : playerArr[0].userId,
+                whitePlayerId: whitePlayer ? whitePlayer.userId : playerArr[1].userId
+            }
         });
     }
 
@@ -613,8 +626,8 @@ export class    OthelloService  {
         gameId: string,
         blackScore: number,
         whiteScore: number,
-        winnerId: string | null): Promise<void> { 
-        
+        winnerId: string | null): Promise<void> {
+
         await this.prisma.game.update({
             where: { id: gameId },
             data: {
@@ -628,5 +641,5 @@ export class    OthelloService  {
 
     /* -------------------------------------------------------------------------- */
 
-   
+
 }

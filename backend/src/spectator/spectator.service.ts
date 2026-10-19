@@ -1,7 +1,7 @@
 // logique code metier
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { LiveGamePayload } from './interfaces/live-game.interface';
+import { ServerCell, LiveGamePayload } from './interfaces/live-game.interface';
 import { GameStatus } from '../othello/enums/game-status.enum';
 
 @Injectable()
@@ -20,36 +20,68 @@ export class SpectatorService {
       include: {
         blackPlayer: true, // Pulls the full User model for the black player
         whitePlayer: true, // Prisma executes a SQL `JOIN` under the hood, allowing to access `game.<color>Player.elo` without any extra database calls.
+        moves: {
+          orderBy: { moveNumber: 'desc' },
+          take: 1, // latest move
+        },
       },
     });
 
+    // standard Othello starting board
+    const DEFAULT_BOARD_STR =
+      '---------------------------WB------BW---------------------------';
+
     // map db entities to frontend LiveGame interface
-    return games.map((game) => ({
-      gameId: game.id,
-      status: GameStatus.IN_PROGRESS,
-      currentPlayer:
-        (game as any).currentPlayer === 'WHITE' ? 'WHITE' : 'BLACK',
-      // currentPlayer: game.currentPlayer === 'BLACK' ? 'BLACK' : 'WHITE',
+    return games.map((game) => {
+      const latestMove = game.moves[0];
+      // Will be undefined if no moves have been played yet
 
-      spectators: 0,
-      duration: '00:00', // placeholder | to calculate
-      isBot: false, // placeholder
-      board: [], // placeholder | inject actual board stat here
+      const boardString = latestMove
+        ? latestMove.boardAfter
+        : DEFAULT_BOARD_STR;
+      const reconstructedBoard = boardString.split('').map((char) => {
+        if (char === 'B') return 'BLACK';
+        if (char === 'W') return 'WHITE';
+        return 'EMPTY';
+      }) as ServerCell[];
 
-      player1: {
-        username: game.blackPlayer.username,
-        avatarUrl: game.blackPlayer.avatarUrl,
-        color: 'BLACK',
-        score: game.blackScore || 2,
-        elo: game.blackPlayer.elo,
-      },
-      player2: {
-        username: game.whitePlayer.username,
-        avatarUrl: game.whitePlayer.avatarUrl,
-        color: 'WHITE',
-        score: game.whiteScore || 2,
-        elo: game.whitePlayer.elo,
-      },
-    }));
+      const currentBlackScore = reconstructedBoard.filter(
+        (c) => c === 'BLACK',
+      ).length;
+      const currentWhiteScore = reconstructedBoard.filter(
+        (c) => c === 'WHITE',
+      ).length;
+
+      const currentTurn = latestMove
+        ? latestMove.Color === 'BLACK'
+          ? 'WHITE'
+          : 'BLACK'
+        : 'BLACK';
+
+      return {
+        gameId: game.id,
+        status: GameStatus.IN_PROGRESS,
+        currentPlayer: currentTurn,
+        spectators: 0,
+        duration: '00:00', // placeholder | to calculate
+        isBot: false, // placeholder
+        board: reconstructedBoard,
+
+        player1: {
+          username: game.blackPlayer.username,
+          avatarUrl: game.blackPlayer.avatarUrl,
+          color: 'BLACK',
+          score: currentBlackScore,
+          elo: game.blackPlayer.elo,
+        },
+        player2: {
+          username: game.whitePlayer.username,
+          avatarUrl: game.whitePlayer.avatarUrl,
+          color: 'WHITE',
+          score: currentWhiteScore,
+          elo: game.whitePlayer.elo,
+        },
+      };
+    });
   }
 }

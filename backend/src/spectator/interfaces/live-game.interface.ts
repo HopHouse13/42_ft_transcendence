@@ -1,5 +1,6 @@
-import { Cell } from '../../othello/types/cell.type';
 import { GameStatus } from '../../othello/enums/game-status.enum';
+
+export type ServerCell = 'BLACK' | 'WHITE' | 'EMPTY';
 
 export interface SpectatorPlayerData {
   username: string;
@@ -18,5 +19,5 @@ export interface LiveGamePayload {
   duration: string;
   status: GameStatus;
   isBot: boolean;
-  board: Cell[];
+  board: ServerCell[];
 }

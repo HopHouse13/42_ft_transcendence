@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from 'socket.io-client';
-import { LiveGamePayLoad } from '../types/gameTypes';
+import type { LiveGamePayload } from '../types/gameTypes';
 
 export const useSpectatorSocket = () => {
-  const [liveGames, setLiveGames] = useState<LiveGamePayLoad[]>([]);
+  const [liveGames, setLiveGames] = useState<LiveGamePayload[]>([]);
 
   useEffect(() => {
     // connect excluysively to the spectator namespace
     const socket: Socket = io('/spectator');
 
     // listen for the backend emitting the array
-    socket.on('liveGameList', (games: LiveGamePayLoad[]) => {
+    socket.on('liveGamesList', (games: LiveGamePayload[]) => {
       setLiveGames(games);
     });
 

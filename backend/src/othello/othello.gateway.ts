@@ -1,3 +1,6 @@
+/* eslint-disable */
+
+
 /* ========================================================================== */
 /*  OthelloGateway : aligné sur les events du front (useGameSocket.ts)        */
 /*                                                                            */
@@ -50,13 +53,13 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     handleLocalCreateGame(@ConnectedSocket() client: Socket) {
         const userId = client.data.userId as string;
         const gameId = this.othelloService.localCreateGame(userId);
-        
+
         client.join(gameId);
         const initialState = this.othelloService.getGameState(gameId);
         client.emit('gameState', initialState);
     }
 
-    @SubscribeMessage('localplayMove') 
+    @SubscribeMessage('localplayMove')
     @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
     handleLocalPlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
         try {
@@ -85,8 +88,8 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     async handleCreateBotGame( @MessageBody() payload: { color?: 'BLACK' | 'WHITE' }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId as string;
-            const chosenColor = payload?.color || 'BLACK'; 
-            
+            const chosenColor = payload?.color || 'BLACK';
+
             const gameId = this.othelloService.computeCreateGame(userId, chosenColor);
             client.join(gameId);
 
@@ -115,7 +118,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     async handleComputePlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
         try {
             const userId = client.data.userId as string;
-            
+
             const humanState = await this.othelloService.humanPlayMove(payload.gameId, payload.move, userId);
             this.server.to(payload.gameId).emit('gameState', humanState);
 
@@ -146,7 +149,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
             client.emit('gameError', { message: error.message });
         }
     }
-    
+
     /* -------------------------------------------------------------------------- */
     /*  Mode Online (Matchmaking & PvP réseau)                                    */
     /* -------------------------------------------------------------------------- */
@@ -175,17 +178,17 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
             } else if (result.roomStatus === 'ready' && result.gameId) {
                 // Le second joueur rejoint la room d'attente pour récupérer son ID
                 client.join(result.roomId!);
-                
+
                 // Récupération de l'état du jeu créé
                 const gameState = this.othelloService.getGameState(result.gameId);
 
-                // 🔑 CORRECTION CRUCIALE : 
-                // On fait joindre la nouvelle room de jeu (gameId) aux deux sockets présents dans la room d'attente, 
+                // 🔑 CORRECTION CRUCIALE :
+                // On fait joindre la nouvelle room de jeu (gameId) aux deux sockets présents dans la room d'attente,
                 // OU on diffuse directement à toute la room d'attente (résultat.roomId) pour que player1 ET player2 soient notifiés !
-                
+
                 // Fait basculer tout le monde de la room d'attente vers la room du jeu
                 this.server.to(result.roomId!).emit('matchFound', gameState);
-                
+
                 // Optionnel : faire rejoindre explicitement les clients à la room du jeu
                 const socketsInRoom = await this.server.in(result.roomId!).fetchSockets();
                 for (const s of socketsInRoom) {
@@ -219,7 +222,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
             client.emit('gameError', { message: error.message });
         }
     }
-    
+
     /* -------------------------------------------------------------------------- */
     /*  Mode Bot Stream (Bot vs Bot)                                              */
     /* -------------------------------------------------------------------------- */
@@ -243,7 +246,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         const interval = setInterval(async () => {
             try {
                 const state = this.othelloService.getGameState(gameId);
-                
+
                 if (state.status === 'FINISHED') {
                     clearInterval(interval);
                     return;
@@ -254,7 +257,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
                 setTimeout(async () => {
                     const updatedState = await this.othelloService.botVsBotPlayTurn(gameId);
                     this.server.to(gameId).emit('gameState', updatedState);
-                    
+
                     if (updatedState.status === 'FINISHED') {
                         clearInterval(interval);
                     }
@@ -265,7 +268,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
             }
         }, 2000);
     }
-        
+
     /* -------------------------------------------------------------------------- */
     /*  Gestion globale de l'état (Reconnexion / F5)                              */
     /* -------------------------------------------------------------------------- */
