@@ -276,7 +276,7 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 
 // Helper function to filter games
 const getVisibleGames = (games: LiveGamePayload[]/* , currentTime: string */): LiveGamePayload[] => {
-  return games
+  return [...games]
     // .filter((game) => {
     //   // // 1. Keep all ongoing games
     //   // if (game.status === "IN_PROGRESS") return true;
@@ -290,20 +290,16 @@ const getVisibleGames = (games: LiveGamePayload[]/* , currentTime: string */): L
     //   // }
     //   // return false;
     //   //
-
-    //   // temporarily allowing all games for testing
-    //   // need to add filter logic (10 min)
-    //   return true;
     // })
 
     .sort((a, b) => {
       // 1. Finished games last
-      // if 'a' is ongoing and 'b' is finished, 'a' goes first (-1)
       if (a.status !== b.status) {
         return a.status === "IN_PROGRESS" ? -1 : 1;
+        // if 'a' is ongoing and 'b' is finished, 'a' goes first (-1)
       }
 
-      // 2. Bot matches placeholder
+      // 2.Human games before bot games
       const aIsBot = a.isBot || false;
       const bIsBot = b.isBot || false;
       if (a.status === "IN_PROGRESS" && aIsBot !== bIsBot) {
@@ -313,9 +309,15 @@ const getVisibleGames = (games: LiveGamePayload[]/* , currentTime: string */): L
       // 3. Highest ELO
       const aElo = a.player1.elo + a.player2.elo;
       const bElo = b.player1.elo + b.player2.elo;
+      if (bElo !== aElo) return bElo - aElo; // Sort in descending order
 
-      // Sort in descending order (highest ELO first)
-      return bElo - aElo;
+      // 4. Newest game first (if elo tie-break)
+      const aTime = new Date(a.startedAt).getTime();
+      const bTime = new Date(b.startedAt).getTime();
+      if (bTime !== aTime) return bTime - aTime;
+
+      // 5. UUID fallback (if startedAt tie-break)
+      return a.gameId.localeCompare(b.gameId);
     });
 }
 
