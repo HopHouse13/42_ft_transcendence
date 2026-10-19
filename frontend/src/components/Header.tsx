@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { name: "Leaderboard", path: "/leaderboard" },
 ];
 
-const NAV_BUTTON_CLASS = "btn btn-ghost rounded-btn text-lg hover:bg-base-300";
+const NAV_BUTTON_CLASS = "btn btn-ghost rounded-btn text-lg h-10 hover:bg-base-300";
 
 const HamburgerIcon = () => (
 	<svg
@@ -91,20 +91,22 @@ const Header = () => {
 	);
 
 	return (
-		<header className="sticky top-0 z-1 bg-base-200 shadow-md">
-			<div className="navbar justify-between px-4 py-3">
-				<NavLink
-					to="/"
-					onClick={closeMobileMenu}
-					className="flex flex-1 shrink-0 cursor-pointer items-center gap-2 text-lg font-bold"
-				>
-					<img
-						src="/othelloLogoWhite.svg"
-						alt="Logo othello"
-						className="h-14 w-14"
-					/>
-					OTHELLO
-				</NavLink>
+		<header className="flex w-full min-w-max sticky top-0 z-50 bg-base-200 shadow-md">
+			<div className="navbar w-full justify-between px-4 py-3">
+				<div className="flex flex-1">
+					<NavLink
+						to="/"
+						onClick={closeMobileMenu}
+						className="flex cursor-pointer shrink-0 items-center gap-2 text-lg font-bold"
+					>
+						<img
+							src="/othelloLogoWhite.svg"
+							alt="Logo othello"
+							className="h-14 w-14"
+						/>
+						OTHELLO
+					</NavLink>
+				</div>
 
 				<div
 					aria-label="Main navigation"
@@ -138,7 +140,7 @@ const Header = () => {
 							>
 								<img
 									src={`/api${user?.avatarUrl}`}
-									alt=""
+									alt={user?.avatarUrl}
 									className="h-8 w-8 rounded-full"
 								/>
 								<p className="max-w-40 truncate">{user?.username}</p>

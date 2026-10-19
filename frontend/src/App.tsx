@@ -12,7 +12,7 @@ const App = (): React.ReactElement =>(
 	<QueryClientProvider client={queryClient}>
 		<BrowserRouter>
 			<Layout>
-				<main className="flex flex-col flex-1 items-center justify-center bg-base-100 py-2">
+				<main className="w-full min-w-0 max-w-full flex flex-col flex-1 items-center justify-center bg-base-100 py-2 overflow-x-auto">
 					<AppRouter />
 				</main>
 			</Layout>
