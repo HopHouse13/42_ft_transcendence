@@ -20,7 +20,7 @@ const AchievementCard = ({achievement, isUnlocked, unlockedAt}: AchievementCardP
                 <h2 className="card-title font-bold">{achievement.title}</h2>
                 <p className="text-sm">{achievement.description}</p>
                 {isUnlocked && unlockedAt && (
-                    <span className="text-xs opacity-80 mt-2 font-mono">
+                    <span className="text-xs opacity-80 mt-2 font-mono items-end">
                         {new Date(unlockedAt).toLocaleDateString()}
                     </span>
                 )}

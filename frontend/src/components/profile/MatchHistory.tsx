@@ -13,7 +13,7 @@ export function MatchHistory({ matches }: MatchHistoryProps): React.JSX.Element 
         <h2 className="card-title text-lg mb-2">Recent Matches</h2>
         <div className="space-y-2">
           {matches.length === 0 ? (
-            <p className="text-base-content/60 text-sm">No matches recorded yet.</p>
+            <p className="text-base-content/60 text-sm">No match recorded yet.</p>
           ) : (
             matches.map((match) => (
               <MatchRow key={match.matchId} match={match} />
