@@ -9,17 +9,22 @@ export class SpectatorService {
   constructor(private prisma: PrismaService) {}
 
   async getVisibleGames(): Promise<LiveGamePayload[]> {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+
     // fetch ongoing games from the database
     const games = await this.prisma.game.findMany({
       where: {
         OR: [
           { status: 'IN_PROGRESS' },
-          // add logic here to fetch games finished within the last 10 min (if tracking timestamps)
+          {
+            status: 'FINISHED',
+            updatedAt: { gte: tenMinutesAgo },
+          },
         ],
       },
       include: {
         blackPlayer: true, // Pulls the full User model for the black player
-        whitePlayer: true, // Prisma executes a SQL `JOIN` under the hood, allowing to access `game.<color>Player.elo` without any extra database calls.
+        whitePlayer: true, // Prisma executes a SQL `JOIN` under the hood, allowing to access `game.<color>Player` without any extra database calls.
         moves: {
           orderBy: { moveNumber: 'desc' },
           take: 1, // latest move
@@ -58,13 +63,26 @@ export class SpectatorService {
           : 'BLACK'
         : 'BLACK';
 
+      // calculate a static duration (once) ONLY if the game is finished
+      let staticDuration = '00:00';
+      if (game.status === 'FINISHED') {
+        const diffInSeconds = Math.floor(
+          (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000,
+        );
+        const m = Math.floor(diffInSeconds / 60)
+          .toString()
+          .padStart(2, '0');
+        const s = (diffInSeconds % 60).toString().padStart(2, '0');
+        staticDuration = `${m}:${s}`;
+      }
+
       return {
         gameId: game.id,
-        status: GameStatus.IN_PROGRESS,
+        status: game.status as GameStatus, // use the actual database status
         currentPlayer: currentTurn,
         spectators: 0,
         startedAt: game.createdAt.toISOString(),
-        duration: '00:00', // placeholder | to calculate
+        duration: staticDuration,
         isBot: false, // placeholder
         board: reconstructedBoard,
 
