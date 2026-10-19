@@ -18,7 +18,7 @@ export function EditProfileModal({
 }: EditProfileModalProps): React.JSX.Element | null {
   const [username, setUsername] = useState(user.username);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(user.avatarUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(user.avatarUrl ? `/api${user.avatarUrl}` : null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
