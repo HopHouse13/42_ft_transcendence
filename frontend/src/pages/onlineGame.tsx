@@ -67,7 +67,7 @@ export default function OnlineGame() {
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
 
           {/* Conteneur principal 2 colonnes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-5xl items-center">
           {/* par exemple si on voulait 7 colomnes pour avoir une board a 600px (= ce qui est defini dans la constante) */}
           {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-7xl items-center mt-6"></div> */}
 
@@ -88,7 +88,7 @@ export default function OnlineGame() {
             </div>
 
             {/* Colonne de droite : Chat global / d'attente */}
-            <div className="flex justify-center md:justify-end w-full">
+            <div className="flex justify-center lg:justify-end w-full">
               <ChatRoom />
             </div>
 
