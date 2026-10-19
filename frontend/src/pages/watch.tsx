@@ -8,139 +8,8 @@ import { useSpectatorSocket } from "../hooks/useSpectatorSocket";
 
 // const timeNow : string = "2026-10-16T19:20:00Z"
 
-
 /* --------------------------------------------------------------------------------------------- */
-/*            1. Mock Data: Representing the state before connecting your WebSockets             */
-/* --------------------------------------------------------------------------------------------- */
-
-// export interface GameState {
-//   id: string;
-//   player1: PlayerData;
-//   player2: PlayerData;
-//   turn: string;
-//   spectators: number;
-//   duration: string;
-//   status: string;
-//   endedAt?: string;
-//   isBot?: boolean;
-//   board: BoardState;
-// }
-
-// export interface PlayerData {
-//   username: string;
-//   avatarUrl: string;
-//   color: string;
-//   score: number;
-//   elo: number;
-// }
-
-// // Helper function that converts a text grid into your BoardState array
-// const createBoard = (layout: string): BoardState => {
-//   // Remove all spaces and newlines, then map characters to Cell types
-//   return layout.replace(/\s+/g, '').split('').map(char => {
-//     if (char === 'B') return 'BLACK';
-//     if (char === 'W') return 'WHITE';
-//     return null;
-//   });
-// };
-
-// // GAME 2: Early Game (Score: 2 - 2)
-// const STARTING_BOARD = createBoard(`
-//   . . . . . . . .
-//   . . . . . . . .
-//   . . . B . . . .
-//   . . . B B . . .
-//   . . . B W . . .
-//   . . . . . . . .
-//   . . . . . . . .
-//   . . . . . . . .
-// `);
-
-// // GAME 1: Mid-Late Game (Score: Black 20, White 30)
-// const MID_GAME_BOARD = createBoard(`
-//   . W W W W W W .
-//   B B W W W W B .
-//   B B B W W B B W
-//   B B B B W B B W
-//   . W W W W B B B
-//   . . W W W W W .
-//   . . . W W B B .
-//   . . . . . . . .
-// `);
-
-// // GAME 3: Finished Game (Score: Black 40, White 24)
-// const FINISHED_BOARD_40_24 = createBoard(`
-//   B B B B B B B B
-//   B B B B B B B B
-//   B B B W W W W B
-//   B B W W W W W B
-//   B W W W W W W B
-//   B W W W W W W B
-//   B B W W W B B B
-//   B B B B B B B B
-// `);
-
-// // GAME 4: Finished Game (Score: Black 34, White 30)
-// const FINISHED_BOARD_34_30 = createBoard(`
-//   W W W W W W W W
-//   W W W W W W W W
-//   W W W B B B B B
-//   W W B B B B B B
-//   W B B B B B B B
-//   W B B B B B B B
-//   W W B B B B W W
-//   W W W B B B B B
-// `);
-
-// const MOCK_LIVE_GAMES = [
-//   {
-//     id: "game-001",
-//     player1: { username: "Alice_Proooooooooooooooooooooo", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Grandmaster", color: "Black", score: 34, elo: 2450, },
-//     player2: { username: "BobTheBuilder", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=CornerTrapper", color: "White", score: 30, elo: 2310, },
-//     turn: "Black",
-//     spectators: 12,
-//     duration: "10:45",
-//     status: "IN_PROGRESS",
-//     endedAt: "2026-10-16T19:15:00Z",
-//     board: MID_GAME_BOARD,
-//   },
-//   {
-//     id: "game-002",
-//     player1: { username: "Charlie", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=BlackDisc", color: "Black", score: 4, elo: 2240, },
-//     player2: { username: "Dave", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Flipper", color: "White", score: 1, elo: 2150, },
-//     turn: "White",
-//     spectators: 3,
-//     duration: "01:20",
-//     status: "IN_PROGRESS",
-//     endedAt: "n/a",
-//     board: STARTING_BOARD,
-//   },
-//   {
-//     id: "game-003",
-//     player1: { username: "Eve_Hacker", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Reversi", color: "Black", score: 40, elo: 2090, },
-//     player2: { username: "Frank", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Tactical", color: "White", score: 24, elo: 2010, },
-//     turn: "Black",
-//     spectators: 45,
-//     duration: "15:30",
-//     status: "FINISHED",
-//     endedAt: "2026-10-16T19:15:00Z",
-//     board: FINISHED_BOARD_40_24,
-//   },
-//     {
-//     id: "game-004",
-//     player1: { username: "bobby", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=NoPass", color: "Black", score: 34, elo: 1980, },
-//     player2: { username: "scylla", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Edge", color: "White", score: 30, elo: 1920, },
-//     turn: "Black",
-//     spectators: 32,
-//     duration: "18:30",
-//     status: "FINISHED",
-//     endedAt: "2026-10-16T19:00:00Z",
-//     board: FINISHED_BOARD_34_30,
-//   },
-// ];
-
-/* --------------------------------------------------------------------------------------------- */
-/*                                 2. COMPONENT PROP INTERFACES                                  */
+/*                                    COMPONENT PROP INTERFACES                                  */
 /* --------------------------------------------------------------------------------------------- */
 
 interface GameCardProps {
@@ -163,7 +32,7 @@ interface StatusProps {
 }
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                 3. CHILD COMPONENTS                                           */
+/*                                    CHILD COMPONENTS                                           */
 /* --------------------------------------------------------------------------------------------- */
 
 // Title component
@@ -215,6 +84,8 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   </>
 );
 
+/* --------------------------------------------------------------------------------------------- */
+/*                                 Player row (sub)components                                    */
 const PlayerRowAvatar = ({ player, turn, status } : { player: SpectatorPlayerData, turn: string, status: string }): React.ReactElement => {
   const isOnline = status === "IN_PROGRESS" && turn === player.color;
 
@@ -271,6 +142,7 @@ const PlayerRowScore = ({ player } : {player : SpectatorPlayerData }): React.Rea
     </div>
   );
 }
+/* --------------------------------------------------------------------------------------------- */
 
 const PlayerRow = ({ player, turn, status, isWinner, isDraw }: PlayerRowProps): React.ReactElement=> {
 const isTurn = status === "IN_PROGRESS" && turn === player.color;
@@ -369,7 +241,7 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 }
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                  4. HELPER FUNCTIONS                                          */
+/*                                     HELPER FUNCTIONS                                          */
 /* --------------------------------------------------------------------------------------------- */
 
 // Helper function to filter games
@@ -418,7 +290,7 @@ const getVisibleGames = (games: LiveGamePayload[]/* , currentTime: string */): L
 }
 
 /* --------------------------------------------------------------------------------------------- */
-/*                                  5. MAIN COMPONENTS                                           */
+/*                                     MAIN COMPONENT                                            */
 /* --------------------------------------------------------------------------------------------- */
 
 const Watch = (): React.ReactElement => {
