@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { Body, Controller, Post, Get, UseInterceptors, Res, Req, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Post, Get, UseInterceptors, Res, Req, UnauthorizedException, UseFilters } from '@nestjs/common';
 import { RegisterDto, extractUserCreate } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgotPassword.dto';
@@ -12,6 +12,7 @@ import { GoogleGuard } from '../common/guards/google.guard';
 import { GitGuard } from '../common/guards/github.guard';
 import { CookieInterceptor } from '../common/interceptors/cookie.interceptor';
 import type { Response } from 'express';
+import { OAuthRedirectFilter } from  '../common/filters/oAuthRedirect.filter';
 
 @UseInterceptors( CookieInterceptor )
 @Controller( 'auth' )
@@ -55,6 +56,7 @@ export class AuthController
 	///
 
 	@UseGuards( GoogleGuard )
+	@UseFilters( OAuthRedirectFilter )
 	@Get( 'google/callback' )
 	async googleCallback( @Req() request: any, @Res() response: Response ) // @Req: decorateur de parametre -> Passport attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
@@ -73,6 +75,7 @@ export class AuthController
 	///
 
 	@UseGuards( GitGuard )
+	@UseFilters( OAuthRedirectFilter )
 	@Get( 'github/callback' )
 	async githubCallback( @Req() request: any, @Res() response: Response ) // @Req: decorateur de parametre -> Passport(strategy d'auth) attache à, soit le retour de validate() soit le retour de done() à request.user
 	{
