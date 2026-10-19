@@ -1,156 +1,156 @@
 import React from "react";
 import { useNavigate } from "react-router";
 // import Game from "./game";
-import type { BoardState, SpectatorPlayerData, LiveGamePayload } from "../types/gameTypes";
-import Board from "../components/Board";
+import type { SpectatorPlayerData, LiveGamePayload, Cell } from "../types/gameTypes";
+import MyBoard from "../components/Board";
 import { useSpectatorSocket } from "../hooks/useSpectatorSocket";
 
 
-const timeNow : string = "2026-10-16T19:20:00Z"
+// const timeNow : string = "2026-10-16T19:20:00Z"
 
 
 /* --------------------------------------------------------------------------------------------- */
 /*            1. Mock Data: Representing the state before connecting your WebSockets             */
 /* --------------------------------------------------------------------------------------------- */
 
-export interface GameState {
-  id: string;
-  player1: PlayerData;
-  player2: PlayerData;
-  turn: string;
-  spectators: number;
-  duration: string;
-  status: string;
-  endedAt?: string;
-  isBot?: boolean;
-  board: BoardState;
-}
+// export interface GameState {
+//   id: string;
+//   player1: PlayerData;
+//   player2: PlayerData;
+//   turn: string;
+//   spectators: number;
+//   duration: string;
+//   status: string;
+//   endedAt?: string;
+//   isBot?: boolean;
+//   board: BoardState;
+// }
 
-export interface PlayerData {
-  username: string;
-  avatarUrl: string;
-  color: string;
-  score: number;
-  elo: number;
-}
+// export interface PlayerData {
+//   username: string;
+//   avatarUrl: string;
+//   color: string;
+//   score: number;
+//   elo: number;
+// }
 
-// Helper function that converts a text grid into your BoardState array
-const createBoard = (layout: string): BoardState => {
-  // Remove all spaces and newlines, then map characters to Cell types
-  return layout.replace(/\s+/g, '').split('').map(char => {
-    if (char === 'B') return 'BLACK';
-    if (char === 'W') return 'WHITE';
-    return null;
-  });
-};
+// // Helper function that converts a text grid into your BoardState array
+// const createBoard = (layout: string): BoardState => {
+//   // Remove all spaces and newlines, then map characters to Cell types
+//   return layout.replace(/\s+/g, '').split('').map(char => {
+//     if (char === 'B') return 'BLACK';
+//     if (char === 'W') return 'WHITE';
+//     return null;
+//   });
+// };
 
-// GAME 2: Early Game (Score: 2 - 2)
-const STARTING_BOARD = createBoard(`
-  . . . . . . . .
-  . . . . . . . .
-  . . . B . . . .
-  . . . B B . . .
-  . . . B W . . .
-  . . . . . . . .
-  . . . . . . . .
-  . . . . . . . .
-`);
+// // GAME 2: Early Game (Score: 2 - 2)
+// const STARTING_BOARD = createBoard(`
+//   . . . . . . . .
+//   . . . . . . . .
+//   . . . B . . . .
+//   . . . B B . . .
+//   . . . B W . . .
+//   . . . . . . . .
+//   . . . . . . . .
+//   . . . . . . . .
+// `);
 
-// GAME 1: Mid-Late Game (Score: Black 20, White 30)
-const MID_GAME_BOARD = createBoard(`
-  . W W W W W W .
-  B B W W W W B .
-  B B B W W B B W
-  B B B B W B B W
-  . W W W W B B B
-  . . W W W W W .
-  . . . W W B B .
-  . . . . . . . .
-`);
+// // GAME 1: Mid-Late Game (Score: Black 20, White 30)
+// const MID_GAME_BOARD = createBoard(`
+//   . W W W W W W .
+//   B B W W W W B .
+//   B B B W W B B W
+//   B B B B W B B W
+//   . W W W W B B B
+//   . . W W W W W .
+//   . . . W W B B .
+//   . . . . . . . .
+// `);
 
-// GAME 3: Finished Game (Score: Black 40, White 24)
-const FINISHED_BOARD_40_24 = createBoard(`
-  B B B B B B B B
-  B B B B B B B B
-  B B B W W W W B
-  B B W W W W W B
-  B W W W W W W B
-  B W W W W W W B
-  B B W W W B B B
-  B B B B B B B B
-`);
+// // GAME 3: Finished Game (Score: Black 40, White 24)
+// const FINISHED_BOARD_40_24 = createBoard(`
+//   B B B B B B B B
+//   B B B B B B B B
+//   B B B W W W W B
+//   B B W W W W W B
+//   B W W W W W W B
+//   B W W W W W W B
+//   B B W W W B B B
+//   B B B B B B B B
+// `);
 
-// GAME 4: Finished Game (Score: Black 34, White 30)
-const FINISHED_BOARD_34_30 = createBoard(`
-  W W W W W W W W
-  W W W W W W W W
-  W W W B B B B B
-  W W B B B B B B
-  W B B B B B B B
-  W B B B B B B B
-  W W B B B B W W
-  W W W B B B B B
-`);
+// // GAME 4: Finished Game (Score: Black 34, White 30)
+// const FINISHED_BOARD_34_30 = createBoard(`
+//   W W W W W W W W
+//   W W W W W W W W
+//   W W W B B B B B
+//   W W B B B B B B
+//   W B B B B B B B
+//   W B B B B B B B
+//   W W B B B B W W
+//   W W W B B B B B
+// `);
 
-const MOCK_LIVE_GAMES = [
-  {
-    id: "game-001",
-    player1: { username: "Alice_Proooooooooooooooooooooo", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Grandmaster", color: "Black", score: 34, elo: 2450, },
-    player2: { username: "BobTheBuilder", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=CornerTrapper", color: "White", score: 30, elo: 2310, },
-    turn: "Black",
-    spectators: 12,
-    duration: "10:45",
-    status: "IN_PROGRESS",
-    endedAt: "2026-10-16T19:15:00Z",
-    board: MID_GAME_BOARD,
-  },
-  {
-    id: "game-002",
-    player1: { username: "Charlie", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=BlackDisc", color: "Black", score: 4, elo: 2240, },
-    player2: { username: "Dave", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Flipper", color: "White", score: 1, elo: 2150, },
-    turn: "White",
-    spectators: 3,
-    duration: "01:20",
-    status: "IN_PROGRESS",
-    endedAt: "n/a",
-    board: STARTING_BOARD,
-  },
-  {
-    id: "game-003",
-    player1: { username: "Eve_Hacker", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Reversi", color: "Black", score: 40, elo: 2090, },
-    player2: { username: "Frank", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Tactical", color: "White", score: 24, elo: 2010, },
-    turn: "Black",
-    spectators: 45,
-    duration: "15:30",
-    status: "FINISHED",
-    endedAt: "2026-10-16T19:15:00Z",
-    board: FINISHED_BOARD_40_24,
-  },
-    {
-    id: "game-004",
-    player1: { username: "bobby", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=NoPass", color: "Black", score: 34, elo: 1980, },
-    player2: { username: "scylla", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Edge", color: "White", score: 30, elo: 1920, },
-    turn: "Black",
-    spectators: 32,
-    duration: "18:30",
-    status: "FINISHED",
-    endedAt: "2026-10-16T19:00:00Z",
-    board: FINISHED_BOARD_34_30,
-  },
-];
+// const MOCK_LIVE_GAMES = [
+//   {
+//     id: "game-001",
+//     player1: { username: "Alice_Proooooooooooooooooooooo", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Grandmaster", color: "Black", score: 34, elo: 2450, },
+//     player2: { username: "BobTheBuilder", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=CornerTrapper", color: "White", score: 30, elo: 2310, },
+//     turn: "Black",
+//     spectators: 12,
+//     duration: "10:45",
+//     status: "IN_PROGRESS",
+//     endedAt: "2026-10-16T19:15:00Z",
+//     board: MID_GAME_BOARD,
+//   },
+//   {
+//     id: "game-002",
+//     player1: { username: "Charlie", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=BlackDisc", color: "Black", score: 4, elo: 2240, },
+//     player2: { username: "Dave", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Flipper", color: "White", score: 1, elo: 2150, },
+//     turn: "White",
+//     spectators: 3,
+//     duration: "01:20",
+//     status: "IN_PROGRESS",
+//     endedAt: "n/a",
+//     board: STARTING_BOARD,
+//   },
+//   {
+//     id: "game-003",
+//     player1: { username: "Eve_Hacker", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Reversi", color: "Black", score: 40, elo: 2090, },
+//     player2: { username: "Frank", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Tactical", color: "White", score: 24, elo: 2010, },
+//     turn: "Black",
+//     spectators: 45,
+//     duration: "15:30",
+//     status: "FINISHED",
+//     endedAt: "2026-10-16T19:15:00Z",
+//     board: FINISHED_BOARD_40_24,
+//   },
+//     {
+//     id: "game-004",
+//     player1: { username: "bobby", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=NoPass", color: "Black", score: 34, elo: 1980, },
+//     player2: { username: "scylla", avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Edge", color: "White", score: 30, elo: 1920, },
+//     turn: "Black",
+//     spectators: 32,
+//     duration: "18:30",
+//     status: "FINISHED",
+//     endedAt: "2026-10-16T19:00:00Z",
+//     board: FINISHED_BOARD_34_30,
+//   },
+// ];
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 2. COMPONENT PROP INTERFACES                                  */
 /* --------------------------------------------------------------------------------------------- */
 
 interface GameCardProps {
-  game: GameState;
+  game: LiveGamePayload;
   onJoin: (gameId: string) => void;
 }
 
 interface PlayerRowProps {
-  player: PlayerData;
-  turn: string;
+  player: SpectatorPlayerData;
+  turn: 'BLACK' | 'WHITE';
   status: string;
   isWinner: boolean;
   isDraw: boolean;
@@ -215,15 +215,15 @@ const Status = ({ spectators, duration, status }: StatusProps): React.ReactEleme
   </>
 );
 
-const PlayerRowAvatar = ({ player, turn, status } : { player: PlayerData, turn: string, status: string }): React.ReactElement => {
+const PlayerRowAvatar = ({ player, turn, status } : { player: SpectatorPlayerData, turn: string, status: string }): React.ReactElement => {
   const isOnline = status === "IN_PROGRESS" && turn === player.color;
 
   return (
         <div className={`avatar shrink-0 ${isOnline ? 'online' : ''}`}>
           <div className={`w-12 h-12 border-2 rounded-full bg-base-300 ${
-            player.color === 'Black'
+            player.color === 'BLACK'
               ? 'border-black/50'
-              : 'border-whit/50'}`}>
+              : 'border-white/50'}`}>
             <img
               src={player.avatarUrl}
               alt={player.username}
@@ -234,7 +234,7 @@ const PlayerRowAvatar = ({ player, turn, status } : { player: PlayerData, turn: 
   );
 }
 
-const PlayerRowName = ({ player } : { player: PlayerData }): React.ReactElement => {
+const PlayerRowName = ({ player } : { player: SpectatorPlayerData }): React.ReactElement => {
   return (
     <div className="flex flex-col min-w-0 flex-1 pr-2">
       <span className="font-bold text-base truncate" title={player.username}>
@@ -247,7 +247,7 @@ const PlayerRowName = ({ player } : { player: PlayerData }): React.ReactElement 
   );
 }
 
-const PlayerRowDot = ({ player, turn, status } : { player: PlayerData, turn: string, status: string } ): React.ReactElement => {
+const PlayerRowDot = ({ player, turn, status } : { player: SpectatorPlayerData, turn: string, status: string } ): React.ReactElement => {
   const showSpinner = status === "IN_PROGRESS" && turn === player.color;
 
   return (
@@ -256,7 +256,7 @@ const PlayerRowDot = ({ player, turn, status } : { player: PlayerData, turn: str
         <div className="absolute -inset-0.5 rounded-full bg-[conic-gradient(transparent_0deg,rgba(255,255,255,0.7)_360deg)] animate-[spin_3s_linear_infinite]"></div>      )}
       <div
         className={`relative z-10 w-8 h-8 rounded-full shadow-md border border-base-300/30 ${
-          player.color === 'Black' ? 'bg-[#1d1d1d] border-1 border-white/50 shadow-[0_0_8px_rgba(255,255,255,0.2)]'
+          player.color === 'BLACK' ? 'bg-[#1d1d1d] border-1 border-white/50 shadow-[0_0_8px_rgba(255,255,255,0.2)]'
           : 'bg-white border border-black/10 shadow-[0_0_8px_rgba(0,0,0,0.4)]'}`}
         title={player.color}
       />
@@ -264,7 +264,7 @@ const PlayerRowDot = ({ player, turn, status } : { player: PlayerData, turn: str
   );
 }
 
-const PlayerRowScore = ({ player } : {player : PlayerData }): React.ReactElement => {
+const PlayerRowScore = ({ player } : {player : SpectatorPlayerData }): React.ReactElement => {
   return (
     <div className="font-black text-3xl tabular-nums text-right w-12 shrink-0">
       {player.score}
@@ -292,7 +292,6 @@ let rowStyle = "opacity-80 border border-transparent";
       rowStyle = "opacity-40 border border-transparent";
     }
   }
-
 
   return (
     // background highlight for player's turn
@@ -325,10 +324,11 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
   const winnerColor = isFinished && !isDraw
     ? (game.player1.score > game.player2.score ? game.player1.color : game.player2.color)
     : null;
+  const formattedBoard = game.board.map(cell => cell === 'EMPTY' ? null : cell);
 
   return (
     <div
-      onClick={() => onJoin(game.id)}
+      onClick={() => onJoin(game.gameId)}
       className="card bg-base-200 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer border border-base-300 overflow-hidden"
       >
         {/* Card Header: Live indicator & Stats */}
@@ -339,11 +339,10 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
           <div className={`w-full pointer-events-none transition-all duration-700 ${
             game.status === "FINISHED" ? "grayscale[50%] opacity-50" : ""
           }`}>
-            <Board
-              board={game.board} // Later, replace with game.board
+            <MyBoard
+              board={formattedBoard} // Later, replace with game.board
               validMoves={[]}        // Empty array prevents move indicators
-              // disabled={true}        // Prevents any click interactions
-              onMove={() => {}}      // Dummy function since it's disabled
+              onCellClick={() => {}} // Prevents any click interactions
             />
           </div>
         </figure>
@@ -352,14 +351,14 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
         <div className="card-body p-4 gap-1">
           <PlayerRow
             player={game.player1}
-            turn={game.turn}
+            turn={game.currentPlayer}
             status={game.status}
             isWinner={winnerColor === game.player1.color}
             isDraw={isDraw}
           />
           <div className="divider m-0 h-0 opacity-30"></div>
           <PlayerRow player={game.player2}
-            turn={game.turn}
+            turn={game.currentPlayer}
             status={game.status}
             isWinner={winnerColor === game.player2.color}
             isDraw={isDraw}
@@ -374,21 +373,26 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
 /* --------------------------------------------------------------------------------------------- */
 
 // Helper function to filter games
-const getVisibleGames = (games: GameState[], currentTime: string): GameState[] => {
+const getVisibleGames = (games: LiveGamePayload[]/* , currentTime: string */): LiveGamePayload[] => {
   return games
-    .filter((game) => {
-      // 1. Keep all ongoing games
-      if (game.status === "IN_PROGRESS") return true;
+    // .filter((game) => {
+    //   // // 1. Keep all ongoing games
+    //   // if (game.status === "IN_PROGRESS") return true;
 
-      // 2. Keep finished game from less than 10min
-      if (game.status === "FINISHED" && game.endedAt) {
-        const nowMs = new Date(currentTime).getTime();
-        const endedMs = new Date(game.endedAt).getTime();
-        const diffInMinutes = Math.floor((nowMs - endedMs) / 60000);
-        return diffInMinutes <= 10;
-      }
-      return false;
-    })
+    //   // // 2. Keep finished game from less than 10min
+    //   // if (game.status === "FINISHED" && game.endedAt) {
+    //   //   const nowMs = new Date(currentTime).getTime();
+    //   //   const endedMs = new Date(game.endedAt).getTime();
+    //   //   const diffInMinutes = Math.floor((nowMs - endedMs) / 60000);
+    //   //   return diffInMinutes <= 10;
+    //   // }
+    //   // return false;
+    //   //
+
+    //   // temporarily allowing all games for testing
+    //   // need to add filter logic (10 min)
+    //   return true;
+    // })
 
     .sort((a, b) => {
       // 1. Finished games last
@@ -420,12 +424,15 @@ const getVisibleGames = (games: GameState[], currentTime: string): GameState[] =
 const Watch = (): React.ReactElement => {
   const navigate = useNavigate();
 
+  // connect to the WebSocket and fetch data
+  const { liveGames } = useSpectatorSocket();
+
   const handleJoinSpectator = (gameId: string) => {
     // Navigates to the game page. You can pass the gameId in the URL
     navigate(`/game/${gameId}?mode=spectator`);
   };
 
-  const visibleGames = getVisibleGames(MOCK_LIVE_GAMES, timeNow);
+  const visibleGames = getVisibleGames(liveGames);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -438,7 +445,7 @@ const Watch = (): React.ReactElement => {
           {/* Map through the data and render the extracted GameCard */}
           {visibleGames.map((game) => (
             <GameCard
-              key={game.id}
+              key={game.gameId}
               game={game}
               onJoin={handleJoinSpectator}
             />
