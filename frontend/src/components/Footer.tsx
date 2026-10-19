@@ -9,9 +9,9 @@ const Footer: FC = () => {
 	];
 
 	return (
-		<footer className="flex flex-col bg-base-200 py-2 px-8 gap-4">
+		<footer className="flex flex-col bg-base-200 py-2 px-8 gap-4 w-full min-w-full">
 			<nav className="flex flex-row items-center justify-between pt-2 w-full">
-				<div className="justify-self-start">
+				<div className="shrink-0 justify-self-start">
 	 				<a 
 	 					href="https://github.com/HopHouse13/42_ft_transcendence"
 						target="_blank"
@@ -22,18 +22,18 @@ const Footer: FC = () => {
 	 					<img
 							src="/githubLogoWhite.svg"
 	 						alt="GitHub logo"
-	 						className="h-12 w-12"
+	 						className="h-8 w-8 sm:h-12 sm:w-12"
 	 					/>
 	 				</a>
 	 			</div>
-				<div className="flex flex-row justify-stretch gap-4">
+				<div className="flex flex-row justify-stretch gap-4 px-2">
 					{navLinks.map((link) => (
 						<NavLink to={link.path} className="link link-hover" key={link.path}>
 							{link.name}
 						</NavLink>
 					))}
 				</div>
-				<div className="w-12"/>
+				<div className="w-8 md:w-12"/>
 			</nav>
 			<div className="text-center pt-2 border-t border-base-300 text-sm text-base-content/70">
 				<p>© {new Date().getFullYear()} Powered by 42.</p>
