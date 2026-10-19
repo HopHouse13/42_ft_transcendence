@@ -4,15 +4,15 @@ import type { AuthMode } from "../types/authTypes";
 import { useAuth } from "./useAuth";
 
 export function useAuthForm() {
+	const { loading, authError, login, register } = useAuth();
+	const navigate = useNavigate();
+
 	const [mode, setMode] = useState<AuthMode>("login");
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-
-	const { loading, error, login, register } = useAuth();
-	const navigate = useNavigate();
-
+	const [error, setError] = useState(authError);
 	const isLogin = mode === "login";
 
 	const confirmPasswordError = useMemo(() => {
@@ -27,6 +27,7 @@ export function useAuthForm() {
 		setEmail("");
 		setPassword("");
 		setConfirmPassword("");
+		setError(null);
 	};
 
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -38,8 +39,9 @@ export function useAuthForm() {
 			? await login(email, password) 
 			: await register(username, email, password);
 
+		setError(authError);
 		if (result.success) {
-			navigate("/game", {replace: true});
+			navigate("/home", {replace: true});
 		}
 	};
 

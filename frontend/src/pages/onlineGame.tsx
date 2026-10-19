@@ -65,25 +65,25 @@ export default function OnlineGame() {
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
           
           {/* Conteneur principal 2 colonnes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-5xl items-center">
             
             {/* Colonne de gauche : Board de jeux */}
             <div className="flex flex-col gap-4 shrink-0">
               <OnlineGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState?.currentPlayer ?? "BLACK"} players={gameState?.players ?? []} />
               <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
 
+              {!isFinished && (
+                <button
+                  onClick={giveUp}
+                  className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
+                >
+                  Abandonner
+                </button>
+              )}
             </div>
-            {!isFinished && (
-              <button
-                onClick={giveUp}
-                className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
-              >
-                Abandonner
-              </button>
-            )}
 
             {/* Colonne de droite : Chat global / d'attente */}
-            <div className="flex justify-center md:justify-end w-full">
+            <div className="flex justify-center lg:justify-end w-full">
               <ChatRoom />
             </div>
 
