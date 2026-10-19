@@ -63,6 +63,7 @@ export class SpectatorService {
         status: GameStatus.IN_PROGRESS,
         currentPlayer: currentTurn,
         spectators: 0,
+        startedAt: game.createdAt.toISOString(),
         duration: '00:00', // placeholder | to calculate
         isBot: false, // placeholder
         board: reconstructedBoard,

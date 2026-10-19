@@ -164,6 +164,7 @@ export interface LiveGamePayload {
   player2: SpectatorPlayerData;
   currentPlayer: PlayerColor;
   spectators: number;
+  startedAt: string;
   duration: string;
   status: GameStatus;
   isBot: boolean;

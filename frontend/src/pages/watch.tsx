@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
 // import Game from "./game";
-import type { SpectatorPlayerData, LiveGamePayload, Cell } from "../types/gameTypes";
+import type { SpectatorPlayerData, LiveGamePayload } from "../types/gameTypes";
 import MyBoard from "../components/Board";
 import { useSpectatorSocket } from "../hooks/useSpectatorSocket";
 
@@ -27,6 +27,7 @@ interface PlayerRowProps {
 
 interface StatusProps {
   spectators: number;
+  startedAt: string;
   duration: string;
   status: string;
 }
@@ -46,43 +47,67 @@ const Title = (): React.ReactElement => {
 }
 
 // Status component
-const Status = ({ spectators, duration, status }: StatusProps): React.ReactElement => (
-  <>
-    {/* Floating Top-Left: LIVE Badge */}
-      <div className="absolute top-5 left-5 z-10">
-        {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "IN_PROGRESS" ? "badge" : "badge-neutral"}`}> */}
-        <div className={`badge border shadow-lg font-bold gap-2 ${
-          status === "IN_PROGRESS"
-            ? "badge-error text-white border-white/30 shadow-red-500/20"
-            : "badge-neutral border-base-content/20 shadow-black/40"
-          }`}>
-        {status === "IN_PROGRESS" && (
-          // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
-          <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
-        )}
-        {status === "IN_PROGRESS" ? "LIVE" : "FINISHED"}
+const Status = ({ spectators, startedAt, duration, status }: StatusProps): React.ReactElement => {
+  const [liveTimer, setLiveTimer] = React.useState("00:00");
+
+  React.useEffect(() => {
+    // only run the ticker if the game is actively in progress
+    if (status != "IN_PROGRESS") return;
+
+    const updateTimer = () => {
+      const startMs = new Date(startedAt).getTime();
+      const diffInSeconds = Math.floor((Date.now() - startMs) / 1000);
+
+      const m = Math.floor(diffInSeconds / 60).toString().padStart(2, '0');
+      const s = (diffInSeconds % 60).toString().padStart(2, '0');
+      setLiveTimer(`${m}:${s}`);
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000); // tick every 1000ms
+
+    // clean up
+    return () => clearInterval(interval);
+  }, [startedAt, status]);
+
+
+  return (
+    <>
+      {/* Floating Top-Left: LIVE Badge */}
+        <div className="absolute top-5 left-5 z-10">
+          {/* <div className={`badge border-none shadow-sm font-bold gap-2 ${status === "IN_PROGRESS" ? "badge" : "badge-neutral"}`}> */}
+          <div className={`badge border shadow-lg font-bold gap-2 ${
+            status === "IN_PROGRESS"
+              ? "badge-error text-white border-white/30 shadow-red-500/20"
+              : "badge-neutral border-base-content/20 shadow-black/40"
+            }`}>
+          {status === "IN_PROGRESS" && (
+            // <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> // option 1
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> // option 2
+          )}
+          {status === "IN_PROGRESS" ? "LIVE" : "FINISHED"}
+          </div>
+        </div>
+
+
+        {/* Floating Top-Right: Stats */}
+        <div className="absolute top-5 right-5 z-10">
+        <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm border border-base-content/10 text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+          {status === "IN_PROGRESS" ? (
+            // if ongoing: show spectators and current duration
+          <>
+            <span>👀 {spectators}</span>
+            <span className="opacity-50">•</span>
+            <span>⏳ {liveTimer}</span>
+          </>
+          ) : (
+            // if finished : hide spectators count, display game total duration
+            <span>⌛ {duration}</span>
+          )}
         </div>
       </div>
-
-
-      {/* Floating Top-Right: Stats */}
-      <div className="absolute top-5 right-5 z-10">
-      <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm border border-base-content/10 text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
-        {status === "IN_PROGRESS" ? (
-          // if ongoing: show spectators and current duration
-        <>
-          <span>👀 {spectators}</span>
-          <span className="opacity-50">•</span>
-          <span>⏳ {duration}</span>
-        </>
-        ) : (
-          // if finished : hide spectators count, display game total duration
-          <span>⌛ {duration}</span>
-        )}
-      </div>
-    </div>
-  </>
-);
+    </>
+  );
+};
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 Player row (sub)components                                    */
@@ -205,7 +230,12 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
       >
         {/* Card Header: Live indicator & Stats */}
         <figure className="relative w-full p-0 border-b border-base-300">
-          <Status spectators={game.spectators} duration={game.duration} status={game.status} />
+          <Status
+            spectators={game.spectators}
+            startedAt={game.startedAt}
+            duration={game.duration}
+            status={game.status}
+          />
 
           {/* Board Preview */}
           <div className={`w-full pointer-events-none transition-all duration-700 ${
