@@ -1,12 +1,21 @@
 import type React from "react"
 import type { PlayerCardProps } from "../types/gameTypes"
 
+// check if there already is a /api prefix or not for the avatarUrl
+const resolveAvatar = (url?: string | null): string | undefined => {
+    if (!url) return undefined;
+    if (url.startsWith('/api')) return url; // Already safe
+    return `/api${url.startsWith('/') ? '' : '/'}${url}`; // Missing prefix
+};
+
 const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCardProps): React.ReactElement => {
     const isRight = side === 'right';
     const isBlack = player.color === 'BLACK';
     const stripeShade = isBlack
         ? 'shadow-[inset_2px_0_3px_rgba(255,255,255,0.35),inset_-2px_0_3px_rgba(0,0,0,0.9)]'
         : 'shadow-[inset_2px_0_3px_rgba(255,255,255,0.9),inset_-2px_0_3px_rgba(0,0,0,0.45)]';
+
+    const safeAvatar = resolveAvatar(avatarUrl);
 
     return (
         <div className={isTurn ? 'aura aura-sm aura-silver w-full' : 'w-full'}>
@@ -18,7 +27,7 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
                         title={isBlack ? 'Black' : 'White'}
                     >
                         <img
-                            src={`api/${avatarUrl}`}
+                            src={safeAvatar}
                             alt={`${username} avatar`}
                         />
                     </div>

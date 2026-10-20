@@ -26,7 +26,21 @@ export const useSpectatorSocket = () => {
     }
 
     const handleLiveGames = (games: LiveGamePayload[]) => {
-      setLiveGames(games);
+      const cleanedGames = games.map(game => {
+        const fixUrl = (url?: string | null) => {
+          if (!url) return '/api/uploads/avatars/default.png';
+          if (url.startsWith('/api')) return url;
+          return `/api${url.startsWith('/') ? '' : '/'}${url}`;
+        };
+
+        return {
+          ...game,
+          player1: { ...game.player1, avatarUrl: fixUrl(game.player1.avatarUrl) },
+          player2: { ...game.player2, avatarUrl: fixUrl(game.player2.avatarUrl) },
+        };
+      });
+
+      setLiveGames(cleanedGames);
       setIsLoaded(true);
     };
 
