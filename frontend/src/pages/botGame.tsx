@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useBotSocket } from "../hooks/useBotSocket";
-import GameEndModal from "../components/GameEndModal"; 
+import GameEndModal from "../components/GameEndModal";
 import ColorSelectionModal from "../components/SelectionBotModal";
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
 import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import BotGameHeader from "../components/BotGameHeader";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                   ~~ Page Bot Game ~~                                         */
@@ -23,7 +24,7 @@ export default function Botgame() {
 
   const rawCells = gameState?.board;
 
-  const currentBoard: Cell[] = rawCells 
+  const currentBoard: Cell[] = rawCells
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
@@ -55,22 +56,19 @@ export default function Botgame() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 relative">
+    <div className={PAGE_WRAPPER_CLASSES}>
       <h1 className="text-2xl font-bold">🤖 Partie contre le Bot</h1>
 
       {!gameState ? (
-        <button 
-          className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer" 
+        <button
+          className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer"
           onClick={() => setIsColorModalOpen(true)} // 👈 Ouvre le modal au lieu de lancer direct
           disabled={!isConnected}
         >
           {isConnected ? "Démarrer contre l'IA" : "Connexion au serveur..."}
         </button>
       ) : (
-        <>
-
-            
-
+        <div className={BOARD_COLUMN_CLASSES}>
           {/* {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>} */}
           <BotGameHeader blackScore={blackScore} whiteScore={whiteScore} myColor={myColor} nextPlayer={gameState.currentPlayer}/>
           <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
@@ -83,7 +81,7 @@ export default function Botgame() {
               Abandonner
             </button>
           )}
-          
+
           {/* Modal de fin de partie */}
           <GameEndModal
             isOpen={isFinished}
@@ -98,7 +96,7 @@ export default function Botgame() {
               navigate("/game");
             }}
           />
-        </>
+        </div>
       )}
 
       {/* Modal de sélection de couleur */}

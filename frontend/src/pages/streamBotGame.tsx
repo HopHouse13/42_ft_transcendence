@@ -1,10 +1,12 @@
 import { useStreamBotGame } from "../hooks/useStreamBotGame";
-import GameEndModal from "../components/GameEndModal"; 
+import GameEndModal from "../components/GameEndModal";
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
 import type { Cell } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import StreamBotGameHeader from "../components/StreamBotGameHeader";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
+
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -18,7 +20,7 @@ export default function StreambotGame() {
 
   const rawCells = gameState?.board;
 
-  const currentBoard: Cell[] = rawCells 
+  const currentBoard: Cell[] = rawCells
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
@@ -35,7 +37,7 @@ export default function StreambotGame() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 relative">
+    <div className={PAGE_WRAPPER_CLASSES}>
       <div className="flex items-center gap-2">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -45,18 +47,18 @@ export default function StreambotGame() {
       </div>
 
       {!gameState ? (
-        <button 
-          className="btn btn-primary bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md" 
-          onClick={startStreamGame} 
+        <button
+          className="btn btn-primary bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md"
+          onClick={startStreamGame}
           disabled={!isConnected}
         >
           {isConnected ? "Lancer le Stream en direct" : "Connexion au serveur..."}
         </button>
       ) : (
-        <>
+        <div className={BOARD_COLUMN_CLASSES}>
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
-          
-          <StreamBotGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} /> 
+
+          <StreamBotGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} />
 
           {/* Plateau de streaming (sans interactions utilisateur) */}
           <MyBoard board={currentBoard} />
@@ -75,7 +77,7 @@ export default function StreambotGame() {
               navigate("/game");
             }}
           />
-        </>
+        </div>
       )}
     </div>
   );

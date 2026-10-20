@@ -4,6 +4,8 @@ import MyBoard from '../components/Board';
 import SpectatorGameHeader from '../components/SpectatorGameHeader';
 import type { LiveGamePayload, Cell } from '../types/gameTypes';
 import { useSpectatorSocket } from '../hooks/useSpectatorSocket';
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
+
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                    COMPONENT PROP INTERFACES                                  */
@@ -22,7 +24,7 @@ interface SpectatorBoardProps {
 
 const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: SpectatorBoardProps): React.ReactElement => {
   return (
-    <div className="flex flex-col gap-4 shrink-0 relative w-full">
+    <div className={BOARD_COLUMN_CLASSES}>
       {isFinished && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl backdrop-blur-sm pointer-events-none">
           <span className="badge badge-error px-6 py-4 text-2xl font-black shadow-2xl">
@@ -37,7 +39,7 @@ const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: Spectat
         nextPlayer={gameState.currentPlayer}
       />
 
-      <div className={`pointer-events-none ${isFinished ? "grayscale-[50%] opacity-80" : ""}`}>
+      <div className={`w-full pointer-events-none ${isFinished ? "grayscale-[50%] opacity-80" : ""}`}>
         <MyBoard
           board={currentBoard}
           validMoves={[]} // disable move hints
@@ -48,7 +50,7 @@ const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: Spectat
         onClick={onBack}
         className="px-3 py-2.5 bg-base-200 hover:bg-base-300 text-base-content/80 border border-base-300 rounded-lg text-sm font-semibold transition-all shadow-sm w-full mt-2"
       >
-        ← Back to Watch List
+        ⬅️ Back to Watch List
       </button>
     </div>
   );
@@ -105,7 +107,7 @@ export default function WatchGame() {
   const isFinished = gameState.status === 'FINISHED';
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 relative">
+    <div className={PAGE_WRAPPER_CLASSES}>
       <h1 className="text-2xl font-bold w-full max-w-5xl text-left mb-2">
         👀 Spectator Mode
       </h1>

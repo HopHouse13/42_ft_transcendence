@@ -5,6 +5,8 @@ import { useNavigate } from "react-router";
 import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import LocalGameHeader from "../components/LocalGameHeader";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
+
 
 /* --------------------------------------------------------------------------------------------- */
 /*                              ~~ Page Local Game (WebSocket) ~~                                */
@@ -46,8 +48,7 @@ export default function Localgame() {
   }
 
   return (
-// THE FIX: Added w-full to the top-level container
-    <div className="w-full flex flex-col items-center gap-4 p-6 relative">
+    <div className={PAGE_WRAPPER_CLASSES}>
       <h1 className="text-2xl font-bold">👥 Partie Locale (2 Joueurs)</h1>
 
       {!gameState ? (
@@ -59,7 +60,7 @@ export default function Localgame() {
           {isConnected ? "Démarrer la partie locale" : "Connexion au serveur..."}
         </button>
       ) : (
-        <div className="w-full max-w-[600px] flex flex-col gap-4 items-center">
+        <div className={BOARD_COLUMN_CLASSES}>
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
           <LocalGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} />
             <MyBoard
