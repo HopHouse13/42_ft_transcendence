@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { LeaderboardService } from "./leaderboard.service";
-import { JwtGuard } from "../common/guards/jwt.guard";
+import { SilentJwtGuard } from "../common/guards/silentJwt.guard";
+
 @Controller( 'leaderboard' )
 export class LeaderboardController
 {
@@ -8,9 +9,9 @@ export class LeaderboardController
 	constructor( private readonly leaderboardService : LeaderboardService ) {};
 
 	@Get()
-	@UseGuards( JwtGuard )
-	leaderboard()
+	@UseGuards( SilentJwtGuard )
+	leaderboard(@Req() request: any )
 	{
-		return ( this.leaderboardService.findLeaderboard() );
+		return ( this.leaderboardService.findLeaderboard( request.user?.id ));
 	}
 };

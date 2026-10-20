@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { UserLeaderboard } from "./interfaces/leaderboard.interface";
+import { Leaderboard, UserLeaderboard } from "./interfaces/leaderboard.interface";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameStatus } from "@prisma/client";
 
@@ -8,7 +8,7 @@ export class LeaderboardService
 {
 	constructor( private readonly prisma: PrismaService ) {};
 
-	async findLeaderboard() : Promise< UserLeaderboard[] >
+	async findLeaderboard( currentUserId?: string ): Promise< Leaderboard >
 	{
 		const	usersArrayRaw = await this.prisma.user.findMany(
 			{
@@ -20,7 +20,6 @@ export class LeaderboardService
 				{
 					elo:				'desc'
 				},
-				take: 200,
 				select:
 				{
 					id:					true,
@@ -53,7 +52,7 @@ export class LeaderboardService
 			}
 		)
 
-		const	leaderboardArray: UserLeaderboard[] = usersArrayRaw.map( ( user, idx ): UserLeaderboard =>
+		const	topUsers: UserLeaderboard[] = usersArrayRaw.map( ( user, idx ): UserLeaderboard =>
 			{
 				const	games 		= [ ... user.gamesAsBlack, ... user.gamesAsWhite ];
 				const	gameCount	= games.length;
@@ -75,10 +74,12 @@ export class LeaderboardService
 				)
 			}
 		)
-		console.table( leaderboardArray );
-		return( leaderboardArray );
+
+		const	currentUser = topUsers.find(( user ) => { return ( user.id === currentUserId ); }); // find renvoie undefined si rien trouvé
+
+		console.table( topUsers ); // aSupp
+		console.table( currentUser ); // aSupp
+
+		return({ topUsers, currentUser });
 	}
 };
-
-//   { id: "a1", >rank: 1, username: "Grandmaster_Othello", avatarUrl: "...", elo: 2450, >wins: 182, >losses: 24, >winRate: "88.3%" },
-// a calculer: rank, wins, losses, winRate

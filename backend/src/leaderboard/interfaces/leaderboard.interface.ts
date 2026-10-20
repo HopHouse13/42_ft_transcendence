@@ -1,5 +1,8 @@
-import { Interface } from "readline";
-
+export interface Leaderboard
+{
+	topUsers:		UserLeaderboard[];
+	currentUser?:	UserLeaderboard;
+}
 
 export interface UserLeaderboard
 {
@@ -12,4 +15,3 @@ export interface UserLeaderboard
 	losses:		number;
 	winRate:	number;
 };
-//   { id: "a1", rank: 1, username: "Grandmaster_Othello", avatarUrl: "...", elo: 2450, wins: 182, losses: 24, winRate: "88.3%" },

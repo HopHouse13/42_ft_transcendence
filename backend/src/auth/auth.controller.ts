@@ -117,7 +117,7 @@ export class AuthController
 	// SilentJwtGuard specialement concu pour la route "me". Rend silencieux le guard pour que "me" indiquer au navigateur si il y a une session active, sans lui renvoyer des status d'erreurs
 	@UseGuards( SilentJwtGuard )
 	@Get( 'me' )
-	async me( @Req() request, @Res({ passthrough: true }) reponse: Response )
+	async me( @Req() request: any, @Res({ passthrough: true }) reponse: Response )
 	{
 		if ( !request.user )
 		{
