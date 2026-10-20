@@ -16,6 +16,7 @@ interface ApiMatch {
 interface ApiProfile extends AuthUser {
 	createdAt: string;
 	elo: number;
+	rank: number;
 	matchHistory: ApiMatch[];
 }
 
@@ -31,7 +32,7 @@ function normalizeProfile(data: ApiProfile): UserProfileData {
 			username: data.username,
 			avatarUrl: data.avatarUrl ?? null,
 			elo: data.elo,
-			rank: 0,
+			rank: data.rank,
 			createdAt: data.createdAt,
 		},
 		stats: {
@@ -39,7 +40,7 @@ function normalizeProfile(data: ApiProfile): UserProfileData {
 			wins,
 			losses,
 			draws,
-			winRate: totalGames === 0 ? 0 : Math.round((wins / totalGames) * 100),
+			winRate: totalGames === 0 ? 0 : Number(( wins / totalGames * 100 ).toFixed( 1 )),
 			avgDisks: totalGames === 0
 				? 0
 				: Math.round(data.matchHistory.reduce((sum, match) => sum + match.score[0], 0) / totalGames),
