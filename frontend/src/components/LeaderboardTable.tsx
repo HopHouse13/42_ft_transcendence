@@ -10,7 +10,7 @@ interface LeaderboardTableProps {
 const LeaderboardRow = ({player, isCurrentUser }: {player: LeaderboardUser, isCurrentUser: boolean}) => {
     const navigate = useNavigate();
     return (
-        <tr key={player.rank} className="hover:bg-base-200/50 border-b border-base-300/50 transition-colors" onClick={() => navigate(`/profile/${player.id}`)}>
+        <tr className="hover:bg-base-200/50 border-b border-base-300/50 transition-colors" onClick={() => navigate(`/profile/${player.id}`)}>
             <td className="font-mono font-bold text-center text-base-content/60">
                 {player.rank}
             </td>
@@ -18,7 +18,7 @@ const LeaderboardRow = ({player, isCurrentUser }: {player: LeaderboardUser, isCu
                 <div className="flex items-center gap-3">
                 <div className="avatar">
                     <div className="w-8 h-8 rounded-full bg-base-300">
-                    <img src={player.avatarUrl} alt={player.username} />
+                    <img src={`/api${player.avatarUrl}`} alt={player.username} />
                     </div>
                 </div>
                 <span className="font-bold text-base-content truncate max-w-30 md:max-w-md">
@@ -39,7 +39,7 @@ const LeaderboardRow = ({player, isCurrentUser }: {player: LeaderboardUser, isCu
                 <span className="text-success font-semibold">{player.wins}W</span> / <span className="text-error font-semibold">{player.losses}L</span>
             </td>
             <td className="text-center font-mono font-bold text-base-content hidden sm:table-cell">
-                {player.winRate}
+                {player.winRate}%
             </td>
         </tr>
     )
@@ -60,7 +60,7 @@ const LeaderboardTable = ({users, currentUser}: LeaderboardTableProps): React.Re
                 </thead>
                 <tbody>
                 {users.map((player) => (
-                    <LeaderboardRow player={player} isCurrentUser={player === currentUser} />
+                    <LeaderboardRow key={player.id} player={player} isCurrentUser={player.id === currentUser?.id} />
                 ))}
                 {currentUser && currentUser.rank > users.length &&
                     <>

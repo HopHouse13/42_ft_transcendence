@@ -5,5 +5,5 @@ export interface LeaderboardUser extends AuthUser {
   elo: number;
   wins: number;
   losses: number;
-  winRate: string;
+  winRate: number;
 }

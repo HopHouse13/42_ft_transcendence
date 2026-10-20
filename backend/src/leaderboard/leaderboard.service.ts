@@ -17,9 +17,10 @@ export class LeaderboardService
 					isDelete:			false
 				},
 				orderBy:
-				{
-					elo:				'desc'
-				},
+				[
+					{elo:				'desc'},
+					{createdAt:			'asc'}
+				],
 				select:
 				{
 					id:					true,
