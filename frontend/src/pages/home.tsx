@@ -1,22 +1,22 @@
 import { NavLink } from "react-router";
-import { useAuthContext } from "../hooks/useAuthContext";
+import { useAuthSession } from "../hooks/useAuthSession";
 
-const DISCS = {
-	W: "bg-neutral-content",
-	B: "bg-base-300",
-};
+// const DISCS = {
+// 	W: "bg-neutral-content",
+// 	B: "bg-base-300",
+// };
 
-/** Position d'ouverture classique de l'Othello + un coup jouable */
-const MINI_BOARD: Array<"W" | "B" | "hint" | null> = [
-	null, null, null, null, null, null, null, null,
-	null, null, null, null, null, null, null, null,
-	null, null, null, null, null, null, null, null,
-	null, null, null, "W", "B", null, null, null,
-	null, null, null, "B", "W", null, null, null,
-	null, null, null, null, null, "hint", null, null,
-	null, null, null, null, null, null, null, null,
-	null, null, null, null, null, null, null, null,
-];
+// /** Position d'ouverture classique de l'Othello + un coup jouable */
+// const MINI_BOARD: Array<"W" | "B" | "hint" | null> = [
+// 	null, null, null, null, null, null, null, null,
+// 	null, null, null, null, null, null, null, null,
+// 	null, null, null, null, null, null, null, null,
+// 	null, null, null, "W", "B", null, null, null,
+// 	null, null, null, "B", "W", null, null, null,
+// 	null, null, null, null, null, "hint", null, null,
+// 	null, null, null, null, null, null, null, null,
+// 	null, null, null, null, null, null, null, null,
+// ];
 
 const FEATURES = [
 	{
@@ -45,27 +45,27 @@ const FEATURES = [
 	},
 ];
 
-const MiniBoard = () => (
-	<div
-		aria-hidden="true"
-		className="grid grid-cols-8 gap-1 rounded-box bg-primary/20 p-2 shadow-xl"
-	>
-		{MINI_BOARD.map((cell, index) => (
-			<div
-				key={index}
-				className={`flex aspect-square items-center justify-center rounded-sm bg-secondary/60 ${
-					cell === "hint" ? "ring-2 ring-accent" : ""
-				}`}
-			>
-				{cell && cell !== "hint" ? (
-					<div className={`size-[75%] rounded-full ${DISCS[cell]} shadow`} />
-				) : cell === "hint" ? (
-					<div className="size-[75%] rounded-full border-2 border-dashed border-accent" />
-				) : null}
-			</div>
-		))}
-	</div>
-);
+// const MiniBoard = () => (
+// 	<div
+// 		aria-hidden="true"
+// 		className="grid grid-cols-8 gap-1 rounded-box bg-primary/20 p-2 shadow-xl"
+// 	>
+// 		{MINI_BOARD.map((cell, index) => (
+// 			<div
+// 				key={index}
+// 				className={`flex aspect-square items-center justify-center rounded-sm bg-secondary/60 ${
+// 					cell === "hint" ? "ring-2 ring-accent" : ""
+// 				}`}
+// 			>
+// 				{cell && cell !== "hint" ? (
+// 					<div className={`size-[75%] rounded-full ${DISCS[cell]} shadow`} />
+// 				) : cell === "hint" ? (
+// 					<div className="size-[75%] rounded-full border-2 border-dashed border-accent" />
+// 				) : null}
+// 			</div>
+// 		))}
+// 	</div>
+// );
 
 const FeatureCard = ({ feature }: { feature: (typeof FEATURES)[number] }) => (
 	<NavLink
@@ -85,7 +85,7 @@ const FeatureCard = ({ feature }: { feature: (typeof FEATURES)[number] }) => (
 );
 
 const Home = (): React.ReactElement => {
-	const { user, isAuthenticated, loading } = useAuthContext();
+	const { user, isAuthenticated, loading } = useAuthSession();
 
 	return (
 		<div className="flex w-full flex-col items-center justify-center gap-16 px-4 py-12">
@@ -117,7 +117,6 @@ const Home = (): React.ReactElement => {
 						</NavLink>
 					</div>
 				</div>
-				<MiniBoard />
 			</section>
 
 			{/* Features */}

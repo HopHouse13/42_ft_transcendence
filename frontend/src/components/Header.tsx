@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { useAuthContext } from "../hooks/useAuthContext";
+import { useAuthSession } from "../hooks/useAuthSession";
 import { useAuth } from "../hooks/useAuth";
 
 const NAV_LINKS = [
@@ -30,7 +30,7 @@ const HamburgerIcon = () => (
 );
 
 const Header = () => {
-	const { user, isAuthenticated, loading } = useAuthContext();
+	const { user, isAuthenticated, loading } = useAuthSession();
 	const { logout } = useAuth();
 	const navigate = useNavigate();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,10 +51,15 @@ const Header = () => {
 					onClick={closeMobileMenu}
 					className={NAV_BUTTON_CLASS}
 				>
-					My Profile
+					Profile
 				</NavLink>
-			</li>
-			<li>
+				<NavLink
+					to="/achievements"
+					onClick={closeMobileMenu}
+					className={NAV_BUTTON_CLASS}
+				>
+					Achievements
+				</NavLink>
 				<NavLink
 					to="/friend"
 					onClick={closeMobileMenu}
@@ -140,7 +145,7 @@ const Header = () => {
 							<ul
 								aria-label="Account"
 								tabIndex={0}
-								className="menu dropdown-content z-[1] mt-3 w-40 gap-2 rounded-box bg-base-200 p-2 shadow"
+								className="menu dropdown-content z-[1] mt-3 w-60 gap-2 rounded-box bg-base-200 p-2 shadow"
 							>
 								{authMenuItems}
 							</ul>
@@ -173,10 +178,10 @@ const Header = () => {
 								aria-hidden="true"
 							/>
 							<ul
-							id="mobile-menu"
-							aria-label="Main navigation"
-							className="menu dropdown-content z-[1] mt-3 w-48 gap-2 rounded-box bg-base-200 p-2 shadow"
-						>
+								id="mobile-menu"
+								aria-label="Main navigation"
+								className="menu dropdown-content z-[1] mt-3 w-60 gap-2 rounded-box bg-base-200 p-2 shadow"
+							>
 								{NAV_LINKS.map((link) => (
 									<li key={link.path}>
 										<NavLink

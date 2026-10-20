@@ -4,6 +4,7 @@ import { AuthRoute, GuestRoute } from '../components/ProtectedRoute';
 import Loader from "../pages/loader";
 import Home from "../pages/home";
 import Notfound from "../pages/notFound";
+import Achievement from "../pages/achievement";
 
 // lazy pour ne charger les pages qu'a la demande
 const Game = lazy(() => import('../pages/game'));
@@ -13,10 +14,15 @@ const ResetPassword = lazy(() => import('../pages/resetPassword'));
 const Rules = lazy(() => import('../pages/rules'));
 const Leaderboard = lazy(() => import('../pages/leaderboard'));
 const AboutUs = lazy(() => import('../pages/aboutUs'));
-const TermsOfUse = lazy(() => import('../pages/termsOfUse'));
+const TermsOfService = lazy(() => import('../pages/termsOfService'));
 const PrivacyPolicy = lazy(() => import('../pages/privacyPolicy'));
 const UserProfile = lazy(() => import('../pages/userProfile'));
 const Friend = lazy(() => import('../pages/friend'));
+const LocalGame = lazy(() => import('../pages/localGame'));
+const BotGame = lazy(() => import('../pages/botGame'));
+const StreamBotGame = lazy(() => import('../pages/streamBotGame'));
+const OnlineGame = lazy(() => import('../pages/onlineGame'));
+
 
 function AppRouter(): React.ReactElement {
     return (
@@ -28,7 +34,7 @@ function AppRouter(): React.ReactElement {
                 <Route path="/rules" element={<Rules />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/aboutUs" element={<AboutUs />} />
-                <Route path="/termsOfUse" element={<TermsOfUse />} />
+                <Route path="/termsOfService" element={<TermsOfService />} />
                 <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
 
                 {/* Non-authenticated routes */}
@@ -67,10 +73,50 @@ function AppRouter(): React.ReactElement {
                     }
                 />
                 <Route
+                    path="/localGame"
+                    element={
+                    <AuthRoute>
+                        <LocalGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/botGame"
+                    element={
+                    <AuthRoute>
+                        <BotGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/streamBotGame"
+                    element={
+                    <AuthRoute>
+                        <StreamBotGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/onlineGame"
+                    element={
+                    <AuthRoute>
+                        <OnlineGame />
+                    </AuthRoute>
+                    }
+                />
+                <Route
                     path="/profile"
                     element={
                     <AuthRoute>
                         <UserProfile />
+                    </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/achievements"
+                    element={
+                    <AuthRoute>
+                        <Achievement />
                     </AuthRoute>
                     }
                 />

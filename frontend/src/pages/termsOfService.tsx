@@ -15,7 +15,7 @@ export default function TermsOfService() {
         We provide a gaming website to play Othello online.
       </p>
       <p className="leading-relaxed mb-4 opacity-90">
-        You can contact us by email at <a href="mailto:mockmail@mail.com" className="link link-primary">mockmail@mail.com</a> or by mail to 96 boulevard Bessieres, Paris 75017, France.
+        You can contact us by email at <a href="mailto:othello.transcendence@gmail.com" className="link link-primary">othello.transcendence@gmail.com</a> or by mail to 96 boulevard Bessieres, Paris 75017, France.
       </p>
       <p className="leading-relaxed mb-4 opacity-90">
         These Legal Terms constitute a legally binding agreement made between you, whether personally or on behalf of an entity ("you"), and 42 Othello, concerning your access to and use of the Services. You agree that by accessing the Services, you have read, understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.
@@ -88,7 +88,7 @@ export default function TermsOfService() {
         Except as set out in this section or elsewhere in our Legal Terms, no part of the Services and no Content or Marks may be copied, reproduced, aggregated, republished, uploaded, posted, publicly displayed, encoded, translated, transmitted, distributed, sold, licensed, or otherwise exploited for any commercial purpose whatsoever, without our express prior written permission.
       </p>
       <p className="leading-relaxed mb-4 opacity-90">
-        If you wish to make any use of the Services, Content, or Marks other than as set out in this section or elsewhere in our Legal Terms, please address your request to: <a href="mailto:mockmail@mail.com" className="link link-primary">mockmail@mail.com</a>. If we ever grant you the permission to post, reproduce, or publicly display any part of our Services or Content, you must identify us as the owners or licensors of the Services, Content, or Marks and ensure that any copyright or proprietary notice appears or is visible on posting, reproducing, or displaying our Content.
+        If you wish to make any use of the Services, Content, or Marks other than as set out in this section or elsewhere in our Legal Terms, please address your request to: <a href="mailto:othello.transcendence@gmail.com" className="link link-primary">othello.transcendence@gmail.com</a>. If we ever grant you the permission to post, reproduce, or publicly display any part of our Services or Content, you must identify us as the owners or licensors of the Services, Content, or Marks and ensure that any copyright or proprietary notice appears or is visible on posting, reproducing, or displaying our Content.
       </p>
       <p className="leading-relaxed mb-4 opacity-90">
         We reserve all rights not expressly granted to you in and to the Services, Content, and Marks.
@@ -321,7 +321,7 @@ export default function TermsOfService() {
         96 boulevard Bessieres<br />
         Paris 75017<br />
         France<br />
-        <a href="mailto:mockmail@mail.com" className="link link-primary mt-2 inline-block">mockmail@mail.com</a>
+        <a href="mailto:othello.transcendence@gmail.com" className="link link-primary mt-2 inline-block">othello.transcendence@gmail.com</a>
       </div>
 
       <div className="text-xs opacity-50 mt-12 pt-8 border-t border-base-300 text-center">

@@ -1,58 +1,67 @@
 /* ========================================================================== */
 /*                                                                            */
-/*      ~~ Gateway temps réel : protocol ws pour le service chat. ~~          */
+/*      ~~ Gateway temps réel : protocol ws pour le service chat. ~~          */
 /*                                                                            */
 /* ========================================================================== */
 
-import {
-  WebSocketGateway,
-  SubscribeMessage,
-  MessageBody,
-  WebSocketServer,
-  ConnectedSocket,
-} from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 
+/* -------------------------------------------------------------------------- */
+/*  CORS: à restreindre à l'origine réelle du front en prod (pas '*').        */
+/* -------------------------------------------------------------------------- */
+
 @WebSocketGateway({ cors: { origin: '*' } })
-export class ChatGateway {
+export class ChatGateway { 
+
   @WebSocketServer() server: Server;
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor( private readonly chatService: ChatService ) {}
+
+    /* -------------------------------------------------------------------------- */
+
+  handleConnection(client: Socket) {
+
+      console.log(`${new Date().toISOString()} by: client Conect(${client.id}) to: Chat Room`);
+  }
+
+  handleDisconnect(client: Socket)  {
+
+      console.log(`${new Date().toISOString()} by: client Disconect(${client.id}) to: Chat Room`);
+  }
+
+    /* -------------------------------------------------------------------------- */
 
   // 1. Accepte gameId sous forme de string OU d'objet { gameId }
-  @SubscribeMessage('joinGame')
-  handleJoinGame(
-    @MessageBody() payload: string | { gameId: string },
-    @ConnectedSocket() client: Socket,
-  ): void {
-    const gameId = typeof payload === 'string' ? payload : payload?.gameId;
-    if (!gameId) return;
+  @SubscribeMessage('joinRoom')
+  handleJoinRoom( @MessageBody() payload: { roomId: string }, @ConnectedSocket() client: Socket ): void {
+  
+    const roomId = typeof payload === 'string' ? payload : payload?.roomId;
+    if (!roomId) return;
 
-    client.join(gameId);
+    client.join(roomId);
 
-    // Envoyer l'historique de cette partie uniquement
-    const history = this.chatService.getMessages(gameId);
+    
+    const history = this.chatService.getChatRoom(roomId); // Envoi de l'historique au client qui vient de rejoindre
     client.emit('allMessages', history);
   }
 
   // 2. Transmet le senderId (userId de l'utilisateur ou client.id en secours)
   @SubscribeMessage('sendMessage')
-  handleMessage(
-    @MessageBody() payload: { gameId: string; text: string; senderId?: string },
-    @ConnectedSocket() client: Socket,
-  ): void {
-    if (!payload || !payload.gameId || !payload.text) return;
+  handleMessage( @MessageBody() payload: { roomId: string; text: string }, @ConnectedSocket() client: Socket ): void {
+    
+    if (!payload?.roomId || !payload?.text?.trim()) return;
 
-    const senderId = payload.senderId || client.id;
+    // TODO: Extraire le véritable ID depuis la session JWT (client.data.user.id)
+    // Récupération du userId passé lors du handshake/query
+    const userId = (client.handshake.query.userId as string) || client.id;
+    const userName = (client.handshake.query.userName as string) || `Utilisateur (${userId.slice(0, 4)})`;
 
-    const newMessage = this.chatService.newMessage(
-      payload.gameId,
-      payload.text,
-      senderId,
-    );
+    const newMessage = this.chatService.newMessage(payload.roomId, payload.text, userId, userName);
 
-    // Diffusion à tous les membres de la room gameId
-    this.server.to(payload.gameId).emit('newMessage', newMessage);
+      // Diffusion à l'ensemble de la room (y compris l'émetteur)
+    this.server.to(payload.roomId).emit('newMessage', newMessage);
   }
+
 }

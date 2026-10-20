@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthContext } from './useAuthContext';
+import { useAuthSession } from './useAuthSession';
 import type { AuthUser } from '../types/authTypes';
 import type { UserProfileData } from '../types/profileTypes';
 import { queryKeys } from '../queries/queryKeys';
 
 interface ApiMatch {
 	id: string;
-	opponentId: string;
+	opponentName: string;
 	opponentElo: number;
 	result: 'WIN' | 'LOSS' | 'DRAW';
 	score: [number, number];
@@ -47,7 +47,7 @@ function normalizeProfile(data: ApiProfile): UserProfileData {
 		recentMatches: data.matchHistory.map((match) => ({
 			matchId: match.id,
 			opponent: {
-				username: match.opponentId,
+				username: match.opponentName,
 				elo: match.opponentElo,
 			},
 			result: match.result,
@@ -69,7 +69,7 @@ interface UseUserProfileReturn {
 }
 
 export function useUserProfile(userId?: string): UseUserProfileReturn {
-	const { user, setUser, loading: authLoading } = useAuthContext();
+	const { user, setUser, loading: authLoading } = useAuthSession();
 	const queryClient = useQueryClient();
 
 	const isSelf = !userId || userId === user?.id;

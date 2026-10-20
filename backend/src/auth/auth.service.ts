@@ -191,18 +191,22 @@ export class AuthService
 	// clearCookie "supprime" les cookies: en realité, il set les MaxAge a 1 -> rend instantanément le cookie expiré -> le navigateur le supprime automatiquement
 	clearTokensCookies( response: Response )
 	{
-		response.clearCookie( 'access_token',
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-		});
+		response.clearCookie(
+			'access_token',
+			{
+				httpOnly:	true,
+				secure:		true,
+				sameSite:	'lax',
+			}
+		);
 
-		response.clearCookie( 'refresh_token',
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-		});
+		response.clearCookie(
+			'refresh_token',
+			{
+				httpOnly:	true,
+				secure:		true,
+				sameSite:	'lax',
+			}
+		);
 	}
 };

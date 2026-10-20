@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
-import { useAuthContext } from "./useAuthContext";
+import { useAuthSession } from "./useAuthSession";
 import type { GameResult, GameState, GameStatus, Move, PlayerColor, ServerCell } from "../types/gameTypes";
 
 export interface SocketChatMessage {
@@ -47,7 +47,7 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
     const [isConnected, setIsConnected] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const socketRef = useRef<Socket | null>(null);
-    const { user, loading } = useAuthContext();
+    const { user, loading } = useAuthSession();
 
     const [waiting, setWaiting] = useState<string | null>(null);
     const [gameState, setGameState] = useState<GameState | null>(null);
@@ -134,7 +134,7 @@ function useGameSocket(enabled: boolean): UseGameSocketResult {
             setError(null);
         }
 
-        function onDisconnect(reason: string) {
+        function onDisconnect() {
             joinedGameIdRef.current = null;
             setIsMovePending(false);
             setIsConnected(false);

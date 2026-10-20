@@ -42,9 +42,7 @@ export interface BoardProps {
 
 	validMoves: Position[];
 
-	onMove: (position: Position) => void;
-
-	disabled: boolean;
+	onMove: (index: number) => void;
 }
 
 /** Props pour le composant GameInfo */
@@ -94,7 +92,7 @@ export interface GameState {
     
     gameId:         string;
     mode:           'BOT' | 'ONLINE';
-    cells:          ServerCell[];
+    board:          ServerCell[];
     status:         GameStatus;
     players:        PlayerInfo[];
     currentPlayer:  PlayerColor;
@@ -135,8 +133,8 @@ export interface PlayerCardProps {
 	isTurn: boolean;
 	side: 'left' | 'right';
 	username: string;
-	elo: number | null;
-	avatarUrl: string | null;
+	elo?: number | null;
+	avatarUrl?: string | null;
 }
 
 /** Props pour le composant ScoreCard */

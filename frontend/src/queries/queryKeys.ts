@@ -9,6 +9,11 @@ export const queryKeys = {
             [...queryKeys.users.all, 'profile', userId] as const,
         leaderboard: () => [...queryKeys.users.all, 'leaderboard'] as const,
     },
+    achievements: {
+        all: ['achievements'] as const,
+        user: (userId?: string) => 
+            [...queryKeys.achievements.all, 'user', userId] as const,
+    },
 	friends: {
 		all: ['friends'] as const,
 		list: (userId: string) =>

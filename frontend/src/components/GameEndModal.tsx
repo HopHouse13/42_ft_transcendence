@@ -1,4 +1,3 @@
-import React from "react";
 import type { PlayerColor } from "../types/gameTypes";
 
 interface GameEndModalProps {
@@ -26,7 +25,7 @@ export default function GameEndModal({
   const isDraw = winner === "DRAW";
   const isUserWinner = userColor && winner === userColor;
 
-  let title = "Fin de partie";
+  let title: string;
   let titleColor = "text-[#e8e6e3]";
 
   if (isDraw) {
