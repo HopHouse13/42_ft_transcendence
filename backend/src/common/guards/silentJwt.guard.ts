@@ -19,5 +19,5 @@ export class SilentJwtGuard extends JwtGuard
 	}
 }
 // si autres erreurs (db, code metier) que UnauthorizedException (session expirée), l'error est de nouveau lancée
-// cas particulier: apres la validation du accesToken, validate() renvoie le user trouvé dans la db a partir des info du payload du accestoken
+// cas particulier: apres la validation du accesToken, validate() renvoie le user trouvé de la db a partir des info du payload du accestoken
 // Si ce user est "isDelete", findOne() souleve une exeption "NotFoundException", dans ce cas c'est une session expirée -> 204 (laisser gerer la methode me du controller)
