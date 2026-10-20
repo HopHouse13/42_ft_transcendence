@@ -112,9 +112,6 @@ const Status = ({ spectators, startedAt, duration, status }: StatusProps): React
 /*                                 Player row (sub)components                                    */
 const PlayerRowAvatar = ({ player, turn, status } : { player: SpectatorPlayerData, turn: string, status: string }): React.ReactElement => {
   const isOnline = status === "IN_PROGRESS" && turn === player.color;
-  // const avatarPath = player.avatarUrl?.startsWith('/api')
-  //   ? player.avatarUrl
-  //   : `/api${player.avatarUrl?.startsWith('/') ? '' : '/'}${player.avatarUrl || 'uploads/avatars/default.png'}`;
 
   return (
         <div className={`avatar shrink-0 ${isOnline ? 'online' : ''}`}>

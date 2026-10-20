@@ -20,19 +20,6 @@ interface SpectatorBoardProps {
 /*                                    CHILD COMPONENTS                                           */
 /* --------------------------------------------------------------------------------------------- */
 
-// const HeaderCard = ({ player1Name, player2Name, onBack }: SpectatorBoardProps ): React.ReactElement => {
-//   return (
-//     <div className="flex items-center gap-4 w-full max-w-5xl">
-//       <button className="btn btn-sm btn-ghost" onClick ={onBack}>
-//         ← Back to Watch List
-//       </button>
-//       <h1 className="text-2xl font-bold">
-//         👀 Spectating: {player1Name} vs {player2Name}
-//       </h1>
-//     </div>
-//   );
-// };
-
 const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: SpectatorBoardProps): React.ReactElement => {
   return (
     <div className="flex flex-col gap-4 shrink-0 relative w-full">
@@ -119,11 +106,6 @@ export default function WatchGame() {
 
   return (
     <div className="flex flex-col items-center gap-4 p-6 relative">
-      {/* <HeaderCard
-        player1Name={gameState.player1.username}
-        player2Name={gameState.player2.username}
-        onBack={() => navigate('/watch')}
-      /> */}
       <h1 className="text-2xl font-bold w-full max-w-5xl text-left mb-2">
         👀 Spectator Mode
       </h1>
