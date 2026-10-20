@@ -25,7 +25,7 @@ import { MoveDto } from './dto/play-move.dto';
 @WebSocketGateway({ cors: { origin: '*' } })
 export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
-    @WebSocketServer() server: Server;
+    @WebSocketServer() server!: Server;
     constructor(private readonly othelloService: OthelloService) {}
 
     /* -------------------------------------------------------------------------- */

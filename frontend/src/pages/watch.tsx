@@ -332,8 +332,11 @@ const Watch = (): React.ReactElement => {
   const { liveGames } = useSpectatorSocket();
 
   const handleJoinSpectator = (gameId: string) => {
+    // find the game payload from the preview list
+    const selectedGame = liveGames.find(g => g.gameId === gameId);
+
     // Navigates to the game page. You can pass the gameId in the URL
-    navigate(`/game/${gameId}?mode=spectator`);
+    navigate(`/watch/${gameId}`, { state: { gameData: selectedGame } });
   };
 
   const visibleGames = getVisibleGames(liveGames);

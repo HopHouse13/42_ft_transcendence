@@ -4,6 +4,8 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  // MessageBody,
+  // ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SpectatorService } from './spectator.service';
@@ -53,12 +55,42 @@ export class SpectatorGateway
     client.emit('liveGamesList', liveGames);
   }
 
-  // call this method from OthelloService whenever a move is played
-  public async broadcastGameUpdate() {
-    const liveGames = await this.spectatorService.getVisibleGames();
+  // @SubscribeMessage('joinSpectatorRoom')
+  // async handleJoinRoom(
+  //   @ConnectedSocket() client: Socket,
+  //   @MessageBody() data: { gameId: string },
+  // ) {
+  //   console.log(`🎯 Spectator connected to room: ${data.gameId}`);
 
+  //   client.join(`spectator_${data.gameId}`); // join specific game room
+  //   const game = await this.spectatorService.getSingleGame(data.gameId);
+  //   if (game) client.emit('spectatorGameState', game); // send immediate state
+  // }
+
+  // @SubscribeMessage('leaveSpectatorRoom')
+  // handleLeaveRoom(
+  //   @ConnectedSocket() client: Socket,
+  //   @MessageBody() data: { gameId: string },
+  // ) {
+  //   client.leave(`spectator_${data.gameId}`);
+  // }
+
+  // call this method from OthelloService whenever a move is played
+  public async broadcastGameUpdate(gameId: string) {
+    // update the main /watch list
+    const liveGames = await this.spectatorService.getVisibleGames();
     // broadcast the updated array to ALL connected spectators
     this.server.emit('liveGamesList', liveGames);
+
+    // push the update to its dedicated room if specific game
+    // if (gameId) {
+    const singleGame = await this.spectatorService.getSingleGame(gameId);
+    if (singleGame) {
+      this.server
+        .to(`spectator_${gameId}`)
+        .emit('spectatorGameState', singleGame);
+      // }
+    }
   }
 }
 

@@ -22,7 +22,8 @@ const LocalGame = lazy(() => import('../pages/localGame'));
 const BotGame = lazy(() => import('../pages/botGame'));
 const StreamBotGame = lazy(() => import('../pages/streamBotGame'));
 const OnlineGame = lazy(() => import('../pages/onlineGame'));
-const Watch = lazy(() => import('../pages/watch'))
+const Watch = lazy(() => import('../pages/watch'));
+const WatchGame = lazy(() => import('../pages/watchGame'));
 
 
 function AppRouter(): React.ReactElement {
@@ -34,6 +35,7 @@ function AppRouter(): React.ReactElement {
                 <Route path="/notFound" element={<Notfound/>} />
                 <Route path="/rules" element={<Rules />} />
                 <Route path="/watch" element={<Watch />} />
+                <Route path="/watch/:gameId" element={<WatchGame />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/aboutUs" element={<AboutUs />} />
                 <Route path="/termsOfService" element={<TermsOfService />} />

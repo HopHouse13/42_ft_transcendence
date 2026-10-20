@@ -316,7 +316,7 @@ export class    OthelloService  {
             await this._dbCreateGame(setGameId, playerArr);
 
             // Trigger: a new game has started to watch page
-            this.spectatorGateway.broadcastGameUpdate();
+            this.spectatorGateway.broadcastGameUpdate(setGameId);
 
         } catch (dbError) {
 
@@ -398,7 +398,7 @@ export class    OthelloService  {
             );
 
             // trigger broadcast to watch page
-            this.spectatorGateway.broadcastGameUpdate();
+            this.spectatorGateway.broadcastGameUpdate(gameId);
 
             console.log(` Move n°${currentMoveNumber} success game save ${gameId}` );
             if ( isOver ) {
@@ -444,7 +444,7 @@ export class    OthelloService  {
             console.log(`Game ${gameId} give up by ${userId}. Winner is : ${winnerId}`);
 
             // trigger forfeit to watch
-            this.spectatorGateway.broadcastGameUpdate();
+            this.spectatorGateway.broadcastGameUpdate(gameId);
 
         } catch (dbError) {
 
