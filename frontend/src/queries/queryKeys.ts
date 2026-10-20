@@ -20,4 +20,8 @@ export const queryKeys = {
 		search: (userId: string, query: string ) =>
 			[...queryKeys.friends.all, userId, 'search', query] as const,
 	},
+	presence: {
+		onlineFriends: (userId: string) =>
+			['presence', userId, 'online-friends'] as const,
+	},
 };
