@@ -8,7 +8,7 @@ interface LeaderboardResponse {
 };
 
 const fetchLeaderboard = async (): Promise<LeaderboardResponse> => {
-    const respond = await fetch('/api/users/leaderboard', {
+    const respond = await fetch('/api/leaderboard', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json '

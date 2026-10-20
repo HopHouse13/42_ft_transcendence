@@ -12,7 +12,7 @@ import { UserUpdate } from './interfaces/user.interface';
 @Controller( 'user' ) // décorateur : toutes les routes de cette classe sont préfixées par /users
 export class UserController
 {
-	constructor( private readonly usersService : UserService) {} // constructeur pour injecter l'instance unique usersService de type UserService
+	constructor( private readonly usersService : UserService ) {} // constructeur pour injecter l'instance unique usersService de type UserService
 	
 	///
 

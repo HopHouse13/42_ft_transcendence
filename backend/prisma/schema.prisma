@@ -50,7 +50,7 @@ model User {
 	updatedAt				DateTime @updatedAt @map( "updated_at" ) // @updatedAt = Prisma met à jour automatiquement l'horodatage à chaque modif
 
 	gamesAsBlack			Game[] @relation( "black" )
-	gamesAswhite			Game[] @relation( "white" )
+	gamesAsWhite			Game[] @relation( "white" )
 	gamesWon				Game[] @relation( "winner" ) // côté inverse des relations déclarées dans Game
 
 	friendshipsSent			Friendship[] @relation( "friendSender" )
