@@ -31,7 +31,7 @@ export default function FriendCard( props: FriendCardProps )
 				<div className = 'text-md font-semibold truncate' title = { props.user.username }>
 					{ props.user.username }
 				</div>
-				<div className = "badge badge-neutral text-xs opacity-80">
+				<div className = "badge badge-xs badge-success opacity-80">
 					Elo {props.user.elo}
 				</div>
 			</div>

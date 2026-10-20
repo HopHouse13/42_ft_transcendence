@@ -29,7 +29,7 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
                     </div>
                     <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
                         { elo &&
-                            <div className="badge badge-xs badge-success">
+                            <div className="badge badge-xs badge-success opacity-80">
                             ELO {elo}
                         </div>}
                     </div>
