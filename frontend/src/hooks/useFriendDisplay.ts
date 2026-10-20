@@ -2,6 +2,7 @@ import { useAuthSession } from "./useAuthSession";
 import { queryKeys } from "../queries/queryKeys";
 import type { FriendLists } from "../types/friendTypes";
 import { useQuery } from "@tanstack/react-query";
+import type { PresenceMap } from "./usePresence";
 
 export default function useFriendDisplay()
 {
@@ -31,8 +32,18 @@ export default function useFriendDisplay()
 		}
 	);
 
+	const	presenceQuery = useQuery<PresenceMap>(
+		{
+			queryKey:	queryKeys.presence.onlineFriends( user?.id ?? '' ),
+			enabled:	Boolean( user ),
+			initialData:	{},
+			staleTime:	Infinity
+		}
+	);
+
 	return ({
 		lists:		query.data ?? null, // lists prend le retour de queryFn, cad le json avec nos 3 listes
+		presence:	presenceQuery.data,
 		loading:	query.isLoading, // indique si le chargement de data est en cours ou fini
 		error:		query.error instanceof Error ? query.error.message : null // recupere l'erreur de Query ou null s'il n'y en a pas
 	});

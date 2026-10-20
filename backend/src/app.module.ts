@@ -16,6 +16,7 @@ import { FriendModule } from './friend/friend.module';
 import { SpectatorModule } from './spectator/spectator.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
+import { PresenceModule } from './presence/presence.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AchievementModule } from './achievement/achievement.module';
     FriendModule,
     SpectatorModule,
     AchievementModule,
+	  PresenceModule,
     LeaderboardModule,
   ],
   controllers: [AppController],
