@@ -108,11 +108,11 @@ export default function WatchGame() {
 
   return (
     <div className={PAGE_WRAPPER_CLASSES}>
-      <h1 className="text-2xl font-bold w-full max-w-5xl text-left mb-2">
+      <h1 className="text-2xl font-bold">
         👀 Spectator Mode
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
         <SpectatorBoard
           gameState={gameState}
           currentBoard={currentBoard}

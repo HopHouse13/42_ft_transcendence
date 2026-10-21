@@ -115,10 +115,10 @@ const PlayerRowAvatar = ({ player, turn, status } : { player: SpectatorPlayerDat
 
   return (
         <div className={`avatar shrink-0 ${isOnline ? 'online' : ''}`}>
-          <div className={`w-12 h-12 border-2 rounded-full bg-base-300 ${
+          <div className={`w-12 h-12 rounded-full ring-1 ${
             player.color === 'BLACK'
-              ? 'border-black/50'
-              : 'border-white/50'}`}>
+              ? 'ring-black'
+              : 'ring-white'} ring-offset-base-100 ring-offset-2 outline outline-1 outline-base-300 outline-offset-3`}>
             <img
               src={player.avatarUrl}
               alt={player.username}
@@ -144,15 +144,16 @@ const PlayerRowName = ({ player } : { player: SpectatorPlayerData }): React.Reac
 
 const PlayerRowDot = ({ player, turn, status } : { player: SpectatorPlayerData, turn: string, status: string } ): React.ReactElement => {
   const showSpinner = status === "IN_PROGRESS" && turn === player.color;
+  const isBlack = player.color === 'BLACK';
+
+  const blackPawnStyles = "bg-radial from-gray-700 via-gray-950 to-black shadow-[0_4px_6px_rgba(0,0,0,0.6),inset_0_-2px_4px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.3)] border border-black/40";
+  const whitePawnStyles = "bg-radial from-white via-slate-100 to-slate-300 shadow-[0_4px_6px_rgba(0,0,0,0.4),inset_0_-2px_4px_rgba(0,0,0,0.2),inset_0_2px_4px_rgba(255,255,255,1)] border border-slate-300";
 
   return (
-    <div className="relative shrink-0 flex items-center justify-center w-8 h-8">
-      {showSpinner && (
-        <div className="absolute -inset-0.5 rounded-full bg-[conic-gradient(transparent_0deg,rgba(255,255,255,0.7)_360deg)] animate-[spin_3s_linear_infinite]"></div>      )}
+    // Applied aura animation instead of the conic-gradient
+    <div className={`relative shrink-0 flex items-center justify-center w-8 h-8 rounded-full ${showSpinner ? 'aura aura-sm aura-silver' : ''}`}>
       <div
-        className={`relative z-10 w-8 h-8 rounded-full shadow-md border border-base-300/30 ${
-          player.color === 'BLACK' ? 'bg-[#1d1d1d] border-1 border-white/50 shadow-[0_0_8px_rgba(255,255,255,0.2)]'
-          : 'bg-white border border-black/10 shadow-[0_0_8px_rgba(0,0,0,0.4)]'}`}
+        className={`relative z-10 w-full h-full rounded-full transition-all duration-300 ${isBlack ? blackPawnStyles : whitePawnStyles}`}
         title={player.color}
       />
     </div>

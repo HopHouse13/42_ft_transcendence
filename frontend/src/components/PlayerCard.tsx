@@ -17,25 +17,24 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
 
     const safeAvatar = resolveAvatar(avatarUrl);
 
-    return (
-      // 1. Added h-full to ensure the outer container stretches to match the row's tallest element.
-        // <div className={isTurn ? 'aura aura-sm aura-silver w-full' : 'w-full'}>
-        <div className={`w-full h-full ${isTurn ? 'aura aura-sm aura-silver' : ''}`}>
-            {/* 2. Added h-full here to stretch the actual dark card background. */}
-            {/* <div className={`card card-md bg-base-100 w-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}> */}
-            <div className={`card card-md bg-base-100 w-full h-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
+return (
+        <div className={`w-full ${isTurn ? 'aura aura-sm aura-silver' : ''}`}>
+
+            <div className={`card card-md bg-base-100 w-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
+
                 { avatarUrl &&
                     <div className="avatar">
-                    <div
-                        className={`h-10 w-10 rounded-full ring-1 ${isBlack ? 'ring-black' : 'ring-white'} ring-offset-base-100 ring-offset-2 outline outline-1 outline-base-300 outline-offset-3`}
-                        title={isBlack ? 'Black' : 'White'}
-                    >
-                        <img
-                            src={safeAvatar}
-                            alt={`${username} avatar`}
-                        />
+                        <div
+                            className={`h-10 w-10 rounded-full ring-1 ${isBlack ? 'ring-black' : 'ring-white'} ring-offset-base-100 ring-offset-2 outline outline-1 outline-base-300 outline-offset-3`}
+                            title={isBlack ? 'Black' : 'White'}
+                        >
+                            <img
+                                src={safeAvatar}
+                                alt={`${username} avatar`}
+                            />
+                        </div>
                     </div>
-                </div>}
+                }
                 <div className={`grow min-w-0 ${isRight ? 'text-right' : 'text-left'}`}>
                     <div className="text-base md:text-xl font-semibold truncate" title={username}>
                         {username}

@@ -14,7 +14,7 @@ const BotGameHeader = ({blackScore, whiteScore, myColor, nextPlayer}: BotGameHea
     const botColor = myColor === "BLACK" ? "WHITE" : "BLACK";
 
     return (
-        <div className="flex flex-row grow gap-0 w-full items-stretch mb-2">
+        <div className="flex flex-row grow gap-0 w-full items-center mb-2">
             <div className="flex min-w-0 flex-1 justify-start">
                 <PlayerCard
                     player={{userId: user?.id ?? '', color: myColor, connected: false}}
