@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
-import { useAuthContext } from "../hooks/useAuthContext";
+import { useAuthSession } from "../hooks/useAuthSession";
 import { useAuth } from "../hooks/useAuth";
 
 const NAV_LINKS = [
@@ -31,7 +31,7 @@ const HamburgerIcon = () => (
 );
 
 const Header = () => {
-	const { user, isAuthenticated, loading } = useAuthContext();
+	const { user, isAuthenticated, loading } = useAuthSession();
 	const { logout } = useAuth();
 	const navigate = useNavigate();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -179,10 +179,10 @@ const Header = () => {
 								aria-hidden="true"
 							/>
 							<ul
-							id="mobile-menu"
-							aria-label="Main navigation"
-							className="menu dropdown-content z-[1] mt-3 w-60 gap-2 rounded-box bg-base-200 p-2 shadow"
-						>
+								id="mobile-menu"
+								aria-label="Main navigation"
+								className="menu dropdown-content z-[1] mt-3 w-60 gap-2 rounded-box bg-base-200 p-2 shadow"
+							>
 								{NAV_LINKS.map((link) => (
 									<li key={link.path}>
 										<NavLink

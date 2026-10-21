@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "../queries/queryKeys";
-import { useAuthContext } from "./useAuthContext";
+import { useAuthSession } from "./useAuthSession";
 import type { FriendUser } from "../types/friendTypes";
 
 export default function  useFriendSearch( searchName: string )
 {
-	const	{ user } = useAuthContext(); // recupere les info de la session active avec api/auth/me
+	const	{ user } = useAuthSession(); // recupere les info de la session active avec api/auth/me
 	const	searchNameTrimmed = searchName.trim(); // supprime les espace avant et apres le contenu de la string (cela alège la mise en cache des recherches)
 
 	const	query = useQuery(

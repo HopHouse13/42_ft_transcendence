@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
-import { useAuthContext } from "./useAuthContext";
+import { useAuthSession } from "./useAuthSession";
 import type { GameState, Move } from "../types/gameTypes";
 
 const ONLINE_GAME_KEY = "othello_online_game_id";
@@ -13,7 +13,7 @@ export function useOnlineSocket() {
   const [isMovePending, setIsMovePending] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
-  const { user, loading } = useAuthContext();
+  const { user, loading } = useAuthSession();
 
   useEffect(() => {
     if (loading || !user?.id) return;

@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthContext } from './useAuthContext';
+import { useAuthSession } from './useAuthSession';
 import type { AuthUser } from '../types/authTypes';
 import type { UserProfileData } from '../types/profileTypes';
 import { queryKeys } from '../queries/queryKeys';
 
 interface ApiMatch {
 	id: string;
-	opponentId: string;
+	opponentName: string;
 	opponentElo: number;
 	result: 'WIN' | 'LOSS' | 'DRAW';
 	score: [number, number];
@@ -16,6 +16,7 @@ interface ApiMatch {
 interface ApiProfile extends AuthUser {
 	createdAt: string;
 	elo: number;
+	rank: number;
 	matchHistory: ApiMatch[];
 }
 
@@ -31,7 +32,7 @@ function normalizeProfile(data: ApiProfile): UserProfileData {
 			username: data.username,
 			avatarUrl: data.avatarUrl ?? null,
 			elo: data.elo,
-			rank: 0,
+			rank: data.rank,
 			createdAt: data.createdAt,
 		},
 		stats: {
@@ -39,7 +40,7 @@ function normalizeProfile(data: ApiProfile): UserProfileData {
 			wins,
 			losses,
 			draws,
-			winRate: totalGames === 0 ? 0 : Math.round((wins / totalGames) * 100),
+			winRate: totalGames === 0 ? 0 : Number(( wins / totalGames * 100 ).toFixed( 1 )),
 			avgDisks: totalGames === 0
 				? 0
 				: Math.round(data.matchHistory.reduce((sum, match) => sum + match.score[0], 0) / totalGames),
@@ -47,7 +48,7 @@ function normalizeProfile(data: ApiProfile): UserProfileData {
 		recentMatches: data.matchHistory.map((match) => ({
 			matchId: match.id,
 			opponent: {
-				username: match.opponentId,
+				username: match.opponentName,
 				elo: match.opponentElo,
 			},
 			result: match.result,
@@ -69,7 +70,7 @@ interface UseUserProfileReturn {
 }
 
 export function useUserProfile(userId?: string): UseUserProfileReturn {
-	const { user, setUser, loading: authLoading } = useAuthContext();
+	const { user, setUser, loading: authLoading } = useAuthSession();
 	const queryClient = useQueryClient();
 
 	const isSelf = !userId || userId === user?.id;

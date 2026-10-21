@@ -1,11 +1,11 @@
 import ACHIEVEMENT_LIST from "../constants/achievementList";
-import { useAuthContext } from "../hooks/useAuthContext";
+import { useAuthSession } from "../hooks/useAuthSession";
 import { useAchievement } from "../hooks/useAchievements";
 import Loader from "./loader";
 import AchievementsGrid from "../components/AchivementsGrid";
 
 const Achievement = () => {
-    const { user } = useAuthContext();
+    const { user } = useAuthSession();
     const userId = user?.id ?? '';
     const { data, isLoading, isError } = useAchievement(userId);
 

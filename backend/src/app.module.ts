@@ -14,6 +14,7 @@ import { ComputePlayerModule } from './compute-player/compute-player.module';
 import { ChatModule } from './chat/chat.module';
 import { FriendModule } from './friend/friend.module';
 import { SpectatorModule } from './spectator/spectator.module';
+import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { AchievementModule } from './achievement/achievement.module';
     FriendModule,
     SpectatorModule,
     AchievementModule,
+    LeaderboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, OthelloService], // voir si PrismaService et OthelloService sont utiles ici

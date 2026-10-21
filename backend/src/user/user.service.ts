@@ -380,6 +380,20 @@ export class UserService
 			}
 		);
 
+		const	rank = 1 + await this.prisma.user.count(
+		{
+			where:
+			{
+				isDelete:		false,
+				OR:
+				[
+					{ elo:		{ gt: user.elo }},
+					{ elo:		user.elo,
+					createdAt:	{ lt: user.createdAt }}
+				]
+			}
+		});
+
 		const userProfile: UserProfile =
 		{
 			id:				user.id,
@@ -389,6 +403,7 @@ export class UserService
 			updatedAt:		user.updatedAt,
 
 			elo:			user.elo,
+			rank,
 			matchHistory
 		}
 

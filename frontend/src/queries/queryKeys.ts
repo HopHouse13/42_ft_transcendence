@@ -7,6 +7,7 @@ export const queryKeys = {
         all: ['users'] as const,
         profile: (userId: string) =>
             [...queryKeys.users.all, 'profile', userId] as const,
+        leaderboard: () => [...queryKeys.users.all, 'leaderboard'] as const,
     },
     achievements: {
         all: ['achievements'] as const,

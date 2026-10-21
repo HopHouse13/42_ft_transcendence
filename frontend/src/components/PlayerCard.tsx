@@ -44,7 +44,7 @@ return (
                         { elo &&
                           <div className={`flex items-center gap-2 mt-1 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
                             {/* added whitespace-nowrap to avoid text wrapping to newline when shriking window size  */}
-                            <div className="badge badge-xs badge-success whitespace-nowrap">
+                            <div className="badge badge-xs badge-success whitespace-nowrap opacity-80">
                               ELO {elo}
                             </div>
                           </div>

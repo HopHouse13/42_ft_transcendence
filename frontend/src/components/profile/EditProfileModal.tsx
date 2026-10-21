@@ -81,7 +81,7 @@ export function EditProfileModal({
             <div className="avatar">
               <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                 <img
-                  src={previewUrl || '/default-avatar.png'}
+                  src={`/api${previewUrl}` || '/default-avatar.png'}
                   alt="Avatar preview"
                 />
               </div>

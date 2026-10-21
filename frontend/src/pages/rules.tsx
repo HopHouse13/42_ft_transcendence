@@ -26,14 +26,14 @@ const RULES_BLOCK = [
 ];
 
 const RulesCard = ({rule}: {rule: (typeof RULES_BLOCK)[number] }) => (
-    <div className="flex bg-base-200 p-4 items-center">
+    <div className="flex flex-col bg-base-200 p-4 items-center md:flex-row">
         <figure>
             <img src={rule.img} className="max-w-50 aspect-square "/>
         </figure>
         <div className="gap-1 p-4">
             <h3 className="text-lg font-semibold mb-1">{rule.title}</h3>
             {rule.description.map((_, i) =>
-                <p className="grow-0 text-sm text-base-content/70">
+                <p key={i} className="grow-0 text-sm text-base-content/70">
                     {rule.description[i]}
                 </p>
             )}
