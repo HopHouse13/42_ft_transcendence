@@ -36,7 +36,7 @@ return (
                     </div>
                 }
                 <div className={`grow min-w-0 ${isRight ? 'text-right' : 'text-left'}`}>
-                    <div className="text-base md:text-xl font-semibold truncate" title={username}>
+                    <div className="text-base md:text-xl max-w-40 font-semibold truncate" title={username}>
                         {username}
                     </div>
                     {/* <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}> */}
