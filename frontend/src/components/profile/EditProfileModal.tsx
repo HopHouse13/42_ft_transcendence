@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import type { ChangeEvent, SubmitEvent } from 'react';
 import type { UserProfileData } from '../../types/profileTypes';
 import FormField from '../ui/FormField';
+import { USERNAME_PATTERN } from '../../constants/authConstants';
 
 interface EditProfileModalProps {
   user: UserProfileData['user'];
@@ -81,7 +82,7 @@ export function EditProfileModal({
             <div className="avatar">
               <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                 <img
-                  src={`/api${previewUrl}` || '/default-avatar.png'}
+                  src={ previewUrl ?? '/default-avatar.png'}
                   alt="Avatar preview"
                 />
               </div>
@@ -112,7 +113,7 @@ export function EditProfileModal({
             required
             minLength={3}
             maxLength={50}
-            pattern="^[a-zA-Z0-9][a-zA-Z0-9_]{2,49}$"
+            pattern={USERNAME_PATTERN}
 			      hint="Must be 3-50 letters, digits or underscores. Can't start with an underscore"
           />
 
