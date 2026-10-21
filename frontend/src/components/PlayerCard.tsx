@@ -1,12 +1,6 @@
 import type React from "react"
 import type { PlayerCardProps } from "../types/gameTypes"
-
-// check if there already is a /api prefix or not for the avatarUrl
-const resolveAvatar = (url?: string | null): string | undefined => {
-    if (!url) return undefined;
-    if (url.startsWith('/api')) return url; // Already safe
-    return `/api${url.startsWith('/') ? '' : '/'}${url}`; // Missing prefix
-};
+import { resolveAvatar } from "../utils/resolveAvatar";
 
 const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCardProps): React.ReactElement => {
     const isRight = side === 'right';
