@@ -7,7 +7,7 @@ import { useNavigate } from "react-router";
 import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import BotGameHeader from "../components/BotGameHeader";
-import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES, ACTION_BUTTON_DANGER } from "../constants/layoutConstants";
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                   ~~ Page Bot Game ~~                                         */
@@ -76,7 +76,7 @@ export default function Botgame() {
           {!isFinished && (
             <button
               onClick={giveUp}
-              className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
+              className={ACTION_BUTTON_DANGER}
             >
               Abandonner
             </button>

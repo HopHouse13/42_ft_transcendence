@@ -4,7 +4,7 @@ import MyBoard from '../components/Board';
 import SpectatorGameHeader from '../components/SpectatorGameHeader';
 import type { LiveGamePayload, Cell } from '../types/gameTypes';
 import { useSpectatorSocket } from '../hooks/useSpectatorSocket';
-import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES, ACTION_BUTTON_NEUTRAL } from "../constants/layoutConstants";
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -48,7 +48,7 @@ const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: Spectat
       </div>
       <button
         onClick={onBack}
-        className="px-3 py-2.5 bg-base-200 hover:bg-base-300 text-base-content/80 border border-base-300 rounded-lg text-sm font-semibold transition-all shadow-sm w-full mt-2"
+        className={ACTION_BUTTON_NEUTRAL}
       >
         ⬅️ Back to Watch List
       </button>

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import LocalGameHeader from "../components/LocalGameHeader";
-import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES } from "../constants/layoutConstants";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES, ACTION_BUTTON_DANGER } from "../constants/layoutConstants";
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -72,7 +72,7 @@ export default function Localgame() {
           {!isFinished && gameState && (
             <button
               onClick={() => giveUp(gameState.currentPlayer)}
-              className="px-3 py-1.5 bg-red-900/40 hover:bg-red-900/70 text-red-300 border border-red-800/50 rounded-lg text-xs font-semibold transition-all cursor-pointer mt-2"
+              className={ACTION_BUTTON_DANGER}
             >
               Terminer la partie
             </button>
