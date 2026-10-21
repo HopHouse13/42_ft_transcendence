@@ -13,6 +13,7 @@ import { OthelloService } from './othello/othello.service';
 import { ComputePlayerModule } from './compute-player/compute-player.module';
 import { ChatModule } from './chat/chat.module';
 import { FriendModule } from './friend/friend.module';
+import { SpectatorModule } from './spectator/spectator.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
 
@@ -28,8 +29,9 @@ import { AchievementModule } from './achievement/achievement.module';
     ComputePlayerModule,
     ChatModule,
     FriendModule,
+    SpectatorModule,
+    AchievementModule,
     LeaderboardModule,
-	AchievementModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, OthelloService], // voir si PrismaService et OthelloService sont utiles ici

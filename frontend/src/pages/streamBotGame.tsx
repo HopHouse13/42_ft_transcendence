@@ -1,10 +1,12 @@
 import { useStreamBotGame } from "../hooks/useStreamBotGame";
-import GameEndModal from "../components/GameEndModal"; 
+import GameEndModal from "../components/GameEndModal";
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
 import type { Cell } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import StreamBotGameHeader from "../components/StreamBotGameHeader";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES, ACTION_BUTTON_NEUTRAL } from "../constants/layoutConstants";
+
 
 
 /* --------------------------------------------------------------------------------------------- */
@@ -18,7 +20,7 @@ export default function StreambotGame() {
 
   const rawCells = gameState?.board;
 
-  const currentBoard: Cell[] = rawCells 
+  const currentBoard: Cell[] = rawCells
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
@@ -34,8 +36,14 @@ export default function StreambotGame() {
     else winner = "DRAW";
   }
 
+  const handleLeaveStream = () => {
+    // If you ever need to emit a specific 'leave' event to your backend, add it here.
+    // Otherwise, navigating away triggers standard React hook unmount cleanup!
+    navigate("/game");
+  };
+
   return (
-    <div className="flex flex-col items-center gap-4 p-6 relative">
+    <div className={PAGE_WRAPPER_CLASSES}>
       <div className="flex items-center gap-2">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -45,37 +53,47 @@ export default function StreambotGame() {
       </div>
 
       {!gameState ? (
-        <button 
-          className="btn btn-primary bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md" 
-          onClick={startStreamGame} 
+        <button
+          className="btn btn-primary bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg cursor-pointer shadow-md"
+          onClick={startStreamGame}
           disabled={!isConnected}
         >
           {isConnected ? "Lancer le Stream en direct" : "Connexion au serveur..."}
         </button>
       ) : (
         <>
-          {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
-          
-          <StreamBotGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} /> 
+          <div className={BOARD_COLUMN_CLASSES}>
+            {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
 
-          {/* Plateau de streaming (sans interactions utilisateur) */}
-          <MyBoard board={currentBoard} />
+            <StreamBotGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState.currentPlayer} />
 
-          {/* Modal de fin de partie du stream */}
-          <GameEndModal
-            isOpen={isFinished}
-            winner={winner}
-            blackScore={blackScore}
-            whiteScore={whiteScore}
-            onRestartOrRematch={() => {
-              startStreamGame(); // Relancer un nouveau stream
-            }}
-            onQuit={() => {
-              localStorage.removeItem("othello_stream_game_id");
-              navigate("/game");
-            }}
+            {/* Plateau de streaming (sans interactions utilisateur) */}
+            <MyBoard board={currentBoard} />
+
+            <button
+              onClick={handleLeaveStream}
+              className={ACTION_BUTTON_NEUTRAL}
+            >
+              ⬅️ Retour au menu
+            </button>
+          </div>
+
+
+            {/* Modal de fin de partie du stream */}
+            <GameEndModal
+              isOpen={isFinished}
+              winner={winner}
+              blackScore={blackScore}
+              whiteScore={whiteScore}
+              onRestartOrRematch={() => {
+                startStreamGame(); // Relancer un nouveau stream
+              }}
+              onQuit={() => {
+                localStorage.removeItem("othello_stream_game_id");
+                navigate("/game");
+              }}
           />
-        </>
+       </>
       )}
     </div>
   );

@@ -9,10 +9,18 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { ComputePlayerModule } from '../compute-player/compute-player.module';
 import { GameRoomModule } from '../game-room/game-room.module';
 
-import { AchievementModule } from '../achievement/achievement.module'; 
+import { AchievementModule } from '../achievement/achievement.module';
+
+import { SpectatorModule } from '../spectator/spectator.module';
 
 @Module({
-  imports: [PrismaModule, ComputePlayerModule, GameRoomModule, AchievementModule],
+  imports: [
+    PrismaModule,
+    ComputePlayerModule,
+    GameRoomModule,
+    AchievementModule,
+    SpectatorModule,
+  ],
   providers: [OthelloService, OthelloGateway],
 })
 export class OthelloModule {}

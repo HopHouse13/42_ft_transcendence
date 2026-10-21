@@ -3,4 +3,4 @@
 /*                                                                            */
 /* ========================================================================== */
 
-export type Cell = 'EMPTY' | 'BLACK' | 'WHITE' ;
+export type Cell = 'EMPTY' | 'BLACK' | 'WHITE';

@@ -6,7 +6,8 @@ import { useAuth } from "../hooks/useAuth";
 const NAV_LINKS = [
 	{ name: "Rules", path: "/rules" },
 	{ name: "Game", path: "/game" },
-	{ name: "Leaderboard", path: "/leaderboard" },
+  { name: "Watch", path: "/watch" },
+  { name: "Leaderboard", path: "/leaderboard" },
 ];
 
 const NAV_BUTTON_CLASS = "btn btn-ghost rounded-btn text-lg hover:bg-base-300";

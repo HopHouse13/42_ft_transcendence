@@ -1,11 +1,13 @@
 import { useOnlineSocket } from "../hooks/useOnlineSocket";
 import GameEndModal from "../components/GameEndModal";
-import { ChatRoom } from "../components/Chat" 
+import { ChatRoom } from "../components/Chat"
 import MyBoard from "../components/Board";
 import { useNavigate } from "react-router";
 import type { Cell, Move } from "../types/gameTypes";
 import { toClientBoard } from "../utils/cellConverter";
 import OnlineGameHeader from "../components/OnlineGameHeader";
+import { PAGE_WRAPPER_CLASSES, BOARD_COLUMN_CLASSES, ACTION_BUTTON_DANGER } from "../constants/layoutConstants";
+
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                 ~~ Page Online Game ~~                                        */
@@ -18,7 +20,7 @@ export default function OnlineGame() {
 
   const rawCells = gameState?.board;
 
-  const currentBoard: Cell[] = rawCells 
+  const currentBoard: Cell[] = rawCells
     ? toClientBoard(rawCells)
     : Array(64).fill(null);
 
@@ -43,13 +45,13 @@ export default function OnlineGame() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 p-6 relative">
+    <div className={PAGE_WRAPPER_CLASSES}>
       <h1 className="text-2xl font-bold">🌐 Partie en Ligne (Matchmaking)</h1>
 
       {!gameState && !isWaiting ? (
-        <button 
-          className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer" 
-          onClick={() => joinQueue()} 
+        <button
+          className="btn btn-primary bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg cursor-pointer"
+          onClick={() => joinQueue()}
           disabled={!isConnected}
         >
           {isConnected ? "Rechercher une partie" : "Connexion au serveur..."}
@@ -63,24 +65,27 @@ export default function OnlineGame() {
         <>
 
           {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
-          
+
           {/* Conteneur principal 2 colonnes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
-            
+          {/* par exemple si on voulait 7 colomnes pour avoir une board a 600px (= ce qui est defini dans la constante) */}
+          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-7xl items-center mt-6"></div> */}
+
             {/* Colonne de gauche : Board de jeux */}
-            <div className="flex flex-col gap-4 shrink-0">
+            <div className={BOARD_COLUMN_CLASSES}>
               <OnlineGameHeader blackScore={blackScore} whiteScore={whiteScore} nextPlayer={gameState?.currentPlayer ?? "BLACK"} players={gameState?.players ?? []} />
               <MyBoard board={currentBoard} validMoves={isFinished ? [] : validMovesIndexes} onCellClick={handleCellClick} />
 
-            </div>
+            {/* moved the button inside the left column wrapper */}
             {!isFinished && (
               <button
                 onClick={giveUp}
-                className="px-3 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-sm"
+                className={ACTION_BUTTON_DANGER}
               >
                 Abandonner
               </button>
             )}
+            </div>
 
             {/* Colonne de droite : Chat global / d'attente */}
             <div className="flex justify-center md:justify-end w-full">

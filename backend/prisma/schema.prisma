@@ -82,7 +82,7 @@ model Game {
 	id				String @id @default( uuid() ) @db.Uuid
 
 	status			GameStatus @default( IN_PROGRESS )
-	
+
 	blackPlayerId	String @db.Uuid @map( "black_player_id" )
 	whitePlayerId	String @db.Uuid @map( "white_player_id" )
 

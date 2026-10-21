@@ -6,6 +6,7 @@ $(NAME): up
 
 up: check-env check-ssl
 	$(COMPOSE) up -d --build
+	-$(COMPOSE) logs -f
 
 check-env:
 	@if [ ! -f .env ]; then \
@@ -30,8 +31,7 @@ down:
 clean: down
 
 fclean:
-	$(COMPOSE) down -v
-	docker system prune -af
+	$(COMPOSE) down -v --rmi all
 	@echo "⚠️ Warning: all containers, images, and named database volumes have been wiped ⚠️"
 
 re: fclean all
@@ -54,6 +54,15 @@ shell-proxy:
 
 shell-db:
 	$(COMPOSE) exec database sh -c 'psql -U $$POSTGRES_USER -d $$POSTGRES_DB'
+
+seed-game:
+	@echo "Seeding a finished game..."
+	@echo "WITH p1 AS (SELECT id FROM users ORDER BY created_at ASC LIMIT 1), \
+	     p2 AS (SELECT id FROM users ORDER BY created_at DESC LIMIT 1) \
+	INSERT INTO games (id, status, black_player_id, white_player_id, winner_id, black_score, white_score, updated_at) \
+	SELECT gen_random_uuid(), 'FINISHED', p1.id, p2.id, p1.id, 42, 22, CURRENT_TIMESTAMP \
+	FROM p1, p2 \
+	WHERE p1.id != p2.id;" | $(COMPOSE) exec -T database sh -c 'psql -U $$POSTGRES_USER -d $$POSTGRES_DB'
 
 # ---------------------------------------------------------------------------- #
 
