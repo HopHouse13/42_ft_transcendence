@@ -17,6 +17,7 @@ import { SpectatorModule } from './spectator/spectator.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AchievementModule } from './achievement/achievement.module';
 import { PresenceModule } from './presence/presence.module';
+import { EloModule } from './elo/elo.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PresenceModule } from './presence/presence.module';
     AchievementModule,
 	  PresenceModule,
     LeaderboardModule,
+    EloModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, OthelloService], // voir si PrismaService et OthelloService sont utiles ici
