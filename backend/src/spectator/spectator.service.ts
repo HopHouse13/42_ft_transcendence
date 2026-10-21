@@ -61,7 +61,6 @@ export class SpectatorService {
       gameId: game.id,
       status: game.status as GameStatus, // use the actual database status
       currentPlayer: currentTurn,
-      spectators: 0,
       startedAt: game.createdAt.toISOString(),
       duration: staticDuration,
       isBot: false, // placeholder
