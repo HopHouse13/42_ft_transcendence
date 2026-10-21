@@ -33,14 +33,17 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     /* -------------------------------------------------------------------------- */
 
     handleConnection(client: Socket) {
+
         console.log(`${new Date().toISOString()} by: client Conect(${client.id}) to: Othello engine`);
     }
 
     handleDisconnect(client: Socket) {
+        
         console.log(`${new Date().toISOString()} by: client Disconect(${client.id}) to: Othello engine`);
 
         const userId = client.data.userId || client.handshake.query.userId as string;
         if (userId) {
+            
             this.othelloService.OnlineRemovePlayerFromQueue(userId);
         }
     }
@@ -203,6 +206,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     @SubscribeMessage('onlinePlayMove')
     @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
     async handleOnlinePlayMove( @MessageBody() payload: { gameId: string; move: { row: number; col: number } }, @ConnectedSocket() client: Socket ) {
+        
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
             const updatedState = await this.othelloService.onlinePlayMove(payload.gameId, payload.move, userId);
@@ -276,7 +280,20 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
     @SubscribeMessage('getGameState')
     handleGetGameState( @ConnectedSocket() client: Socket, @MessageBody() data: { gameId: string } ) {
         try {
+            const userId = client.data.userId || client.handshake.query.userId as string;
+            if (!userId) {
+                client.emit('gameError', { message: 'Utilisateur non authentifié' });
+                return;
+            }
+
             const state = this.othelloService.getGameState(data.gameId);
+
+            const isUserInGame = state.players.some(p => p.userId === userId);
+            if (!isUserInGame) {
+                client.emit('gameError', { message: "Vous ne faites pas partie de cette partie." });
+                return;
+            }
+
             client.join(data.gameId);
             client.emit('gameState', state);
         } catch (error: any) {
