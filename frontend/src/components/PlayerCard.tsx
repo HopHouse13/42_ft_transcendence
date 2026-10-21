@@ -44,7 +44,8 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
                       {/* Only render this gap if ELO exists so we don't create empty margin space */}
                         { elo &&
                           <div className={`flex items-center gap-2 mt-1 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
-                            <div className="badge badge-xs badge-success">
+                            {/* added whitespace-nowrap to avoid text wrapping to newline when shriking window size  */}
+                            <div className="badge badge-xs badge-success whitespace-nowrap">
                               ELO {elo}
                             </div>
                           </div>
