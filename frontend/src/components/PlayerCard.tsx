@@ -18,8 +18,12 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
     const safeAvatar = resolveAvatar(avatarUrl);
 
     return (
-        <div className={isTurn ? 'aura aura-sm aura-silver w-full' : 'w-full'}>
-            <div className={`card card-md bg-base-100 w-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
+      // 1. Added h-full to ensure the outer container stretches to match the row's tallest element.
+        // <div className={isTurn ? 'aura aura-sm aura-silver w-full' : 'w-full'}>
+        <div className={`w-full h-full ${isTurn ? 'aura aura-sm aura-silver' : ''}`}>
+            {/* 2. Added h-full here to stretch the actual dark card background. */}
+            {/* <div className={`card card-md bg-base-100 w-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}> */}
+            <div className={`card card-md bg-base-100 w-full h-full flex items-center p-2 gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
                 { avatarUrl &&
                     <div className="avatar">
                     <div
@@ -36,12 +40,16 @@ const PlayerCard = ({ player, isTurn, side, username, elo, avatarUrl }: PlayerCa
                     <div className="text-base md:text-xl font-semibold truncate" title={username}>
                         {username}
                     </div>
-                    <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
+                    {/* <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}> */}
+                      {/* Only render this gap if ELO exists so we don't create empty margin space */}
                         { elo &&
+                          <div className={`flex items-center gap-2 mt-1 ${isRight ? 'flex-row-reverse' : 'flex-row'}`}>
                             <div className="badge badge-xs badge-success">
-                            ELO {elo}
-                        </div>}
-                    </div>
+                              ELO {elo}
+                            </div>
+                          </div>
+                        }
+                    {/* </div> */}
                 </div>
                 {/* Lisere de couleur, cote oppose (bord interieur, vers le score) :
                     dernier enfant du flex, le flex-row-reverse l'inverse automatiquement */}
