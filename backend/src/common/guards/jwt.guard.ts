@@ -1,6 +1,7 @@
 import { ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { AuthService } from "src/auth/auth.service";
+import { UserPublic } from "src/user/interfaces/user.interface";
 
 // AuthGuard est une fonction "mixin" qui va générer une class intermediaire etendu a JwtGuard configuré pour utiliser 'jwtStrategy'
 // JwtGuard intercepte la requête avant qu'elle atteigne le controller, et déclenche la stratégie 'jwt' pour vérifier le token
@@ -20,24 +21,33 @@ export class JwtGuard extends AuthGuard( 'jwtStrategy' )
 		if ( user ) // token validé la callback renvoit le user 
 			return ( user );
 
-		if ( !info || ( info.name !== 'TokenExpiredError' && info.message !== 'No auth token' )) // laisse une tentative de refreshToken si le token est expiré ou si le navigateur aurait supprimer le cookie(expiration MaxAge) avec les accesToken
+		if ( !info || ( info.name !== 'TokenExpiredError' && info.message !== 'No auth token' )) // laisse une tentative de refreshToken si le token est expiré ou si le navigateur aurait supprimer le cookie(expiration MaxAge) avec les accessToken
 			throw ( err || new UnauthorizedException() );
 		
 		// Cas où le fail de l'authentification est du a l'expiration du token
-		const	req = context.switchToHttp().getRequest(); // recuperation de la request a partir du context Express
-		const	refreshTokenRaw = req.cookies?.refresh_token;
+		const	request = context.switchToHttp().getRequest(); // recuperation de la request a partir du context Express
+		const	refreshTokenRaw = request.cookies?.refresh_token;
 
 		if ( !refreshTokenRaw )
 			throw ( new UnauthorizedException( 'session expired' ) ); // refresh_token n'existe pas dnas les cookies del a request
 
 		// le cas ou acces_token est expiré est isolé -> nous pouvons tenté de le regenerer
-		const	refreshedTokens = await this.authService.validateRefreshToken( refreshTokenRaw ); // verification de refresh_token
-		const	auth = await this.authService.login( refreshedTokens ); // genere deux nouveaux tokens et pose les 2 cookies dans la reponse pour une nouvelle session de 10min
+		const	userValidated = await this.authService.validateRefreshToken( refreshTokenRaw ); // verification de refresh_token
+		const	jwt = this.authService.generateAccessToken( userValidated );
 		
-		const	res = context.switchToHttp().getResponse();
-		this.authService.setTokensCookies( res, auth.jwt, auth.refreshToken ); // genere deux cookies avec les tokens et les pose dans le header de la reponse (res)
+		const	response = context.switchToHttp().getResponse();
+		this.authService.setAccessTokenCookie( response, jwt ); // pose un cookie avec l'accessToken dans le header de la reponse (res)
 
-		return ( auth.userPublic ); // objet renvoyé et retrouvé au niveau du controller
+		const	userPublic: UserPublic =
+		{
+			id:			userValidated.id,
+			username:	userValidated.username,
+			avatarUrl:	userValidated.avatarUrl,
+			createdAt:	userValidated.createdAt,
+			updatedAt:	userValidated.updatedAt
+		}
+
+		return ( userPublic ); // userPublic (protection données sensibles) renvoyé et retrouvé au niveau du controller
 	}
 
 }
