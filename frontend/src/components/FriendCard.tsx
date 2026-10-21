@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'; // type qui accepte tous les elements que react peut afficher
 import type { FriendUser } from '../types/friendTypes';
 import { useNavigate } from 'react-router';
+import { resolveAvatar } from '../utils/resolveAvatar';
 
 interface FriendCardProps
 {
@@ -14,6 +15,8 @@ interface FriendCardProps
 export default function FriendCard( props: FriendCardProps )
 {
 	const navigate = useNavigate();
+  const safeAvatar = resolveAvatar(props.user.avatarUrl);
+
 	return (
 		<div
 			className = { `card card-md bg-base-100 w-full flex flex-row border border-base-300 items-center p-2 gap-3 hover:bg-base-200 hover:border-base-100 transition-colors ${ props.isFriend ? 'cursor-pointer': '' }` }
@@ -25,7 +28,7 @@ export default function FriendCard( props: FriendCardProps )
 				aria-label = { props.isFriend ? ( props.isOnline === undefined ? 'Presence unavailable' : props.isOnline ? 'Online' : 'Offline' ) : undefined }>
 				<div className = "w-10 rounded-full">
 					<img
-						src = { `/api${ props.user?.avatarUrl || '/uploads/avatars/default.png' }` }
+						src = {safeAvatar}
 						alt = { `${ props.user?.username } avatar` }
 					/>
 				</div>
@@ -47,4 +50,4 @@ export default function FriendCard( props: FriendCardProps )
 			</div>
 		</div>
 	);
-} 
+}

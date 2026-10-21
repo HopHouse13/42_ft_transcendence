@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import type { ChangeEvent, SubmitEvent } from 'react';
 import type { UserProfileData } from '../../types/profileTypes';
 import FormField from '../ui/FormField';
+import { resolveAvatar } from '../../utils/resolveAvatar';
 
 interface EditProfileModalProps {
   user: UserProfileData['user'];
@@ -18,7 +19,7 @@ export function EditProfileModal({
 }: EditProfileModalProps): React.JSX.Element | null {
   const [username, setUsername] = useState(user.username);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(user.avatarUrl ? `/api${user.avatarUrl}` : null);
+  const [previewUrl, setPreviewUrl] = useState<string | undefined>(resolveAvatar(user.avatarUrl));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +82,7 @@ export function EditProfileModal({
             <div className="avatar">
               <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                 <img
-                  src={`/api${previewUrl}` || '/default-avatar.png'}
+                  src={previewUrl}
                   alt="Avatar preview"
                 />
               </div>
