@@ -25,7 +25,6 @@ interface PlayerRowProps {
 }
 
 interface StatusProps {
-  spectators: number;
   startedAt: string;
   duration: string;
   status: string;
@@ -46,7 +45,7 @@ const Title = (): React.ReactElement => {
 }
 
 // Status component
-const Status = ({ spectators, startedAt, duration, status }: StatusProps): React.ReactElement => {
+const Status = ({ startedAt, duration, status }: StatusProps): React.ReactElement => {
   const [liveTimer, setLiveTimer] = React.useState("00:00");
 
   React.useEffect(() => {
@@ -92,14 +91,12 @@ const Status = ({ spectators, startedAt, duration, status }: StatusProps): React
         <div className="absolute top-5 right-5 z-10">
         <div className="flex items-center gap-2 bg-base-200/80 backdrop-blur-sm border border-base-content/10 text-base-content text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
           {status === "IN_PROGRESS" ? (
-            // if ongoing: show spectators and current duration
+            // if ongoing: current duration
           <>
-            <span>👀 {spectators}</span>
-            <span className="opacity-50">•</span>
             <span>⏳ {liveTimer}</span>
           </>
           ) : (
-            // if finished : hide spectators count, display game total duration
+            // if finished : display game total duration
             <span>⌛ {duration}</span>
           )}
         </div>
@@ -231,7 +228,6 @@ const GameCard = ({ game, onJoin}: GameCardProps) : React.ReactElement => {
         {/* Card Header: Live indicator & Stats */}
         <figure className="relative w-full p-0 border-b border-base-300">
           <Status
-            spectators={game.spectators}
             startedAt={game.startedAt}
             duration={game.duration}
             status={game.status}

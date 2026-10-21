@@ -319,7 +319,7 @@ export class    OthelloService  {
             await this._dbCreateGame(setGameId, playerArr);
 
             // Trigger: a new game has started to watch page
-            this.spectatorGateway.broadcastGameUpdate(setGameId);
+            this.spectatorGateway.broadcastGameUpdate();
 
         } catch (dbError) {
 
@@ -391,11 +391,11 @@ export class    OthelloService  {
 
             // trigger broadcast to watch page
             if (typeof this.spectatorGateway?.broadcastGameUpdate === 'function') {
-                this.spectatorGateway.broadcastGameUpdate(gameId);
+                this.spectatorGateway.broadcastGameUpdate();
             }
 
             console.log(` Move n°${currentMoveNumber} success game save ${gameId}`);
-            
+
             if (isOver) {
                 const aaa = await this.achievement.validateAchievement(gameId);
                 console.log(`test achiv ${aaa} `);
@@ -449,7 +449,7 @@ export class    OthelloService  {
             console.log(`Game ${gameId} give up by ${userId}. Winner is : ${winnerId}`);
 
             // trigger forfeit to watch
-            this.spectatorGateway.broadcastGameUpdate(gameId);
+            this.spectatorGateway.broadcastGameUpdate();
 
         } catch (dbError) {
 
@@ -593,7 +593,7 @@ export class    OthelloService  {
             where: { id: gameId, status: { not: 'FINISHED' } },
             data: { status: 'FINISHED', ...data },
         });
-        
+
         if (res.count === 0) return; // Déjà terminée
 
         // Récupération de la partie pour appliquer l'Elo aux utilisateurs
@@ -612,7 +612,7 @@ export class    OthelloService  {
         isOver: boolean,
         nextTurnPlayer: Player,
         winnerId: string | null): Promise<void> {
-        
+
         await this.prisma.$transaction(async (tx) => {
             await tx.move.create({
                 data: {
@@ -641,7 +641,7 @@ export class    OthelloService  {
             }
         });
     }
-    
+
     private async _dbFinishGameByGiveUp(
         gameId: string,
         blackScore: number,

@@ -15,7 +15,6 @@ export interface LiveGamePayload {
   player1: SpectatorPlayerData;
   player2: SpectatorPlayerData;
   currentPlayer: 'BLACK' | 'WHITE';
-  spectators: number;
   startedAt: string; // live duration calculated in the frontend
   duration: string; // finished game
   status: GameStatus;

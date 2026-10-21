@@ -163,7 +163,6 @@ export interface LiveGamePayload {
   player1: SpectatorPlayerData;
   player2: SpectatorPlayerData;
   currentPlayer: PlayerColor;
-  spectators: number;
   startedAt: string;
   duration: string;
   status: GameStatus;
