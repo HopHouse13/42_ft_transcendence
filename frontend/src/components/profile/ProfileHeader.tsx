@@ -48,18 +48,14 @@ export function ProfileHeader({
         </div>
 
         <div className="card-actions">
-          {isSelf ? (
+          {isSelf &&
             <button
               onClick={onEditClick}
               className="btn btn-outline btn-sm sm:btn-md"
             >
               Edit Profile
             </button>
-          ) : (
-            <button className="btn btn-primary btn-sm sm:btn-md">
-              Challenge
-            </button>
-          )}
+          }
         </div>
       </div>
     </div>

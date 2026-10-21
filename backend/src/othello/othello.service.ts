@@ -423,14 +423,25 @@ export class    OthelloService  {
             throw new Error("Vous ne faites pas partie de cette partie.");
         }
 
+        const opponentPlayer = service.state.players.find(p => p.userId !== userId);
+        if ( !opponentPlayer )  {
+
+            throw new Error("Votre opposant ne fait pas partie de cette partie.");
+        }
+
+        const winnerId = opponentPlayer ? opponentPlayer.userId : null;
+
         service.state.status = GameStatus.FINISHED;
 
         const boardCells = service.engine.getBoard().getAllCell();
         const blackScore = boardCells.filter(c => c === 'BLACK').length;
         const whiteScore = boardCells.filter(c => c === 'WHITE').length;
 
-        const opponentPlayer = service.state.players.find(p => p.userId !== userId);
-        const winnerId = opponentPlayer ? opponentPlayer.userId : null;
+        service.state.result = {
+            winner: opponentPlayer.color,
+            blackCount: blackScore,
+            whiteCount: whiteScore,
+        };
 
         try {
             await this._dbFinishGameByGiveUp(gameId, blackScore, whiteScore, winnerId);

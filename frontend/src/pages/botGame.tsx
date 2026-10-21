@@ -41,12 +41,6 @@ export default function Botgame() {
   const whiteScore = currentBoard.filter(cell => cell === "WHITE").length;
 
   const isFinished = gameState?.status === 'FINISHED';
-  let winner: "BLACK" | "WHITE" | "DRAW" | null = null;
-  if (isFinished) {
-    if (blackScore > whiteScore) winner = "BLACK";
-    else if (whiteScore > blackScore) winner = "WHITE";
-    else winner = "DRAW";
-  }
 
   // Fonction appelée lorsque l'utilisateur choisit sa couleur dans le modal
   const handleSelectColor = (color: "BLACK" | "WHITE") => {
@@ -85,7 +79,7 @@ export default function Botgame() {
           {/* Modal de fin de partie */}
           <GameEndModal
             isOpen={isFinished}
-            winner={winner}
+            winner={myColor === "BLACK" ? "WHITE" : "BLACK"}
             blackScore={blackScore}
             whiteScore={whiteScore}
             onRestartOrRematch={() => {

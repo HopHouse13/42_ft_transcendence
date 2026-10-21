@@ -37,8 +37,9 @@ export default function OnlineGame() {
   const whiteScore = currentBoard.filter(cell => cell === "WHITE").length;
 
   const isFinished = gameState?.status === 'FINISHED';
-  let winner: "BLACK" | "WHITE" | "DRAW" | null = null;
-  if (isFinished) {
+  let winner = gameState?.result?.winner ?? null;
+
+  if (isFinished && !winner) {
     if (blackScore > whiteScore) winner = "BLACK";
     else if (whiteScore > blackScore) winner = "WHITE";
     else winner = "DRAW";
