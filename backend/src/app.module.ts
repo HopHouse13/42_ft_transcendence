@@ -38,6 +38,6 @@ import { EloModule } from './elo/elo.module';
     EloModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, OthelloService], // voir si PrismaService et OthelloService sont utiles ici
+  providers: [AppService], // voir si PrismaService et OthelloService sont utiles ici
 })
 export class AppModule {}

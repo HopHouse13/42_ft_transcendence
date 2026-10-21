@@ -12,6 +12,7 @@ import { GameRoomModule } from '../game-room/game-room.module';
 import { AchievementModule } from '../achievement/achievement.module';
 
 import { SpectatorModule } from '../spectator/spectator.module';
+import { EloModule } from '../elo/elo.module'; 
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SpectatorModule } from '../spectator/spectator.module';
     GameRoomModule,
     AchievementModule,
     SpectatorModule,
+    EloModule,
   ],
   providers: [OthelloService, OthelloGateway],
 })
