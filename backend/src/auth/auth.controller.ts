@@ -62,7 +62,7 @@ export class AuthController
 	{
 		const	auth = await this.authService.login( request.user ); // stock le retour de login (les deux tokens + le userPublic )
 
-		this.authService.setTokensCookies( response, auth.jwt, auth.refreshToken ); // pose deux cookies auth avec les deux token
+		this.authService.setTokensCookies( response, auth.accessToken, auth.refreshToken );
 
 		response.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` ); // cookiesInterceptor est interompu par la redirection -> on 
 	}
@@ -81,7 +81,7 @@ export class AuthController
 	{
 		const	auth = await this.authService.login( request.user );
 
-		this.authService.setTokensCookies( response, auth.jwt, auth.refreshToken );
+		this.authService.setTokensCookies( response, auth.accessToken, auth.refreshToken );
 
 		response.redirect( HttpStatus.FOUND, `${ this.configService.getOrThrow<string>( 'APP_URL' )}/game` );
 	}
@@ -100,19 +100,6 @@ export class AuthController
 	async resetPassword( @Body() dto: ResetPasswordDto )
 	{
 		return( this.authService.login( await this.authService.resetPassword( dto.password, dto.token )));
-	}
-
-	///
-	
-	@Post( 'refresh' )
-	async refresh( @Req() request: any )
-	{
-		const	refreshTokenRaw = request.cookies?.refresh_token;
-
-		if ( !refreshTokenRaw )
-			throw new UnauthorizedException( 'session expired' );
-
-		return( this.authService.login( await this.authService.validateRefreshToken( refreshTokenRaw )));
 	}
 
 	///

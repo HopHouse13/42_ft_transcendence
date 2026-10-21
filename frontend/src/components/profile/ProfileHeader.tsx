@@ -15,9 +15,9 @@ export function ProfileHeader({
 }: ProfileHeaderProps): React.JSX.Element {
   return (
     <div className="card bg-base-200 border border-base-300 shadow-xl">
-      <div className="card-body flex-col sm:flex-row items-center gap-6">
+      <div className="card-body flex-col sm:flex-row items-center">
         <div className="avatar">
-          <div className="w-20 rounded-full ring ring-success ring-offset-base-100 ring-offset-2">
+          <div className="w-20 rounded-full ring ring-offset-base-100 ring-offset-2">
             <img
               src={`/api${user?.avatarUrl || '/default.png'}`}
               alt={`${user?.username} avatar`}
@@ -25,12 +25,18 @@ export function ProfileHeader({
           </div>
         </div>
 
-        <div className="flex-1 text-center sm:text-left">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-2xl font-bold">{user?.username}</h1>
-            {isSelf && <span className="badge badge-outline text-xs">You</span>}
-            <div className="badge badge-success gap-1">Elo {user?.elo}</div>
-            <div className="badge badge-ghost">Rank #{user?.rank}</div>
+        <div className="w-full min-w-0 text-center sm:flex-1 sm:text-left px-2">
+          <div className="flex min-w-0 flex-col items-center sm:items-start gap-2">
+            <h1 className="block w-full min-w-0 truncate text-2xl font-bold"
+              title={user?.username}
+            >
+              {user?.username}
+            </h1>
+            <div className="flex justify-center sm:justify-start gap-2 ">
+              {isSelf && <span className="badge badge-outline text-xs">You</span>}
+              <div className="badge badge-success">Elo {user?.elo}</div>
+              <div className="badge badge-soft badge-warning">Rank #{user?.rank}</div>
+            </div>
           </div>
           <p className="text-sm text-base-content/70 mt-1">
             Joined{' '}
@@ -42,18 +48,14 @@ export function ProfileHeader({
         </div>
 
         <div className="card-actions">
-          {isSelf ? (
+          {isSelf &&
             <button
               onClick={onEditClick}
               className="btn btn-outline btn-sm sm:btn-md"
             >
               Edit Profile
             </button>
-          ) : (
-            <button className="btn btn-primary btn-sm sm:btn-md">
-              Challenge
-            </button>
-          )}
+          }
         </div>
       </div>
     </div>

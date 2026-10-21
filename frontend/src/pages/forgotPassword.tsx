@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 const ForgotPassword = () => {
 	const [email, setEmail] = useState("");
 	const [sent, setSent] = useState(false);
-	const {loading, error, forgotPassword } = useAuth();
+	const {loading, authError, forgotPassword } = useAuth();
 
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -36,7 +36,7 @@ const ForgotPassword = () => {
 			onSubmit={handleSubmit}
 			submitLabel="Reset Password"
 			loading={loading}
-			error={error}
+			error={authError}
 		>
 			<FormField
 				label="Email"

@@ -51,8 +51,8 @@ const OnlineGameHeader = ({blackScore, whiteScore, nextPlayer, players}: OnlineG
             </div>
             <div className="flex justify-center shrink-0">
                 {mePlayer?.color === "WHITE"
-                    ? <ScoreCard leftScore={blackScore} rightScore={whiteScore}/>
-                    : <ScoreCard leftScore={whiteScore} rightScore={blackScore}/>
+                    ? <ScoreCard leftScore={whiteScore} rightScore={blackScore}/>
+                    : <ScoreCard leftScore={blackScore} rightScore={whiteScore}/>
                 }
             </div>
             <div className="flex min-w-0 flex-1 justify-end">

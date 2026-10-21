@@ -78,9 +78,6 @@ export class LeaderboardService
 
 		const	currentUser = topUsers.find(( user ) => { return ( user.id === currentUserId ); }); // find renvoie undefined si rien trouvé
 
-		console.table( topUsers ); // aSupp
-		console.table( currentUser ); // aSupp
-
 		return({ topUsers, currentUser });
 	}
 };

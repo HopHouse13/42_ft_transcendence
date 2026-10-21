@@ -29,6 +29,8 @@ import { ComputePlayerService } from '../compute-player/compute-player.service';
 import { GameRoomService, GameRoom } from '../game-room/game-room.service';
 import { AchievementService } from '../achievement/achievement.service';
 import { SpectatorGateway } from '../spectator/spectator.gateway';
+import { EloService } from '../elo/elo.service';
+import { Prisma } from '@prisma/client';         // 👈 Indispensable pour le type de transaction
 
 /* -------------------------------------------------------------------------- */
 
@@ -53,6 +55,7 @@ export class    OthelloService  {
         private readonly gameRoom: GameRoomService,
         private readonly achievement: AchievementService,
         private readonly spectatorGateway: SpectatorGateway,
+        private readonly elo: EloService,
     ){}
 
     /* -------------------------------------------------------------------------- */
@@ -330,14 +333,12 @@ export class    OthelloService  {
 
         const service: GameService = this.getLocalGame(gameId);
         if (service.state.status === GameStatus.FINISHED) {
-
             throw new Error("Cette partie est déjà terminée.");
         }
 
         const currentColor = service.engine.getCurrentPlayer();
         const player = service.state.players.find(p => p.color === currentColor);
         if (!player || player.userId !== userId) {
-
             throw new Error(`Ce n'est pas votre tour de jouer.`);
         }
 
@@ -355,9 +356,7 @@ export class    OthelloService  {
 
         const isOver = service.engine.isGameOver();
         if (isOver) {
-
             service.state.status = GameStatus.FINISHED;
-            // To Do faire une methode qui calcule l'elo et qui verifie les achievements
         }
 
         const boardAfterString = newBoardCells.map(cell => (cell === 'BLACK' ? 'B' : cell === 'WHITE' ? 'W' : '-')).join('').padEnd(64, '-');
@@ -367,23 +366,16 @@ export class    OthelloService  {
         const whiteScore = newBoardCells.filter(c => c === 'WHITE').length;
 
         let winnerId: string | null = null;
-        if ( isOver )     {
-
+        if (isOver) {
             if (blackScore > whiteScore) {
-
                 winnerId = service.state.players.find(p => p.color === 'BLACK')?.userId || null;
-
             } else if (whiteScore > blackScore) {
-
                 winnerId = service.state.players.find(p => p.color === 'WHITE')?.userId || null;
             }
-
-
         }
 
-        // Appel de la méthode privée pour sauvegarder le coup et l'état en transaction
+        // Appel de la méthode privée pour sauvegarder le coup et l'état en transaction (avec l'Elo)
         try {
-
             await this._dbSaveMoveAndGameState(
                 gameId,
                 currentMoveNumber,
@@ -398,18 +390,20 @@ export class    OthelloService  {
             );
 
             // trigger broadcast to watch page
-            this.spectatorGateway.broadcastGameUpdate();
+            if (typeof this.spectatorGateway?.broadcastGameUpdate === 'function') {
+                this.spectatorGateway.broadcastGameUpdate();
+            }
 
-            console.log(` Move n°${currentMoveNumber} success game save ${gameId}` );
-            if ( isOver ) {
+            console.log(` Move n°${currentMoveNumber} success game save ${gameId}`);
 
-                const aaa = await this.achievement.validateAchievement(gameId) ;
-                console.log( `test achiv ${aaa} ` );
+            if (isOver) {
+                const aaa = await this.achievement.validateAchievement(gameId);
+                console.log(`test achiv ${aaa} `);
             }
 
         } catch (dbError) {
-
             console.error(" Fatal Error: ", dbError);
+            throw dbError; // On relance l'erreur pour ne pas désynchroniser l'état mémoire et DB
         }
 
         return( this.getGameState(gameId) );
@@ -429,14 +423,25 @@ export class    OthelloService  {
             throw new Error("Vous ne faites pas partie de cette partie.");
         }
 
+        const opponentPlayer = service.state.players.find(p => p.userId !== userId);
+        if ( !opponentPlayer )  {
+
+            throw new Error("Votre opposant ne fait pas partie de cette partie.");
+        }
+
+        const winnerId = opponentPlayer ? opponentPlayer.userId : null;
+
         service.state.status = GameStatus.FINISHED;
 
         const boardCells = service.engine.getBoard().getAllCell();
         const blackScore = boardCells.filter(c => c === 'BLACK').length;
         const whiteScore = boardCells.filter(c => c === 'WHITE').length;
 
-        const opponentPlayer = service.state.players.find(p => p.userId !== userId);
-        const winnerId = opponentPlayer ? opponentPlayer.userId : null;
+        service.state.result = {
+            winner: opponentPlayer.color,
+            blackCount: blackScore,
+            whiteCount: whiteScore,
+        };
 
         try {
             await this._dbFinishGameByGiveUp(gameId, blackScore, whiteScore, winnerId);
@@ -578,6 +583,24 @@ export class    OthelloService  {
         });
     }
 
+    private async finishOnlineGame(
+        tx: Prisma.TransactionClient,
+        gameId: string,
+        data: { blackScore: number; whiteScore: number; winnerId: string | null; nextPlayer?: Player }
+    ): Promise<void> {
+        // Verrou d'idempotence : s'assure qu'on ne traite pas la fin de partie deux fois
+        const res = await tx.game.updateMany({
+            where: { id: gameId, status: { not: 'FINISHED' } },
+            data: { status: 'FINISHED', ...data },
+        });
+
+        if (res.count === 0) return; // Déjà terminée
+
+        // Récupération de la partie pour appliquer l'Elo aux utilisateurs
+        const game = await tx.game.findUniqueOrThrow({ where: { id: gameId } });
+        await this.elo.applyGameResult(tx, game);
+    }
+
     private async _dbSaveMoveAndGameState(
         gameId: string,
         currentMoveNumber: number,
@@ -589,6 +612,7 @@ export class    OthelloService  {
         isOver: boolean,
         nextTurnPlayer: Player,
         winnerId: string | null): Promise<void> {
+
         await this.prisma.$transaction(async (tx) => {
             await tx.move.create({
                 data: {
@@ -603,15 +627,11 @@ export class    OthelloService  {
             });
 
             if (isOver) {
-                await tx.game.update({
-                    where: { id: gameId },
-                    data: {
-                        status: 'FINISHED',
-                        blackScore: blackScore,
-                        whiteScore: whiteScore,
-                        winnerId: winnerId,
-                        nextPlayer: nextTurnPlayer as any,
-                    }
+                await this.finishOnlineGame(tx, gameId, {
+                    blackScore,
+                    whiteScore,
+                    winnerId,
+                    nextPlayer: nextTurnPlayer as any,
                 });
             } else {
                 await tx.game.update({
@@ -628,17 +648,14 @@ export class    OthelloService  {
         whiteScore: number,
         winnerId: string | null): Promise<void> {
 
-        await this.prisma.game.update({
-            where: { id: gameId },
-            data: {
-                status: 'FINISHED',
+        await this.prisma.$transaction(async (tx) => {
+            await this.finishOnlineGame(tx, gameId, {
                 blackScore,
                 whiteScore,
                 winnerId,
-            }
+            });
         });
     }
-
     /* -------------------------------------------------------------------------- */
 
 

@@ -32,28 +32,22 @@ export class AuthService
 	// Signe (génère) le JWT à partir du payload généré et du `SERCRET_JWT` dans .env
 	// Retourne un JWT (Jeton Web Token) complet à partir de l'id du user
 	// 1 JWT par client et par connection
-	async login( user: UserPrivate ): Promise<{ jwt: string, refreshToken: string, userPublic: UserPublic }>
+	async login( user: UserPrivate ): Promise<{ accessToken: string, refreshToken: string, userPublic: UserPublic }>
 	{
-		const	payload: Payload = 
-		{
-			sub:		user.id,
-			username:	user.username
-		};
-		const	jwt = this.jwtService.sign( payload );
-
-		const	refreshToken = await this.generateRefreshToken( user.id ); // renvoi le refreshToken brute
+		const	accessToken = this.generateAccessToken( user );
+		const	refreshToken = await this.generateRefreshToken( user.id );
 
 		const	userPublic: UserPublic =
 		{
-			id: 		user.id,
-    		username: user.username,
-    		avatarUrl: user.avatarUrl,
-    		createdAt: user.createdAt,
-    		updatedAt: user.updatedAt
+			id:			user.id,
+			username:	user.username,
+			avatarUrl:	user.avatarUrl,
+			createdAt:	user.createdAt,
+			updatedAt:	user.updatedAt
 		};
 	
-		return({ jwt, refreshToken, userPublic });
-	}
+		return({ accessToken, refreshToken, userPublic });
+	} 
 
 	///
 
@@ -127,6 +121,19 @@ export class AuthService
 
 	///
 
+	generateAccessToken( user: UserPrivate )
+	{
+		const	payload: Payload = 
+		{
+			sub:		user.id,
+			username:	user.username
+		};
+		
+		return( this.jwtService.sign( payload ));
+	}
+
+	///
+
 	async generateRefreshToken( id: string ): Promise< string >
 	{
 		const	token = randomBytes( 32 ).toString( 'hex' );
@@ -136,7 +143,7 @@ export class AuthService
 		const	refreshTokenExpiresAt = new Date( Date.now() + expirationSeconds * 1000 ); // Date.now() (millisecondes) donc faut passer expirationSeconds en millisecondes
 
 		await this.usersService.setRefreshToken( id, refreshToken, refreshTokenExpiresAt );
-
+ 
 		return( token ); // le token BRUT part dans le cookie
 	}
 
@@ -163,27 +170,43 @@ export class AuthService
 
 	///
 
-	// pose les cookies d'auth. Utilisé par les deux callbacks OAuth et dans cookiesInterceptor
-	// Les callbacks se termine par un redirect() donc la reponse n'a pas le temps de passer par CookieInterceptor.
-	setTokensCookies( res: Response, jwt: string, refreshToken: string )
+	// pose le cookie avec le token d'acces. Utilisé par les deux callbacks OAuth et dans cookiesInterceptor
+	// Les callbacks se termine par un redirect() donc la reponse n'a pas le temps de passer par CookieInterceptor
+	setAccessTokenCookie( res: Response, jwt: string )
 	{
 		const	expirationCookies = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 ));
 
 		res.cookie( 'access_token', jwt,
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-			maxAge:		expirationCookies,
-		});
+			{
+				httpOnly:	true,
+				secure:		true,
+				sameSite:	'lax',
+				maxAge:		expirationCookies,
+			}
+		);
+	}
+
+	///
+
+	// pose le cookie avec le token refresh. Utilisé uniquement lors de l'authentification (login())
+	setRefreshTokenCookie( res: Response, refreshToken: string )
+	{
+		const	expirationCookies = 1000 * ( 60 + parseInt( this.configService.getOrThrow<string>( 'REFRESH_TOKEN_EXPIRATION' ), 10 ));
 
 		res.cookie( 'refresh_token', refreshToken,
-		{
-			httpOnly:	true,
-			secure:		true,
-			sameSite:	'lax',
-			maxAge:		expirationCookies,
-		});
+			{
+				httpOnly:	true,
+				secure:		true,
+				sameSite:	'lax',
+				maxAge:		expirationCookies,
+			}
+		);
+	}
+
+	setTokensCookies( res: Response, jwt: string, refreshToken: string )
+	{
+		this.setAccessTokenCookie( res, jwt );
+		this.setRefreshTokenCookie( res, refreshToken );
 	}
 
 	///

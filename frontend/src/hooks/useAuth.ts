@@ -14,7 +14,7 @@ interface AuthVariables {
 
 interface UseAuthReturn {
   loading: boolean;
-  error: string | null;
+  authError: string | null;
   authWithSocial: (provider: AuthProvider) => void;
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (username: string, email: string, password: string) => Promise<AuthResult>;
@@ -75,11 +75,11 @@ export function useAuth(): UseAuthReturn {
 		success: true,
 		user: data.userPublic,
 	  };
-	} catch (error) {
+	} catch (authError) {
 	  return {
 		success: false,
-		message: error instanceof Error
-		  ? error.message
+		message: authError instanceof Error
+		  ? authError.message
 		  : 'Network error, please try again.',
 	  };
 	}
@@ -107,7 +107,7 @@ export function useAuth(): UseAuthReturn {
 
   return {
 	loading: authMutation.isPending,
-	error: authMutation.error?.message ?? null,
+	authError: authMutation.error?.message ?? null,
 	authWithSocial,
 	login: (email, password) => request('login', { email, password }),
 	register: (username, email, password) =>
