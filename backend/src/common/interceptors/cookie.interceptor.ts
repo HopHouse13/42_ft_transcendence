@@ -11,20 +11,19 @@ export class CookieInterceptor implements NestInterceptor // `implements` c'est 
 
 	intercept( context: ExecutionContext, next: CallHandler ): Observable<any>
 	{
-		const	res: Response = context.switchToHttp().getResponse(); // récupère l'objet Express qui construira la réponse HTTP finale. Stocké dans res.
-
+		const	response: Response = context.switchToHttp().getResponse(); // récupère l'objet Express qui construira la réponse HTTP finale. Stocké dans response.
 
 		return( next.handle().pipe( // next.hangle represente l'execution du corps de la methode dans le controller
-			map(( result: any ) => // pipe est un processus de transformation de chaque observable - map est la premeire et unique brique du pipe, elle renvoie une fonction qui sera appliquer sur chaque observable
+			map(( result: any ) => // pipe est un processus de transformation de chaque observable - map est la premier et unique brique du pipe, elle renvoie une fonction qui sera appliquer sur chaque observable
 			{
-				const	{ jwt, refreshToken, userPublic } = result ?? {}; // destructuration
+				const	{ accessToken, refreshToken, userPublic } = result ?? {}; // destructuration
 
-				if( !jwt )
+				if( !accessToken )
 					return ( result );
 
-				this.authService.setTokensCookies( res, jwt, refreshToken ); // pose deux cookies : acces_token et refresh_token dans la reponse de la requete
+				this.authService.setTokensCookies( response, accessToken, refreshToken ); // set les deux cookies Auth
 
-				return({ userPublic }); // return le resultat de login sans le jwt, ni le refreshToken
+				return({ userPublic }); // return le resultat de login sans le accessToken, ni le refreshToken
 			})
 		))
 	}
