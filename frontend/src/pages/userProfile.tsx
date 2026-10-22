@@ -7,26 +7,18 @@ import { ProfileStats } from '../components/profile/ProfileStats';
 import { MatchHistory } from '../components/profile/MatchHistory';
 import { ProfileSkeleton } from '../components/profile/ProfileSkeleton';
 import { EditProfileModal } from '../components/profile/EditProfileModal';
-import { Toast, type ToastType } from '../components/ui/Toast';
 import AchievementPreview from '../components/profile/ArchievementPreview';
+import { useToast } from '../hooks/useToast';
 
 export default function UserProfile(): React.JSX.Element {
   const { userId } = useParams<{ userId: string }>();
   const { profile, loading, error, isSelf, updateProfile } = useUserProfile(userId);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const toast = useToast();
 
   const handleSaveProfile = async (formData: FormData) => {
-    try {
-      await updateProfile(formData);
-      setToast({ message: 'Profile updated successfully!', type: 'success' });
-    } catch (err) {
-      setToast({
-        message: err instanceof Error ? err.message : 'Failed to update profile.',
-        type: 'error',
-      });
-      throw err;
-    }
+    await updateProfile(formData);
+    toast.success('Profile updated successfully!');
   };
 
   if (loading) return <ProfileSkeleton />;
@@ -53,15 +45,6 @@ export default function UserProfile(): React.JSX.Element {
           onSave={handleSaveProfile}
         />
       )}
-
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
-      
     </div>
   );
 }
