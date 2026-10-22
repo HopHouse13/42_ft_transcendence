@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by `bchallat`, `maguerin`, `pbret`, `tjacquel`.*
+*This project has been created as part of the 42 curriculum by bchallat, maguerin, pbret, tjacquel.*
 
 
 # 42 Othello
@@ -32,18 +32,15 @@
 Othello is a two-player strategy game on an 8×8 board. Players place black or white discs; every time a disc is placed so that a line of opponent discs is trapped between it and another disc of the same color, those discs flip. The game ends when neither player can move, and the player with the most discs wins.
 
 ### Key features
-
 - **Four game modes**: Pass & Play (local, 2 players on one screen), VS AI, Online matchmaking (1v1 on separate computers) and **Bot vs Bot** streaming.
 - **Server-authoritative game engine**: all moves are validated on the backend (NestJS), never trusted from the client.
-- **Real-time** gameplay, matchmaking, chat and presence through WebSockets (Socket.IO).
-- **Elo rating system**, global **leaderboard** with podium and personal rank.
-- **20 achievements** persisted in the database.
-- **Spectator mode**: watch live and recently finished games in real time.
-- **User accounts**: email/password, Google and GitHub OAuth 2.0, password reset by email, profile with editable username and avatar upload.
-- **Friends system** with live online/offline status.
-- **Match history and statistics** on each profile.
-- **Monitoring** with Prometheus and Grafana (including alerting to Discord).
-- Fully **containerized**: the whole stack starts with a single command, served over **HTTPS**.
+- **Real-time** gameplay, matchmaking, chat, presence, and spectator feed through WebSockets (Socket.IO).
+- **Accounts**: email/password, Google and GitHub OAuth, password reset by email, avatar upload.
+- **Social**: friends with live online status, public profiles, chat.
+- **Progression**: Elo rating, leaderboard, 20 achievements, match history and statistics.
+- **Spectator mode**: watch live and recently finished games.
+- **Monitoring**: Prometheus + Grafana with Discord alerting.
+- Fully **containerized**: the whole stack starts with a single command, served over **HTTPS** behind an Nginx reverse proxy.
 
 ---
 
@@ -51,79 +48,53 @@ Othello is a two-player strategy game on an 8×8 board. Players place black or w
 
 ### Prerequisites
 
-| Tool | Version / Notes |
-|------|-----------------|
-| Docker (or Podman) | 24+ recommended |
-| Docker Compose plugin | v2+ |
-| Make | Required for the automated build and certificate generation commands |
-| OpenSSL | To generate a local self-signed certificate |
-| Google Chrome | Latest stable (officially supported browser) |
+| Tool | Notes |
+|------|-------|
+| Docker + Docker Compose v2 | Everything runs in containers (no local Node.js needed) |
+| Make | Entry point of the project (`make`) |
+| OpenSSL | Generates the local self-signed TLS certificate |
+| Google Chrome | Latest stable (supported browser) |
 
-No local Node.js installation is required to run the project; everything runs in containers. Node.js 20+ is only needed if you want to run the backend or frontend outside Docker.
-
-### 1. Clone the repository
+### Run the project
 
 ```bash
-git clone # ADD VOGSPHERE address
+git clone git@github.com:HopHouse13/42_ft_transcendence.git
 cd 42_ft_transcendence
+cp .env.example .env     # then fill in every value (see below)
+make                     # checks .env, generates the SSL certificate, builds and starts everything
 ```
 
-### 2. Configure the environment
+Your browser will warn about the self-signed certificate: accept it to continue.
 
-Secrets are stored in a local `.env` file at the repository root. It is **ignored by Git**; a template is provided in `.env.example`.
+### Environment (`.env`)
 
-```bash
-cp .env.example .env
-```
+The `.env` file is ignored by Git; `.env.example` is the template. `make` refuses to start if a variable is empty.
 
-Then edit `.env`. The variables used by the project are:
-
-| Variable | Description |
-|----------|-------------|
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | PostgreSQL credentials (the backend `DATABASE_URL` is built from them by `docker-compose.yml`) |
-| `APP_URL` | Public URL of the app, e.g. `https://localhost:8443` (used in emails, OAuth redirects, Grafana root URL) |
-| `PORT` | Backend internal port (default `3000`) |
-| `JWT_SECRET` | Secret used to sign access tokens (HS256) |
-| `JWT_EXPIRATION` | Access token lifetime, in seconds |
-| `REFRESH_TOKEN_EXPIRATION` | Refresh token lifetime, in seconds |
-| `PASSWORD_TOKEN_EXPIRATION` | Password reset token lifetime, in seconds |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | Google OAuth 2.0 credentials |
-| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL` | GitHub OAuth credentials |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | SMTP server used to send password reset emails |
-| `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD` | Grafana admin account |
-| `GRAFANA_SECRET_KEY`, `GRAFANA_ENCRYPTION_KEY` | Grafana session key and secrets-manager encryption key |
-| `DISCORD_WEBHOOK_URL` | Webhook used by Grafana alerts |
-
-> OAuth callback URLs must match the ones declared in your Google / GitHub developer consoles, e.g. `https://localhost:8443/api/auth/google/callback` and `https://localhost:8443/api/auth/github/callback`.
-
-### 3. Provide a TLS certificate
-
-All browser-to-server traffic goes through the Nginx reverse proxy over HTTPS. For local development, a self-signed certificate is required.
-
-This certificate is generated **automatically** when you start the project using `make`. If you prefer to generate it manually before running Docker Compose directly, you can execute the provided script:
-
-```bash
-bash ./proxy/generate-ssl.sh
-```
-
-**Your browser will warn about the self-signed certificate; accept it to continue.**
+| Variable(s) | Purpose |
+|-------------|---------|
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Database credentials (`DATABASE_URL` is built from them by `docker-compose.yml`) |
+| `APP_URL`, `PORT` | Public URL (`https://localhost:8443`) and backend internal port |
+| `JWT_SECRET` | Access-token signing secret (`openssl rand -base64 32`) |
+| `JWT_EXPIRATION`, `REFRESH_TOKEN_EXPIRATION`, `PASSWORD_TOKEN_EXPIRATION` | Token lifetimes, in seconds |
+| `GOOGLE_*`, `GITHUB_*` | OAuth client id / secret / callback URL (must match your developer consoles) |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | SMTP server for password reset emails |
+| `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD`, `GRAFANA_SECRET_KEY`, `GRAFANA_ENCRYPTION_KEY` | Grafana admin account and keys |
+| `DISCORD_WEBHOOK_URL` | Grafana alert notifications |
 
 
-### 4. Build and run (single command)
+#### Where to get the third-party values
 
-To run the environment checks, generate the SSL certificates, and start the containers in one step, simply run:
+| Service | Variables | Tutorial | Key points |
+|---------|-----------|----------|------------|
+| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | [Create an OAuth web client](https://support.google.com/cloud/answer/15549257) | Client type: **Web application**. Add `https://localhost:8443/api/auth/google/callback` as an authorized redirect URI. Copy the secret at creation: it is not shown in full afterwards. |
+| GitHub OAuth | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL` | [Creating an OAuth app](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) | Homepage URL: `https://localhost:8443`. Callback URL: `https://localhost:8443/api/auth/github/callback`. Click "Generate a new client secret". |
+| Brevo (SMTP) | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | [Send emails with Brevo SMTP](https://help.brevo.com/hc/en-us/articles/7924908994450) | `MAIL_HOST=smtp-relay.brevo.com`, `MAIL_PORT=587`. `MAIL_USER` is the SMTP login shown in [SMTP & API](https://app.brevo.com/settings/keys/smtp), and `MAIL_PASS` is an **SMTP key**, not an API key. |
+| Discord webhook | `DISCORD_WEBHOOK_URL` | [Intro to Webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) | Server Settings → Integrations → Webhooks → Copy Webhook URL. Keep it private. |
 
-```bash
-make
-```
+> Callback URLs must match **exactly** what is declared in the Google / GitHub consoles (a mismatch gives `redirect_uri_mismatch`). Google changes can take a few minutes to apply.
 
-If your environment is already set up and certificates are generated, the standard Docker Compose command will still work:
 
-```bash
-docker compose up --build
-```
-
-### 5. Access
+### Access
 
 | Service | URL |
 |---------|-----|
@@ -131,13 +102,15 @@ docker compose up --build
 | Force redirection to HTTPS | http://localhost:8080 |
 | Grafana | https://localhost:8443/grafana/ |
 
+**Your browser will warn about the self-signed certificate ; accept it to continue.**
+
 
 ### Useful commands
 
 ```bash
 docker ps -a                   # list all containers (running and stopped)
 docker compose down            # stop the stack
-docker compose down -v         # stop and delete volumes (database, Grafana, Prometheus data)
+docker compose down -v         # stop and delete volumes (database)
 docker compose logs -f backend # follow backend logs
 ```
 
