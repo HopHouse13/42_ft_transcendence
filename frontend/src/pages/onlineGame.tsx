@@ -102,7 +102,8 @@ export default function OnlineGame() {
             blackScore={blackScore}
             whiteScore={whiteScore}
             onRestartOrRematch={() => {
-              joinQueue();
+              localStorage.removeItem("othello_online_game_id");
+              window.location.reload();
             }}
             onQuit={() => {
               localStorage.removeItem("othello_online_game_id");
