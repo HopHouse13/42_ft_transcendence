@@ -156,7 +156,7 @@ export class GameRoomService    {
         const gameRoom = this.rooms.get(roomId);
         if (!gameRoom) {
             
-            throw new NotFoundException(`${roomId} introuvable`);
+            throw new NotFoundException(`Room ${roomId} not found`);
         }
         return ( gameRoom );
     }

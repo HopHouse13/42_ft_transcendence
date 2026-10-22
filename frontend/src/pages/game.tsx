@@ -18,8 +18,8 @@ function MyCarousel() {
             <div className="card bg-stone-200/60 text-primary-content w-96">
               <div className="card-body">
 
-                <h2 className="card-title">🤖 Partie Botello</h2>
-                <p>Entraîne-toi face au Bot Othello.. </p>
+                <h2 className="card-title">🤖 Bothello Match</h2>
+                <p>Train against the Othello bot.</p>
 
                 <div className="card-actions justify-end">
                   <NavLink className="btn btn-soft" to={"/botGame"}> Play now !! </NavLink>
@@ -34,7 +34,7 @@ function MyCarousel() {
               <div className="card-body">
 
                 <h2 className="card-title">📺 Stream Bot TV</h2>
-                <p>Regarde une partie entre deux IA en direct.</p>
+                <p>Watch two AIs play live.</p>
 
                 <div className="card-actions justify-end">
                   <NavLink className="btn btn-soft" to="/streamBotGame"> Play now !! </NavLink>
@@ -85,9 +85,9 @@ export default function Game() {
 
         {/* Colonne de gauche : Menu des modes de jeu */}
         <div className="flex flex-col gap-4">
-          <MyCard title="🎮 Partie Locale" text="Joue en local sur le même écran." route="/LocalGame" />
+          <MyCard title="🎮 Local Match" text="Play locally on the same screen." route="/LocalGame" />
           <MyCarousel />
-          <MyCard title="🛜 Partie Online" text="Affronte des joueurs du monde entier." route="/onlineGame" />
+          <MyCard title="🛜 Online Match" text="Face players from all over the world." route="/onlineGame" />
         </div>
 
         {/* Colonne de droite : Chat global / d'attente */}

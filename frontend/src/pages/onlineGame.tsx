@@ -55,17 +55,17 @@ export default function OnlineGame() {
           onClick={() => joinQueue()}
           disabled={!isConnected}
         >
-          {isConnected ? "Rechercher une partie" : "Connexion au serveur..."}
+          {isConnected ? "Find a match" : "Connecting to server..."}
         </button>
       ) : !gameState && isWaiting ? (
         <div className="flex flex-col items-center gap-3 p-8 bg-[#262421] rounded-2xl border border-[#3d3a36]">
           <span className="loading loading-spinner loading-lg text-emerald-500"></span>
-          <p className="text-sm text-amber-200 animate-pulse">Recherche d'un adversaire en cours...</p>
+          <p className="text-sm text-amber-200 animate-pulse">Looking for an opponent...</p>
         </div>
       ) : (
         <>
 
-          {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
+          {error && <div className="alert alert-error text-sm">{error}</div>}
 
           {/* Conteneur principal 2 colonnes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-5xl items-center">
@@ -83,7 +83,7 @@ export default function OnlineGame() {
                 onClick={giveUp}
                 className={ACTION_BUTTON_DANGER}
               >
-                Abandonner
+                Resign
               </button>
             )}
             </div>

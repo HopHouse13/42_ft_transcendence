@@ -23,23 +23,26 @@ interface SpectatorBoardProps {
 /* --------------------------------------------------------------------------------------------- */
 
 const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: SpectatorBoardProps): React.ReactElement => {
-  return (
-    <div className={BOARD_COLUMN_CLASSES}>
-      {isFinished && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl backdrop-blur-sm pointer-events-none">
-          <span className="badge badge-error px-6 py-4 text-2xl font-black shadow-2xl">
-            MATCH FINISHED
-          </span>
-        </div>
-      )}
+  // Calculate the winner
+  let winnerColor: 'BLACK' | 'WHITE' | 'DRAW' | null = null;
+  if (isFinished) {
+    if (gameState.player1.score > gameState.player2.score) winnerColor = gameState.player1.color;
+    else if (gameState.player2.score > gameState.player1.score) winnerColor = gameState.player2.color;
+    else winnerColor = 'DRAW';
+  }
 
+  return (
+
+    <div className={BOARD_COLUMN_CLASSES}>
       <SpectatorGameHeader
         player1={gameState.player1}
         player2={gameState.player2}
         nextPlayer={gameState.currentPlayer}
+        isFinished={isFinished}
+        winnerColor={winnerColor}
       />
 
-      <div className={`w-full pointer-events-none ${isFinished ? "grayscale-[50%] opacity-80" : ""}`}>
+      <div className={`w-full pointer-events-none transition-all duration-700 ${isFinished ? "grayscale-[50%] opacity-50" : ""}`}>
         <MyBoard
           board={currentBoard}
           validMoves={[]} // disable move hints
@@ -56,17 +59,17 @@ const SpectatorBoard = ({ gameState, currentBoard, isFinished, onBack }: Spectat
   );
 };
 
-const ChatCard = () : React.ReactElement => {
-  return (
-    <div className="flex justify-center md:justify-end w-full h-full min-h-[400px]">
-      <div className="w-full h-full rounded-xl bg-base-200 border border-base-300 flex items-center justify-center">
-        <p className="text-base-content/50 font-bold">
-          Spectator chat coming soon...
-        </p>
-      </div>
-    </div>
-  );
-};
+// const ChatCard = () : React.ReactElement => {
+//   return (
+//     <div className="flex justify-center md:justify-end w-full h-full min-h-[400px]">
+//       <div className="w-full h-full rounded-xl bg-base-200 border border-base-300 flex items-center justify-center">
+//         <p className="text-base-content/50 font-bold">
+//           Spectator chat coming soon...
+//         </p>
+//       </div>
+//     </div>
+//   );
+// };
 
 /* --------------------------------------------------------------------------------------------- */
 /*                                     MAIN COMPONENT                                            */
@@ -108,18 +111,25 @@ export default function WatchGame() {
 
   return (
     <div className={PAGE_WRAPPER_CLASSES}>
-      <h1 className="text-2xl font-bold">
-        👀 Spectator Mode
-      </h1>
+      <div className="flex items-center justify-center w-full max-w-xl gap-4">
+        <h1 className="text-2xl font-bold">
+          👀 Spectator Mode
+        </h1>
+        {isFinished && (
+          <span className="badge badge-neutral border-base-content/20 shadow-sm font-bold">
+            FINISHED
+          </span>
+        )}
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-5xl items-center">
+      <div className="flex w-full max-w-xl items-center">
         <SpectatorBoard
           gameState={gameState}
           currentBoard={currentBoard}
           isFinished={isFinished}
           onBack={() => navigate('/watch')}
         />
-        <ChatCard />
+        {/* <ChatCard /> */}
       </div>
     </div>
   );

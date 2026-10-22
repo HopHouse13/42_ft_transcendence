@@ -53,7 +53,7 @@ export class OthelloBoard {
 
     if (!this._isValidPosition(row, col))   {
 
-      throw new Error(`Position invalide: (${row}, ${col})`);
+      throw new Error(`Invalid position: (${row}, ${col})`);
     }
 
     return( this._cells[row * 8 + col] );
@@ -78,7 +78,7 @@ export class OthelloBoard {
 
      if (!this._isValidPosition(row, col))   {
 
-      throw new Error(`Position invalide: (${row}, ${col})`);
+      throw new Error(`Invalid position: (${row}, ${col})`);
     }
 
     this._cells[row * 8 + col] = value;

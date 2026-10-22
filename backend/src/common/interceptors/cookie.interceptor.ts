@@ -23,7 +23,7 @@ export class CookieInterceptor implements NestInterceptor // `implements` c'est 
 
 				this.authService.setTokensCookies( response, accessToken, refreshToken ); // set les deux cookies Auth
 
-				return({ userPublic }); // return le resultat de login sans le accessToken, ni le refreshToken
+				return({ userPublic });
 			})
 		))
 	}

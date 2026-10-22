@@ -39,10 +39,12 @@ export function useAuthForm() {
 			? await login(email, password) 
 			: await register(username, email, password);
 
-		setError(authError);
-		if (result.success) {
-			navigate("/home", {replace: true});
+		if (!result.success) {
+			setError(result.message ?? "An error has occured.");
+			return ;
 		}
+		setError(null);
+		navigate("/home", {replace: true});
 	};
 
 	return {

@@ -5,7 +5,7 @@ import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports
 // DTO pour valider le body de POST /auth/register
 export class RegisterDto
 {
-	@MaxLength( 255 ) // Max 255 char pour le password
+	@MaxLength( 255 )
 	@IsStrongPassword({
 		minLength: 8,
 		minUppercase: 0,
@@ -14,7 +14,7 @@ export class RegisterDto
 		minSymbols: 1
 	})
 	@Matches( /(?=.*[A-Za-z])/, { message: 'password must contain at least one letter' } ) // reGex(regular Expression): au moins 1 lettre
-	@Matches(/^[a-zA-Z0-9.@#$*!?_+-]+$/, { message: 'password must contains an unauthorised character (allowed: letters, numbers, . @ # $ * ! ? _ + -)' } ) // Caractères autorisés : lettres, un chiffre, un caractère spécial situé
+	@Matches(/^[a-zA-Z0-9.@#$*!?_+-]+$/, { message: 'password must not contain an unauthorised character (allowed: letters, numbers, . @ # $ * ! ? _ + -)' } ) // Caractères autorisés : lettres, un chiffre, un caractère spécial situé
 	password!: string;
 
 	@IsString()

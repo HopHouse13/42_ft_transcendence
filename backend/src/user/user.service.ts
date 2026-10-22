@@ -1,6 +1,6 @@
-import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common'; // décorateur qui rend cette classe injectable
-import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
-import { Prisma } from '@prisma/client'; // namespace Prisma pour obetenir la classe des exception a lever coté prisma
+import { ConflictException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { basename, join } from 'path';
 import { unlink } from 'fs';
 import { UserPublic, UserPrivate, UserCreate, Match, UserProfile, UserUpdate } from './interfaces/user.interface';
@@ -15,7 +15,7 @@ export class UserService
 
 	///
 
-	async findAll(): Promise< UserPublic[] >// renvoie un tableau de l'ensemble des users inscrient dans la db
+	async findAll(): Promise< UserPublic[] >
 	{
 		const	users: UserPublic[] = await this.prisma.user.findMany(
 			{
@@ -34,7 +34,7 @@ export class UserService
 			}
 		);
 
-		return ( users ); // users est un tableau d'objets, un objet = un user ; Si 0 user dans la db -> envoi d'un tableau vide []
+		return ( users );
 	}
 
 	///
@@ -133,7 +133,7 @@ export class UserService
 			}
 		);
 
-		return ( user ); // renvoie un objet user avec les données UserPrivate
+		return ( user );
 	}
 
 	///
@@ -169,7 +169,7 @@ export class UserService
 			}
 		);
 
-		return ( user ); // renvoie un objet userPrivate
+		return ( user );
 	}
 
 	///
@@ -312,7 +312,6 @@ export class UserService
 		if ( !user )
 			throw ( new NotFoundException( `User ${ id } does not existe` ) );
 		
-		// findMany renvoit un tableau d'elements
 		const	games = await this.prisma.game.findMany(
 			{
 				where: // toutes les games que notre user a jouées
@@ -412,9 +411,7 @@ export class UserService
 
 	///
 
-	// usage interne uniquement (appelé que par AuthService)
-	// les données sont déjà validées par AuthService
-	async	create( dataCreate: UserCreate ): Promise < UserPrivate > // renvoie un nouveau user avec ses données verifiées
+	async	create( dataCreate: UserCreate ): Promise < UserPrivate >
 	{
 		if ( dataCreate.passwordHash == null && dataCreate.googleId == null && dataCreate.gitId == null )
 			throw ( new BadRequestException( 'at least one authentication method required' ));
@@ -711,7 +708,7 @@ export class UserService
 						{
 							where:
 							{
-								id, // raccouri ES6 qui conssite a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
+								id, // raccouri ES6 qui consiste a declarer la variable recherchée exactement le meme nom que celui du champ ou on veut chercher
 								isDelete:	false
 							},
 							data:

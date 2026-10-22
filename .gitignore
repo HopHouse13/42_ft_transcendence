@@ -35,7 +35,6 @@ coverage/
 #*.sql
 *.sqlite
 vgcore.*
-*.png
 *.jpeg
 # OS generated files #
 ######################
@@ -55,3 +54,6 @@ Thumbs.db
 .env
 
 proxy/ssl/*
+
+backend/uploads/*
+!backend/uploads/default.jpg

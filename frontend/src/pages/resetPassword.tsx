@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import AuthCard from "../components/authentication/AuthCard";
 import FormField from "../components/ui/FormField";
 import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/useToast";
 import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT } from "../constants/authConstants";
 
 const ResetPassword = (): React.ReactElement => {
@@ -11,21 +12,25 @@ const ResetPassword = (): React.ReactElement => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token") ?? undefined;
     const { loading, authError, resetPassword } = useAuth();
+    const toast = useToast();
 
 	const navigate = useNavigate();
 
     const confirmPasswordError = useMemo(() => {
         if (confirmPassword.length === 0)
             return undefined;
-        return (confirmPassword !== password ? "Password don not match" : undefined)
+        return (confirmPassword !== password ? "Passwords do not match" : undefined)
     }, [password, confirmPassword]);
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (confirmPasswordError)
             return;
-        await resetPassword(password, token);
-        navigate("/connect", {replace: true});
+        const result = await resetPassword(password, token);
+        if (result.success) {
+            toast.success('Password updated successfully.');
+            navigate("/connect", {replace: true});
+        }
     };
 
     return (

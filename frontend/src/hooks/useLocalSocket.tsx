@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthSession } from "./useAuthSession";
 import type { GameState, Move } from "../types/gameTypes";
+import { useToast } from "./useToast";
 
 const LOCAL_GAME_KEY = "othello_local_game_id";
 
@@ -13,6 +14,7 @@ export function useLocalSocket() {
 
   const socketRef = useRef<Socket | null>(null);
   const { user, loading } = useAuthSession();
+  const toast = useToast();
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -73,7 +75,7 @@ export function useLocalSocket() {
     });
 
     socket.on("moveRejected", (payload: { message: string }) => {
-      setError(payload.message);
+      toast.error(payload.message);
       setIsMovePending(false);
     });
 

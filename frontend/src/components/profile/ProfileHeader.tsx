@@ -1,5 +1,6 @@
 import React from 'react';
 import type { UserProfileData } from '../../types/profileTypes';
+import { resolveAvatar } from '../../utils/resolveAvatar';
 
 // 1. Add 'onEditClick' to the interface props
 interface ProfileHeaderProps {
@@ -19,7 +20,7 @@ export function ProfileHeader({
         <div className="avatar">
           <div className="w-20 rounded-full ring ring-offset-base-100 ring-offset-2">
             <img
-              src={`/api${user?.avatarUrl || '/default.png'}`}
+              src={resolveAvatar(user?.avatarUrl) ?? '/api/uploads/avatars/default.png'}
               alt={`${user?.username} avatar`}
             />
           </div>
