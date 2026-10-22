@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import FormField from "../ui/FormField";
 import AuthCard from "./AuthCard";
-import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT } from "../../constants/authConstants";
+import { PASSWORD_PATTERN, PASSWORD_TITLE, PASSWORD_HINT, USERNAME_PATTERN } from "../../constants/authConstants";
 import type { AuthMode } from "../../types/authTypes";
 import type React from "react";
 
@@ -48,9 +48,9 @@ const AuthForm = ({
 					required
 					minLength={3}
 					maxLength={50}
-					pattern="^[a-zA-Z0-9][a-zA-Z0-9_]{2,49}$"
+					pattern={USERNAME_PATTERN}
 					title="Username is required"
-					hint="Must be 3-50 letters, digits or underscores. Can't start with an underscore"
+					hint="Must be 3-50 letters, digits, periods or underscores. Can't start with a period or an underscore"
 				/>
 			)}
 			<FormField
@@ -103,4 +103,3 @@ const AuthForm = ({
 };
 
 export default AuthForm;
-

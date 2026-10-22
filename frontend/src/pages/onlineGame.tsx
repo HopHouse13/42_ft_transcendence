@@ -55,12 +55,12 @@ export default function OnlineGame() {
           onClick={() => joinQueue()}
           disabled={!isConnected}
         >
-          {isConnected ? "Rechercher une partie" : "Connexion au serveur..."}
+          {isConnected ? "Find a match" : "Connecting to server..."}
         </button>
       ) : !gameState && isWaiting ? (
         <div className="flex flex-col items-center gap-3 p-8 bg-[#262421] rounded-2xl border border-[#3d3a36]">
           <span className="loading loading-spinner loading-lg text-emerald-500"></span>
-          <p className="text-sm text-amber-200 animate-pulse">Recherche d'un adversaire en cours...</p>
+          <p className="text-sm text-amber-200 animate-pulse">Looking for an opponent...</p>
         </div>
       ) : (
         <>
@@ -83,7 +83,7 @@ export default function OnlineGame() {
                 onClick={giveUp}
                 className={ACTION_BUTTON_DANGER}
               >
-                Abandonner
+                Resign
               </button>
             )}
             </div>
@@ -102,7 +102,8 @@ export default function OnlineGame() {
             blackScore={blackScore}
             whiteScore={whiteScore}
             onRestartOrRematch={() => {
-              joinQueue();
+              localStorage.removeItem("othello_online_game_id");
+              window.location.reload();
             }}
             onQuit={() => {
               localStorage.removeItem("othello_online_game_id");

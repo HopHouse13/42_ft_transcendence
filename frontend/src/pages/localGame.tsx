@@ -57,7 +57,7 @@ export default function Localgame() {
           onClick={startLocalGame}
           disabled={!isConnected}
         >
-          {isConnected ? "Démarrer la partie locale" : "Connexion au serveur..."}
+          {isConnected ? "Start local match" : "Connecting to server..."}
         </button>
       ) : (
         <div className={BOARD_COLUMN_CLASSES}>
@@ -74,7 +74,7 @@ export default function Localgame() {
               onClick={() => giveUp(gameState.currentPlayer)}
               className={ACTION_BUTTON_DANGER}
             >
-              Terminer la partie
+              End game
             </button>
           )}
 

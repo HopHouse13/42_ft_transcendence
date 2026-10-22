@@ -162,7 +162,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
             if (!userId) {
-                client.emit('gameError', { message: 'Utilisateur non authentifié' });
+                client.emit('gameError', { message: 'User not authenticated' });
                 return;
             }
 
@@ -282,7 +282,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
         try {
             const userId = client.data.userId || client.handshake.query.userId as string;
             if (!userId) {
-                client.emit('gameError', { message: 'Utilisateur non authentifié' });
+                client.emit('gameError', { message: 'User not authenticated' });
                 return;
             }
 
@@ -290,7 +290,7 @@ export class OthelloGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
             const isUserInGame = state.players.some(p => p.userId === userId);
             if (!isUserInGame) {
-                client.emit('gameError', { message: "Vous ne faites pas partie de cette partie." });
+                client.emit('gameError', { message: "You are not part of this game." });
                 return;
             }
 

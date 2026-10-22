@@ -10,14 +10,14 @@ const ResetPassword = (): React.ReactElement => {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token") ?? undefined;
-    const { loading, error, resetPassword } = useAuth();
+    const { loading, authError, resetPassword } = useAuth();
 
 	const navigate = useNavigate();
 
     const confirmPasswordError = useMemo(() => {
         if (confirmPassword.length === 0)
             return undefined;
-        return (confirmPassword !== password ? "Password don not match" : undefined)
+        return (confirmPassword !== password ? "Passwords do not match" : undefined)
     }, [password, confirmPassword]);
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
@@ -35,7 +35,7 @@ const ResetPassword = (): React.ReactElement => {
             onSubmit={handleSubmit}
             submitLabel="Continue"
             loading={loading}
-            error={error}
+            error={authError}
         >
             <FormField
                 label="Password"
@@ -44,7 +44,7 @@ const ResetPassword = (): React.ReactElement => {
                 onChange={setPassword}
                 placeholder="Password"
                 required
-                minLength={8}
+                minLength={9}
                 maxLength={255}
                 pattern={PASSWORD_PATTERN}
                 title={PASSWORD_TITLE}

@@ -16,10 +16,10 @@ export default function ColorSelectionModal({
         {/* Titre & Description */}
         <div className="flex flex-col gap-1">
           <h2 className="text-2xl font-black uppercase tracking-wide text-[#e8e6e3]">
-            Choisissez votre camp
+            Choose your side
           </h2>
           <p className="text-xs text-[#9e9b97]">
-            Les Noirs commencent toujours la partie.
+            Black always moves first.
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function ColorSelectionModal({
             className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-[#1f1e1c] hover:bg-[#302e2b] border border-[#3d3a36] hover:border-[#81b64c] transition-all cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-full bg-radial from-gray-700 via-gray-950 to-black shadow-md border border-black/40 group-hover:scale-105 transition-transform" />
-            <span className="text-xs font-semibold text-[#e8e6e3]">Noirs (1er)</span>
+            <span className="text-xs font-semibold text-[#e8e6e3]">Black (1st)</span>
           </button>
 
           {/* Option Blanc */}
@@ -40,7 +40,7 @@ export default function ColorSelectionModal({
             className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-[#1f1e1c] hover:bg-[#302e2b] border border-[#3d3a36] hover:border-[#81b64c] transition-all cursor-pointer group"
           >
             <div className="w-8 h-8 rounded-full bg-radial from-white via-slate-100 to-slate-300 shadow-md border border-slate-300 group-hover:scale-105 transition-transform" />
-            <span className="text-xs font-semibold text-[#e8e6e3]">Blancs</span>
+            <span className="text-xs font-semibold text-[#e8e6e3]">White</span>
           </button>
         </div>
 
