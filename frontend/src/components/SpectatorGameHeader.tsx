@@ -50,14 +50,6 @@ const SpectatorGameHeader = ({ player1, player2, nextPlayer, isFinished, winnerC
           elo={player2.elo}
           avatarUrl={player2.avatarUrl}
         />
-        {/* Floating Winner Badge */}
-        {winnerColor === player2.color && (
-          <div className="absolute -top-3 right-4 z-20 pointer-events-none">
-            <span className="badge badge-success border-none font-black text-xs tracking-widest shadow-md">
-              WINNER
-            </span>
-          </div>
-        )}
       </div>
     </div>
   );

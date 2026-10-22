@@ -56,4 +56,5 @@ Thumbs.db
 
 proxy/ssl/*
 
-backend/uploads
+backend/uploads/*
+!backend/uploads/default.jpg
