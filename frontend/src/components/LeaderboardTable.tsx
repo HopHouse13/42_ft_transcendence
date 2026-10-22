@@ -1,6 +1,7 @@
 import type React from "react";
 import type { LeaderboardUser } from "../types/leaderboardTypes";
 import { useNavigate } from "react-router";
+import { resolveAvatar } from "../utils/resolveAvatar";
 
 interface LeaderboardTableProps {
     users: LeaderboardUser[];
@@ -18,7 +19,7 @@ const LeaderboardRow = ({player, isCurrentUser }: {player: LeaderboardUser, isCu
                 <div className="flex items-center gap-3">
                 <div className="avatar">
                     <div className="w-8 h-8 rounded-full bg-base-300">
-                    <img src={`/api${player.avatarUrl}`} alt={player.username} />
+                    <img src={resolveAvatar(player.avatarUrl) ?? '/api/uploads/avatars/default.png'} alt={player.username} />
                     </div>
                 </div>
                 <span className="font-bold text-base-content truncate max-w-30 md:max-w-md">
@@ -78,4 +79,4 @@ const LeaderboardTable = ({users, currentUser}: LeaderboardTableProps): React.Re
     );
 }
 
-export default LeaderboardTable; 
+export default LeaderboardTable;

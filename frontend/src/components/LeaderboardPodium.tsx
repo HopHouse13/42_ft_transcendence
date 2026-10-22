@@ -1,4 +1,5 @@
 import type { LeaderboardUser } from "../types/leaderboardTypes";
+import { resolveAvatar } from "../utils/resolveAvatar";
 
 interface LeaderboardPodiumProps {
     users: LeaderboardUser[];
@@ -13,7 +14,7 @@ const LeaderboardPodium = ({users}: LeaderboardPodiumProps) => {
                 <div className="order-2 card aura aura-gold p-4 rounded-2xl flex flex-col items-center text-center gap-2 relative shadow-lg shadow-neutral/10">
                     <div className="avatar">
                     <div className="w-16 bg-base-100/90 md:w-24 rounded-full">
-                        <img src={`/api${users[0].avatarUrl}`} alt={users[0].username} />
+                        <img src={resolveAvatar(users[0].avatarUrl) ?? '/api/uploads/avatars/default.png'} alt={users[0].username} />
                     </div>
                     </div>
                     <div className="flex flex-col items-center">
@@ -32,7 +33,7 @@ const LeaderboardPodium = ({users}: LeaderboardPodiumProps) => {
                 <div className="order-1 card aura aura-silver p-4 rounded-2xl flex flex-col items-center text-center gap-2 relative">
                     <div className="avatar">
                     <div className="w-12 md:w-14 bg-base-100/90 lg:w-20 rounded-full">
-                        <img src={`/api${users[1].avatarUrl}`} alt={users[1].username} />
+                        <img src={resolveAvatar(users[1].avatarUrl) ?? '/api/uploads/avatars/default.png'} alt={users[1].username} />
                     </div>
                     </div>
                     <div className="flex flex-col items-center">
@@ -51,7 +52,7 @@ const LeaderboardPodium = ({users}: LeaderboardPodiumProps) => {
                 <div className="order-3 card bg-[repeating-conic-gradient(from_var(--aura-angle,7.21deg),oklch(0.44_0.12_42),oklch(0.72_0.12_55),oklch(0.52_0.13_45),oklch(0.70_0.11_55),oklch(0.35_0.08_38),oklch(0.44_0.12_42)_50%)] bg-[oklch(0.58_0.14_48)] animate-[aura_6s_linear_infinite] rounded-2xl shadow-[0_0_15px_oklch(0.58_0.14_48/0.3)] p-4 flex flex-col items-center text-center gap-2 relative">
                     <div className="avatar">
                     <div className="w-14 bg-base-100/90 md:w-20 rounded-full p-1">
-                        <img src={`/api${users[2].avatarUrl}`} alt={users[2].username} />
+                        <img src={resolveAvatar(users[2].avatarUrl) ?? '/api/uploads/avatars/default.png'} alt={users[2].username} />
                     </div>
                     </div>
                     <div className="flex flex-col items-center">
