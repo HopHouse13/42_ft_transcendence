@@ -1,6 +1,5 @@
-*This project has been created as part of the 42 curriculum by `<login1>`, `<login2>`, `<login3>`, `<login4>`.*
+*This project has been created as part of the 42 curriculum by `bchallat`, `maguerin`, `pbret`, `tjacquel`.*
 
-<!-- TODO: replace the logins above and every <placeholder> in this file before submission. -->
 
 # 42 Othello
 
@@ -28,7 +27,7 @@
 
 ## Description
 
-**42 Othello** is a full-stack web application built for the *ft_transcendence* project. Its goal is to offer a complete Othello experience: clear rules, smooth real-time play, a competitive ranking system and a social layer around the game.
+**42 Othello** is a full-stack web application built for the *ft_transcendence* project. Its goal is to offer a complete Othello experience: clear rules, smooth real-time play, a competitive ranking system and a basic social layer around the game.
 
 Othello is a two-player strategy game on an 8×8 board. Players place black or white discs; every time a disc is placed so that a line of opponent discs is trapped between it and another disc of the same color, those discs flip. The game ends when neither player can move, and the player with the most discs wins.
 
@@ -52,19 +51,20 @@ Othello is a two-player strategy game on an 8×8 board. Players place black or w
 
 ### Prerequisites
 
-| Tool | Version |
-|------|---------|
+| Tool | Version / Notes |
+|------|-----------------|
 | Docker (or Podman) | 24+ recommended |
 | Docker Compose plugin | v2+ |
-| OpenSSL | to generate a local self-signed certificate |
-| Google Chrome | latest stable (officially supported browser) |
+| Make | Required for the automated build and certificate generation commands |
+| OpenSSL | To generate a local self-signed certificate |
+| Google Chrome | Latest stable (officially supported browser) |
 
 No local Node.js installation is required to run the project; everything runs in containers. Node.js 20+ is only needed if you want to run the backend or frontend outside Docker.
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/HopHouse13/42_ft_transcendence.git
+git clone # ADD VOGSPHERE address
 cd 42_ft_transcendence
 ```
 
@@ -98,21 +98,26 @@ Then edit `.env`. The variables used by the project are:
 
 ### 3. Provide a TLS certificate
 
-All browser-to-server traffic goes through the Nginx reverse proxy over HTTPS. For local development, generate a self-signed certificate:
+All browser-to-server traffic goes through the Nginx reverse proxy over HTTPS. For local development, a self-signed certificate is required.
+
+This certificate is generated **automatically** when you start the project using `make`. If you prefer to generate it manually before running Docker Compose directly, you can execute the provided script:
 
 ```bash
-mkdir -p proxy/ssl
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout proxy/ssl/<key-file>.key \
-  -out proxy/ssl/<cert-file>.crt \
-  -subj "/CN=localhost"
+bash ./proxy/generate-ssl.sh
 ```
 
-<!-- TODO: use the exact file names expected by proxy/conf.d/default.conf. -->
+**Your browser will warn about the self-signed certificate; accept it to continue.**
 
-Your browser will warn about the self-signed certificate; accept it to continue.
 
 ### 4. Build and run (single command)
+
+To run the environment checks, generate the SSL certificates, and start the containers in one step, simply run:
+
+```bash
+make
+```
+
+If your environment is already set up and certificates are generated, the standard Docker Compose command will still work:
 
 ```bash
 docker compose up --build
@@ -123,17 +128,23 @@ docker compose up --build
 | Service | URL |
 |---------|-----|
 | Application | https://localhost:8443 |
-| HTTP (redirects to HTTPS) | http://localhost:8080 |
+| Force redirection to HTTPS | http://localhost:8080 |
 | Grafana | https://localhost:8443/grafana/ |
-| Backend health check | `GET /health` (internal, used by Docker healthcheck) |
-| Prometheus metrics | `/metrics` (internal, scraped by Prometheus) |
+
 
 ### Useful commands
 
 ```bash
+docker ps -a                   # list all containers (running and stopped)
 docker compose down            # stop the stack
 docker compose down -v         # stop and delete volumes (database, Grafana, Prometheus data)
 docker compose logs -f backend # follow backend logs
+```
+
+Makefile shortcuts:
+```bash
+make logs                      # follow logs for all containers
+make shell-db                  # open a PostgreSQL prompt in the database
 ```
 
 ### Running the backend unit tests
