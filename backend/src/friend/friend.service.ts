@@ -9,7 +9,7 @@ export class FriendService
 {
 	constructor( private readonly prisma: PrismaService ) {};
 
-	async sendRequest( sender: string, receiver: string )/*: Promise<FriendUser | undefined>*/
+	async sendRequest( sender: string, receiver: string )
 	{
 		// si userA -> userA
 		if ( sender === receiver )
@@ -71,7 +71,7 @@ export class FriendService
 		}
 		else if ( friendshipExisting.status === StatusFriendship.WAITING && friendshipExisting.senderId === receiverFound.id ) // acceptation automatique car une demande de userB -> userA etait deja en attente
 		{
-			await this.prisma.friendship.updateMany( // les methodes ...Many ne renvoient pas d'erreur si zero l'element trouvé, elles renvoient un objet avec zero element.
+			await this.prisma.friendship.updateMany( // les methodes ...Many() ne renvoient pas d'erreur si zero l'element trouvé, elles renvoient un objet avec zero element.
 			{
 				where:
 				{
@@ -87,8 +87,6 @@ export class FriendService
 		}
 		else // cas ou deja amis ou demande deja faite
 			return;
-
-		//return ( receiverFound ); a voir si le front veut un retour ou pas si demande envoyé
 	}
 
 	///
@@ -159,7 +157,7 @@ export class FriendService
 		const 	sent:		FriendUser[] = [];
 		const 	received:	FriendUser[] = [];
 
-		for ( let i = 0; i < friendsRaws.length; i++ ) //  for( const <objet> of <tableau> ) <- plus simple mais j'aime pas
+		for ( let i = 0; i < friendsRaws.length; i++ )
 		{
 			const	isSender:	boolean = friendsRaws[i].sender.id === userId ? true : false;
 			const	other:		FriendUser = isSender ? friendsRaws[i].receiver : friendsRaws[i].sender;

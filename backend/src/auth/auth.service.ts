@@ -141,7 +141,7 @@ export class AuthService
 
 		await this.usersService.setRefreshToken( id, refreshToken, refreshTokenExpiresAt );
  
-		return( token ); // le token BRUT part dans le cookie
+		return( token );
 	}
 
 	///
