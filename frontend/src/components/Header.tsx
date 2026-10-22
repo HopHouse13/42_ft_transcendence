@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { useAuthSession } from "../hooks/useAuthSession";
 import { useAuth } from "../hooks/useAuth";
+import { resolveAvatar } from "../utils/resolveAvatar";
 
 const NAV_LINKS = [
 	{ name: "Rules", path: "/rules" },
@@ -139,8 +140,8 @@ const Header = () => {
 								className={NAV_BUTTON_CLASS}
 							>
 								<img
-									src={`/api${user?.avatarUrl}`}
-									alt={user?.avatarUrl}
+									src={resolveAvatar(user?.avatarUrl) ?? '/api/uploads/avatars/default.png'}
+									alt="User avatar"
 									className="h-8 w-8 rounded-full"
 								/>
 								<p className="max-w-40 truncate">{user?.username}</p>
