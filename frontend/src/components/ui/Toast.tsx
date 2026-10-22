@@ -1,14 +1,5 @@
 import React, { useEffect } from 'react';
-
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
-
-export interface ToastProps {
-  message: string;
-  type?: ToastType;
-  duration?: number; // Duration in ms before auto-dismissing (default: 3000ms)
-  onClose: () => void;
-  position?: 'top-end' | 'top-start' | 'bottom-end' | 'bottom-start' | 'bottom-center' | 'top-center';
-}
+import type { ToastType, ToastProps } from '../../types/toastTypes';
 
 const typeClassMap: Record<ToastType, string> = {
   success: 'alert-success',
@@ -31,7 +22,8 @@ export function Toast({
   type = 'info',
   duration = 3000,
   onClose,
-  position = 'bottom-end',
+  position = 'top-start',
+  topOffset = 96,
 }: ToastProps): React.JSX.Element {
   useEffect(() => {
     if (duration <= 0) return;
@@ -44,7 +36,9 @@ export function Toast({
   }, [duration, onClose]);
 
   return (
-    <div className={`toast ${positionClassMap[position]} z-50`}>
+    <div className={`toast ${positionClassMap[position]} z-50`}
+      style={position.startsWith('top') ? { top: `${topOffset}px` } : undefined}
+    >
       <div className={`alert ${typeClassMap[type]} text-sm shadow-lg flex items-center justify-between gap-4`}>
         <span>{message}</span>
         <button

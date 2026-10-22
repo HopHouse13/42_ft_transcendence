@@ -65,7 +65,7 @@ export default function OnlineGame() {
       ) : (
         <>
 
-          {error && <div className="alert alert-error text-red-400 text-sm">{error}</div>}
+          {error && <div className="alert alert-error text-sm">{error}</div>}
 
           {/* Conteneur principal 2 colonnes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full max-w-5xl items-center">

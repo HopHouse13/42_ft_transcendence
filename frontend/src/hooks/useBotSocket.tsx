@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthSession } from "./useAuthSession";
 import type { GameState, Move } from "../types/gameTypes";
+import { useToast } from "./useToast";
 
 const BOT_GAME_KEY = "othello_bot_game_id";
 
@@ -14,6 +15,7 @@ export function useBotSocket() {
 
   const socketRef = useRef<Socket | null>(null);
   const { user, loading } = useAuthSession();
+  const toast = useToast();
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -74,7 +76,7 @@ export function useBotSocket() {
     });
 
     socket.on("moveRejected", (payload: { message: string }) => {
-      setError(payload.message);
+      toast.error(payload.message);
       setIsMovePending(false);
       setIsBotThinking(false);
     });
