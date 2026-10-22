@@ -15,6 +15,6 @@ export class ResetPasswordDto
 		minSymbols: 1
 	})
 	@Matches( /(?=.*[A-Za-z])/, { message: 'password must contain at least one letter' } ) // reGex(regular Expression): au moins 1 lettre
-	@Matches(/^[a-zA-Z0-9.@#$*!?_+-]+$/, { message: 'password must contains an unauthorised character (allowed: letters, numbers, . @ # $ * ! ? _ + -)' } ) // Caractères autorisés : lettres, un chiffre, un caractère spécial situé
+	@Matches(/^[a-zA-Z0-9.@#$*!?_+-]+$/, { message: 'password must not contain an unauthorised character (allowed: letters, numbers, . @ # $ * ! ? _ + -)' } ) // Caractères autorisés : lettres, un chiffre, un caractère spécial situé
 	password!: string;
 };

@@ -29,13 +29,13 @@ export default function GameEndModal({
   let titleColor = "text-[#e8e6e3]";
 
   if (isDraw) {
-    title = "Égalité !";
+    title = "Draw!";
     titleColor = "text-[#9e9b97]";
   } else if (userColor) {
-    title = isUserWinner ? "Victoire !" : "Défaite";
+    title = isUserWinner ? "Victory!" : "Defeat";
     titleColor = isUserWinner ? "text-[#81b64c]" : "text-[#e65353]";
   } else {
-    title = winner === "BLACK" ? "Les Noirs gagnent !" : "Les Blancs gagnent !";
+    title = winner === "BLACK" ? "Black wins!" : "White wins!";
   }
 
   return (
@@ -49,8 +49,8 @@ export default function GameEndModal({
           </h2>
           <p className="text-xs text-[#9e9b97]">
             {isDraw
-              ? "Aucun joueur n'a pu faire la différence."
-              : `La partie s'est terminée par un score de ${blackScore} - ${whiteScore}.`}
+              ? "Neither player could pull ahead."
+              : `The game ended with a score of ${blackScore} - ${whiteScore}.`}
           </p>
         </div>
 
@@ -59,7 +59,7 @@ export default function GameEndModal({
           {/* Joueur Noir */}
           <div className="flex flex-col items-center gap-1">
             <span className="w-5 h-5 rounded-full bg-black border border-[#6b6865]" />
-            <span className="text-xs font-semibold text-[#9e9b97]">Noirs</span>
+            <span className="text-xs font-semibold text-[#9e9b97]">Black</span>
             <span className="text-xl font-bold text-[#e8e6e3]">{blackScore}</span>
           </div>
 
@@ -68,7 +68,7 @@ export default function GameEndModal({
           {/* Joueur Blanc */}
           <div className="flex flex-col items-center gap-1">
             <span className="w-5 h-5 rounded-full bg-white border border-[#6b6865]" />
-            <span className="text-xs font-semibold text-[#9e9b97]">Blancs</span>
+            <span className="text-xs font-semibold text-[#9e9b97]">White</span>
             <span className="text-xl font-bold text-[#e8e6e3]">{whiteScore}</span>
           </div>
         </div>
@@ -79,13 +79,13 @@ export default function GameEndModal({
             onClick={onRestartOrRematch}
             className="w-full py-3 bg-[#81b64c] hover:bg-[#6f9e40] text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-98"
           >
-            Nouvelle partie
+            New game
           </button>
           <button
             onClick={onQuit}
             className="w-full py-2.5 bg-[#302e2b] hover:bg-[#3d3a36] text-[#e8e6e3] font-semibold text-xs rounded-xl border border-[#3d3a36] transition-all cursor-pointer"
           >
-            Retour au menu
+            Back to menu
           </button>
         </div>
 

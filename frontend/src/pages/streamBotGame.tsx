@@ -58,7 +58,7 @@ export default function StreambotGame() {
           onClick={startStreamGame}
           disabled={!isConnected}
         >
-          {isConnected ? "Lancer le Stream en direct" : "Connexion au serveur..."}
+          {isConnected ? "Start live stream" : "Connecting to server..."}
         </button>
       ) : (
         <>

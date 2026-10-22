@@ -17,7 +17,7 @@ const ResetPassword = (): React.ReactElement => {
     const confirmPasswordError = useMemo(() => {
         if (confirmPassword.length === 0)
             return undefined;
-        return (confirmPassword !== password ? "Password don not match" : undefined)
+        return (confirmPassword !== password ? "Passwords do not match" : undefined)
     }, [password, confirmPassword]);
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {

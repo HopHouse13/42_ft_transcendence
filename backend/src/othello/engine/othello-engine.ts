@@ -97,12 +97,12 @@ export class OthelloEngine  {
     
     if (player !== this._currentPlayer)   {
 
-      throw new Error(`Ce n'est pas le tour de ${player}`);
+      throw new Error(`It's not ${player}'s turn`);
     }
 
     if (!this.isValidMove(move, player))  {
 
-      throw new Error(`Coup invalide: (${move.row}, ${move.col})`);
+      throw new Error(`Invalid move: (${move.row}, ${move.col})`);
     }
 
     const captured = this._capturedCells(move, player);

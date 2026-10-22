@@ -52,7 +52,7 @@ export default function Friend() // une page = une fonction avec un retour avec 
 				<input
 					type = 'text'
 					className = 'input input-bordered w-full mb-1'
-					placeholder = 'Search an user...'
+					placeholder = 'Search for a user...'
 					value = { searchName }
 					onChange = { ( event ) => setSearchName( event.target.value )}/>
 				<div className = 'flex-1 min-h-0 overflow-y-auto flex flex-col gap-2'>

@@ -59,7 +59,7 @@ export default function Botgame() {
           onClick={() => setIsColorModalOpen(true)} // 👈 Ouvre le modal au lieu de lancer direct
           disabled={!isConnected}
         >
-          {isConnected ? "Démarrer contre l'IA" : "Connexion au serveur..."}
+          {isConnected ? "Start against the AI" : "Connecting to server..."}
         </button>
       ) : (
         <div className={BOARD_COLUMN_CLASSES}>
@@ -72,7 +72,7 @@ export default function Botgame() {
               onClick={giveUp}
               className={ACTION_BUTTON_DANGER}
             >
-              Abandonner
+              Resign
             </button>
           )}
 
