@@ -104,7 +104,7 @@ export class    OthelloService  {
         const player = service.state.players.find(p => p.color === currentColor);
         if (!player) {
 
-            throw new Error(`Aucun joueur trouvé pour la couleur ${currentColor}`);
+            throw new Error(`No player found for color ${currentColor}`);
         }
 
         service.engine.playMove(move, player.color);
@@ -190,7 +190,7 @@ export class    OthelloService  {
         const player = service.state.players.find(p => p.color === currentColor);
 
         if (!player || player.userId !== userId) {
-            throw new Error(`Ce n'est pas votre tour de jouer.`);
+            throw new Error(`It's not your turn.`);
         }
 
         // Jouer le coup de l'humain
@@ -333,13 +333,13 @@ export class    OthelloService  {
 
         const service: GameService = this.getLocalGame(gameId);
         if (service.state.status === GameStatus.FINISHED) {
-            throw new Error("Cette partie est déjà terminée.");
+            throw new Error("This game has already ended.");
         }
 
         const currentColor = service.engine.getCurrentPlayer();
         const player = service.state.players.find(p => p.color === currentColor);
         if (!player || player.userId !== userId) {
-            throw new Error(`Ce n'est pas votre tour de jouer.`);
+            throw new Error(`It's not your turn.`);
         }
 
         // Appel de la méthode privée pour compter les coups
@@ -420,13 +420,13 @@ export class    OthelloService  {
         const player = service.state.players.find(p => p.userId === userId);
         if ( !player )  {
 
-            throw new Error("Vous ne faites pas partie de cette partie.");
+            throw new Error("You are not part of this game.");
         }
 
         const opponentPlayer = service.state.players.find(p => p.userId !== userId);
         if ( !opponentPlayer )  {
 
-            throw new Error("Votre opposant ne fait pas partie de cette partie.");
+            throw new Error("Your opponent is not part of this game.");
         }
 
         const winnerId = opponentPlayer ? opponentPlayer.userId : null;
