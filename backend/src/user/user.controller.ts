@@ -7,7 +7,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { avatarUploadOptions } from './avatar-upload.config';
 import { UserUpdate } from './interfaces/user.interface';
 
-// @UsePipes( new ValidationPipe() ) // instancie ValidationPipe pour qu'il check les regles du DTO lors d'une requete (actuellement instancié dans le main)
 @UseGuards( JwtGuard ) // applique le guard 'JwtGuard'
 @Controller( 'user' ) // décorateur : toutes les routes de cette classe sont préfixées par /users
 export class UserController

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useAuthSession } from "./useAuthSession";
+import { useToast } from "../hooks/useToast"
 import type { GameState, Move } from "../types/gameTypes";
 
 const ONLINE_GAME_KEY = "othello_online_game_id";
@@ -14,6 +15,7 @@ export function useOnlineSocket() {
 
   const socketRef = useRef<Socket | null>(null);
   const { user, loading } = useAuthSession();
+  const toast = useToast();
 
   useEffect(() => {
     if (loading || !user?.id) return;
@@ -74,7 +76,7 @@ export function useOnlineSocket() {
     });
 
     socket.on("moveRejected", (payload: { message: string }) => {
-      setError(payload.message);
+      toast.error(payload.message);
       setIsMovePending(false);
     });
 

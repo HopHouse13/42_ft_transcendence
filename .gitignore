@@ -35,7 +35,6 @@ coverage/
 #*.sql
 *.sqlite
 vgcore.*
-*.png
 *.jpeg
 # OS generated files #
 ######################

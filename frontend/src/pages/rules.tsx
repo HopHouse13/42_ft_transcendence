@@ -14,7 +14,7 @@ const RULES_BLOCK = [
         title: "Capture",
         description: ["The capture occurs when one or more opponent pawns are caught in a straight line (horizontal, vertical or diagonal) between one of your pawns and the one you just placed.",
             "Then, they all flip to your color."],
-        img: "/Rules/capture.png",
+        img: "/Rules/capture.gif",
     },
     {
         title: "End of Game",

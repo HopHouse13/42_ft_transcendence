@@ -51,9 +51,31 @@ export class AchievementService
 	
 	///
 	
+	// PLAN
+	//
+	// 1. Récupérer la game
+	//	- findUniqueOrThrow : la game doit exister et être FINISHED
+	//	- include des moves triés par moveNumber croissant (asc) : les calculs lisent le dernier coup
+	//	  et comparent un coup à son précédent
+	//	- une game sans aucun coup n'est pas évaluée -> return []
+	//
+	// 2. Pour chacun des deux joueurs (black puis white)
+	//	- unlockedBefore : findMany des achievements déjà débloqués ; .map() ne garde que la string achievementId
+	//	- lockedBefore : achievementList.filter() garde les ids absents de unlockedBefore
+	//	  (.includes() renvoie true si un élément du tableau === l'argument)
+	//	- pour chaque id de lockedBefore, isUnlocked_() appelle la méthode de calcul correspondante (switch)
+	//	- si true -> push { userId, achievementId } dans newAchievements
+	//
+	// 3. Écriture en base
+	//	- newAchievements regroupe les nouveaux achievements des deux joueurs : un seul appel
+	//	  createManyAndReturn()
+	//	- skipDuplicates : pas d'erreur db si l'objet existe déjà
+	//
+	// 4. Retourner les achievements créés (tableau vide si aucun)
+	
 	async validateAchievement( gameId: string )
 	{
-		const game: GameWithMoves = await this.prisma.game.findUniqueOrThrow( // recuperation de la game avec ses moves
+		const game: GameWithMoves = await this.prisma.game.findUniqueOrThrow(
 			{
 				where:
 				{
@@ -66,21 +88,21 @@ export class AchievementService
 					{
 						orderBy: 
 						{
-							moveNumber: 'asc' // besoin de les extraites par ordre ascendant (<)
+							moveNumber: 'asc'
 						}
 					}
 				}
 			}
 		)
 
-		if ( !game.moves.length ) // une game avec zero coup joué ne doit pas etre evaluée
+		if ( !game.moves.length )
 			return ( [] );
 
-		const	newAchievements: Prisma.AchievementCreateManyInput[] = []; // init du tableau d'objet d'achievments pour stoker les nouveaux objets achiev. des deux joueurs -> un seul et unique appel a la db pour l'ecrire
+		const	newAchievements: Prisma.AchievementCreateManyInput[] = [];
 
-		for ( const userId of [ game.blackPlayerId, game.whitePlayerId ]) // calcul pour les deux users
+		for ( const userId of [ game.blackPlayerId, game.whitePlayerId ])
 		{
-			const	unlockedBefore: Readonly<string[]> = ( await this.prisma.achievement.findMany( // genere une array string d'id de achiev. unlocked du user
+			const	unlockedBefore: Readonly<string[]> = ( await this.prisma.achievement.findMany(
 				{
 					where:
 					{
@@ -91,21 +113,20 @@ export class AchievementService
 						achievementId:	true
 					}
 				}
-			)).map(( achiev ) => achiev.achievementId ) // map retourne la string  achievementId pour chaque element du tableau du retour de findMany
+			)).map(( achiev ) => achiev.achievementId )
 			
-			// Pour chaque elem, .filter() execute la ft en arg. si truc -> ajoute cet element dans le nouveau tableau; .include() sur une array renvoie true si un elem du tableau est === a l'arg donné
 			const	lockedBefore: Readonly<string[]> = achievementList.filter(( achievId: string ) => !unlockedBefore.includes( achievId ));
 		
-			for ( const achievId of lockedBefore ) // boucle sur tous les achievement bloqués de la liste
-				if ( await this.isUnlocked_( achievId, game, userId )) // si true -> rajoue d'un nouveau element avec l'id du achievement debloqué
-					newAchievements.push({ userId, achievementId: achievId }); // genere l'objet dans le tableau d'objet qui seront ecrits en db
+			for ( const achievId of lockedBefore )
+				if ( await this.isUnlocked_( achievId, game, userId ))
+					newAchievements.push({ userId, achievementId: achievId });
 		}
 
 		const	newAchievementsWritten: Achievement[] = await this.prisma.achievement.createManyAndReturn(
 			{
 				data:
 					newAchievements,
-				skipDuplicates:	true // pas d'erreur db si meme objet à créer
+				skipDuplicates:	true
 			}
 		);
 
@@ -143,21 +164,6 @@ export class AchievementService
 			default:					return( false );
 		}
 	}
-
-/*
-Plan:
-
-- verif. si game existe et qu'elle soit FINISHED
-- charge en readonly: la game et l'historique des cou
-
-Pour chaque user:
-- recuperer (findMany) tous les achiev unlocked[] dans une tableau
-- genrerer le tableau inverser avec tous les lock (.filter)
-- parcourir chaque element dans un switch (alternative -> record<>) pour appeler la methode correspondant a la achievementId
-	-> si l achiavement est unlocked la methode push dans une 3eme array l'achievementId.
-- apres le traitement de l'ensemble des achievement -> un appel en db avec createMany() pour genrer l'ensemble des achievments unlock
-
-*/
 
 /// CALCULATION METHODS ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -209,7 +215,7 @@ Pour chaque user:
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
-		return ([ 0, 7, 56, 63 ].some(( idx ) => finalBoard[ idx ] === myColor )); // .some() renvoie true si le callback de la fonction est au moins une fois true
+		return ([ 0, 7, 56, 63 ].some(( idx ) => finalBoard[ idx ] === myColor ));
 	};
 
 	///
@@ -221,7 +227,7 @@ Pour chaque user:
 
 		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
-		const	cornerCount: number = [ 0, 7, 56, 63 ].filter(( idx ) =>  finalBoard[ idx ] === myColor ).length; // filter retourne un tableau avec les idx avec la couleur du player, lenght donne le nombre d'element de ce tableau
+		const	cornerCount: number = [ 0, 7, 56, 63 ].filter(( idx ) =>  finalBoard[ idx ] === myColor ).length;
 
 		return ( cornerCount === 4 );
 	}
@@ -233,7 +239,7 @@ Pour chaque user:
 	{
 		const	finalBoard: string = game.moves[ game.moves.length - 1 ].boardAfter;
 
-		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W'; // marqueurs de couleurs sur boardAfer en db
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'B' : 'W';
 
 		const	edgeCount: number = [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 16, 23, 24, 31, 32, 39, 40, 47, 48, 55, 56, 57, 58, 59, 60, 61, 62, 63 ].filter(( idx ) =>  finalBoard[ idx ] === myColor ).length;
 
@@ -269,7 +275,7 @@ Pour chaque user:
 	// Force l'adversaire à passer son tour au moins une fois.
 	private mov_pass1( game: GameWithMoves, userId: string )
 	{
-		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE';
 		let		prevIsMine: boolean = false;
 
 		for ( const move of game.moves )
@@ -292,7 +298,7 @@ Pour chaque user:
 	// Force l'adversaire à passer son tour au moins 3 fois dans la partie.
 	private mov_pass3( game: GameWithMoves, userId: string )
 	{
-		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE'; // marqueurs de couleur de move en db
+		const	myColor: string = ( game.blackPlayerId === userId ) ? 'BLACK' : 'WHITE';
 		let		prevIsMine: boolean = false;
 		let		passCount: number = 0;
 

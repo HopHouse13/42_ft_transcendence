@@ -28,7 +28,7 @@ export class GitStrategy extends PassportStrategy( Strategy, 'gitStrategy' )
 		const	email =	profile.emails?.at(0)?.value;
 
 		if ( !email )
-			throw new UnauthorizedException( 'github account has no accessible email' ); // ça annule le processus de register ou du login?
+			throw new UnauthorizedException( 'github account has no accessible email' );
 
 		let	user = await this.usersService.findByGitId( gitId );
 
@@ -37,9 +37,9 @@ export class GitStrategy extends PassportStrategy( Strategy, 'gitStrategy' )
 			// pas encore lié à ce gitId -> peut-être un compte existant par email (LOCAL ou autre)
 			user = await this.usersService.findByEmail( email );
 
-			if ( user )
-				user = await this.usersService.setGitId( user.id, gitId ); // lie le compte existant
-			else
+			if ( user ) // lie le compte existant
+				user = await this.usersService.setGitId( user.id, gitId );
+			else // vraiment nouveau
 			{
 				const	dataCreate: UserCreate =
 				{
@@ -48,7 +48,7 @@ export class GitStrategy extends PassportStrategy( Strategy, 'gitStrategy' )
 					gitId
 				};
 
-				user = await this.usersService.create( dataCreate ); // vraiment nouveau
+				user = await this.usersService.create( dataCreate );
 			}
 		}
 
