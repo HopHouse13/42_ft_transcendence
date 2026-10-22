@@ -9,9 +9,6 @@ import { UserPublic, UserPrivate, UserCreate } from '../user/interfaces/user.int
 import { Response } from 'express';
 import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports et que l'on veut regrouper dans un seul objet
 
-//import { PrismaService } from '../prisma/prisma.service'; // la class PrismaService qui encapsule PrismaClient
-//import { Prisma } from '@prisma/client'; // Pour obetenir la classe des exception a lever coté prisma
-
 @Injectable()
 export class AuthService
 {
