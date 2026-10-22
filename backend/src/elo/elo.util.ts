@@ -1,4 +1,3 @@
-export const DEFAULT_ELO = 350;
 export const K_NEW = 40; 
 export const K_DEFAULT = 20;
 export const NEW_PLAYER_GAMES = 30;

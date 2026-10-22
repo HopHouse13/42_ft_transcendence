@@ -9,7 +9,7 @@ export class AchievementController
 	constructor( private readonly achievementService : AchievementService ) {};
 
 	@Get( ':rawId' )
-	findAchievement( @Param( 'rawId', ParseUUIDPipe ) rawId: string)
+	findAchievement( @Param( 'rawId', ParseUUIDPipe ) rawId: string )
 	{
 		return( this.achievementService.findAchievement( rawId ));
 	}

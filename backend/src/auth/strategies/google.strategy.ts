@@ -20,14 +20,15 @@ export class GoogleStrategy extends PassportStrategy( Strategy, 'googleStrategy'
 		});
 	}
 
-	// apres la validation du de authenticité du usergoogle, validation() vérifie si le user existe dans la db sinon creation du user, renvoie du user en callback pour que passport génére request.user pour y avoir acces au niveau du controller
+	// apres la validation du de authenticité du usergoogle, validation() vérifie si le user existe dans la db
+	// sinon creation du user, renvoie du user en callback pour que passport génére request.user pour y avoir acces au niveau du controller
 	async	validate( _accessToken: string, _refreshToken: string, profile: Profile, done: VerifyCallback )
 	{
 		// recuperation des données utiles
 		const	googleId =	profile.id;
 		const	email =		profile.emails?.at(0)?.value;
 
-		// verification si il google nous a bien transmit l'email
+		// verification si google nous a bien transmit l'email
 		if ( !email )
 			throw new UnauthorizedException( 'google account has no accessible email' ); // du coup ca annule le processus de register ou du login?
 

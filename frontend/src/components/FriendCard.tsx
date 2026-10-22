@@ -5,10 +5,9 @@ import { useNavigate } from 'react-router';
 interface FriendCardProps
 {
 	user: 		FriendUser;
-	children?:	ReactNode; // optionnel
+	children?:	ReactNode;
 	isFriend?:	boolean;
 	isOnline?:	boolean;
-	//onClick?:	() => void;
 };
 
 export default function FriendCard( props: FriendCardProps )
@@ -19,7 +18,6 @@ export default function FriendCard( props: FriendCardProps )
 			className = { `card card-md bg-base-100 w-full flex flex-row border border-base-300 items-center p-2 gap-3 hover:bg-base-200 hover:border-base-100 transition-colors ${ props.isFriend ? 'cursor-pointer': '' }` }
 			onClick = { props.isFriend ? () => navigate( `/profile/${ props.user.id }` ) : undefined }>
 			{/* bloc avatar */}
-			{/* Le statut est affiché uniquement pour les amis acceptés ; undefined signifie que la présence est inconnue. */}
 			<div
 				className = { `avatar ${ props.isFriend && props.isOnline !== undefined ? ( props.isOnline ? 'avatar-online' : 'avatar-offline' ) : '' }` }
 				aria-label = { props.isFriend ? ( props.isOnline === undefined ? 'Presence unavailable' : props.isOnline ? 'Online' : 'Offline' ) : undefined }>
@@ -42,7 +40,7 @@ export default function FriendCard( props: FriendCardProps )
 			{/* bloc boutons */}
 			<div
 				className = 'flex flex-col gap-2 p-2'
-				onClick = { ( click ) => click.stopPropagation() }> {/* permet de bloquer le clic a ce bouton, pas jusau'au onClick du parent*/}
+				onClick = { ( click ) => click.stopPropagation() }>
 				{ props.children }
 			</div>
 		</div>

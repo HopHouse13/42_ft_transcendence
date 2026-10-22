@@ -5,7 +5,7 @@ import * as argon2 from 'argon2'; // import d'un namespece qui plusieurs exports
 // DTO pour valider le body de POST /auth/register
 export class RegisterDto
 {
-	@MaxLength( 255 ) // Max 255 char pour le password
+	@MaxLength( 255 )
 	@IsStrongPassword({
 		minLength: 8,
 		minUppercase: 0,
