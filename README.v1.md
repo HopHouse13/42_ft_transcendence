@@ -6,25 +6,37 @@
 
 ## Table of contents
 
-[Description](#description) · [Instructions](#instructions) · [Team](#team-information) · [Project management](#project-management) · [Technical stack](#technical-stack) · [Database schema](#database-schema) · [Features](#features-list) · [Modules](#modules) · [Contributions](#individual-contributions) · [Limitations](#known-limitations) · [Resources](#resources)
-
+1. [Description](#description)
+2. [Instructions](#instructions)
+3. [Team Information](#team-information)
+4. [Project Management](#project-management)
+5. [Technical Stack](#technical-stack)
+6. [Architecture](#architecture)
+7. [Database Schema](#database-schema)
+8. [Features List](#features-list)
+9. [Modules](#modules)
+10. [Individual Contributions](#individual-contributions)
+11. [Security](#security)
+12. [Known Limitations](#known-limitations)
+13. [Resources](#resources)
 ---
 
 ## Description
 
-**42 Othello** is our *ft_transcendence* project: a full-stack web application (frontend, backend, database) built around the board game Othello. Two players place black and white discs on an 8×8 board; discs trapped between two discs of the opposite color are flipped, and the player with the most discs when nobody can move wins.
+**42 Othello** is a full-stack web application built for the *ft_transcendence* project. Its goal is to offer a complete Othello experience: clear rules, smooth real-time play, a competitive ranking system and a basic social layer around the game.
+
+Othello is a two-player strategy game on an 8×8 board. Players place black or white discs; every time a disc is placed so that a line of opponent discs is trapped between it and another disc of the same color, those discs flip. The game ends when neither player can move, and the player with the most discs wins.
 
 ### Key features
-
-- **4 game modes**: Pass & Play (local), VS AI, Online matchmaking (1v1 on two computers), Bot vs Bot stream.
-- **Server-authoritative engine**: every move is validated by the backend, never trusted from the client.
-- **Real time** (Socket.IO): matchmaking, live games, chat, online presence, spectator feed.
+- **Four game modes**: Pass & Play (local, 2 players on one screen), VS AI, Online matchmaking (1v1 on separate computers) and **Bot vs Bot** streaming.
+- **Server-authoritative game engine**: all moves are validated on the backend (NestJS), never trusted from the client.
+- **Real-time** gameplay, matchmaking, chat, presence, and spectator feed through WebSockets (Socket.IO).
 - **Accounts**: email/password, Google and GitHub OAuth, password reset by email, avatar upload.
 - **Social**: friends with live online status, public profiles, chat.
 - **Progression**: Elo rating, leaderboard, 20 achievements, match history and statistics.
 - **Spectator mode**: watch live and recently finished games.
 - **Monitoring**: Prometheus + Grafana with Discord alerting.
-- **One command, HTTPS**: the whole stack runs in Docker behind an Nginx reverse proxy.
+- Fully **containerized**: the whole stack starts with a single command, served over **HTTPS** behind an Nginx reverse proxy.
 
 ---
 
@@ -65,13 +77,14 @@ The `.env` file is ignored by Git; `.env.example` is the template. `make` refuse
 | `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD`, `GRAFANA_SECRET_KEY`, `GRAFANA_ENCRYPTION_KEY` | Grafana admin account and keys |
 | `DISCORD_WEBHOOK_URL` | Grafana alert notifications |
 
+
 #### Where to get the third-party values
 
 | Service | Variables | Tutorial | Key points |
 |---------|-----------|----------|------------|
-| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | [Create an OAuth web client](https://support.google.com/cloud/answer/15549257) · [Consent screen & test users](https://support.google.com/cloud/answer/15549945) | Client type: **Web application**. Add `https://localhost:8443/api/auth/google/callback` as an authorized redirect URI. Copy the secret at creation: it is not shown in full afterwards. |
+| Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | [Create an OAuth web client](https://support.google.com/cloud/answer/15549257) | Client type: **Web application**. Add `https://localhost:8443/api/auth/google/callback` as an authorized redirect URI. Copy the secret at creation: it is not shown in full afterwards. |
 | GitHub OAuth | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_CALLBACK_URL` | [Creating an OAuth app](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app) | Homepage URL: `https://localhost:8443`. Callback URL: `https://localhost:8443/api/auth/github/callback`. Click "Generate a new client secret". |
-| Brevo (SMTP) | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | [Send emails with Brevo SMTP](https://help.brevo.com/hc/en-us/articles/7924908994450) · [SMTP integration](https://developers.brevo.com/docs/smtp-integration.md) | `MAIL_HOST=smtp-relay.brevo.com`, `MAIL_PORT=587`. `MAIL_USER` is the SMTP login shown in [SMTP & API](https://app.brevo.com/settings/keys/smtp), and `MAIL_PASS` is an **SMTP key**, not an API key. |
+| Brevo (SMTP) | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, `MAIL_FROM` | [Send emails with Brevo SMTP](https://help.brevo.com/hc/en-us/articles/7924908994450) | `MAIL_HOST=smtp-relay.brevo.com`, `MAIL_PORT=587`. `MAIL_USER` is the SMTP login shown in [SMTP & API](https://app.brevo.com/settings/keys/smtp), and `MAIL_PASS` is an **SMTP key**, not an API key. |
 | Discord webhook | `DISCORD_WEBHOOK_URL` | [Intro to Webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) | Server Settings → Integrations → Webhooks → Copy Webhook URL. Keep it private. |
 
 > Callback URLs must match **exactly** what is declared in the Google / GitHub consoles (a mismatch gives `redirect_uri_mismatch`). Google changes can take a few minutes to apply.
@@ -108,10 +121,10 @@ Backend unit tests (Jest): `cd backend && npm install && npm run test`.
 
 | Login | Role(s) | Responsibilities |
 |-------|---------|------------------|
-| `bchallat` | `<PO / PM / Tech Lead> + Developer` | `<…>` |
-| `maguerin` | `<…> + Developer` | `<…>` |
-| `pbret` | `<…> + Developer` | `<…>` |
-| `tjacquel` | `<…> + Developer` | `<…>` |
+| `bchallat` | `Tech Lead + Developer` | Define overall technical architecture and coding standards, lead backend/frontend integration, conduct code reviews, enforce git workflow, and develop core full-stack features. |
+| `maguerin` | `PO + Developer` | Define project vision, product backlog, user stories, and acceptance criteria; design UI/UX and game implementation, and implement full-stack features. |
+| `pbret` | `Developer` |Design database schema (ORMs/SQL), handle data modeling and migrations, optimize database performance/queries, and develop backend services.|
+| `tjacquel` | `PM + Developer` | Design system architecture, facilitate daily stand-ups, manage team tools (Discord, ToDo list), monitor sprint progress, and develop full-stack features.|
 
 ---
 
@@ -120,9 +133,9 @@ Backend unit tests (Jest): `cd backend && npm install && npm run test`.
 <!-- TODO: keep only what is true. -->
 
 - **Organization**: work split into small features (auth, engine, matchmaking, profile, friends, leaderboard, achievements, spectator, monitoring…), one Git branch per feature, merged into `main`.
-- **Tracking**: `<GitHub Issues / Projects / Trello>`.
-- **Meetings**: `<weekly / bi-weekly>` sync on progress and blockers.
-- **Communication**: Discord (a GitHub Action posts every push to a Discord channel).
+- **Tracking**: GitHub Issues, GitHub Actions, and custom to-do lists for granular task follow-ups and automated workflow management.
+- **Meetings**: Daily stand-ups and weekly meetings to sync on progress and blockers.
+- **Communication**: Discord server with multiple channel (ressources, todo, bugs... + GitHub Action posts every push to a notif_repo channel), Google docs.
 - **Code review**: important changes reviewed by another member before merge.
 
 ---
@@ -140,6 +153,7 @@ Backend unit tests (Jest): `cd backend && npm install && npm run test`.
 
 - **NestJS**: modules, dependency injection, guards and gateways give a clear structure for REST + WebSockets developed by several people in parallel.
 - **React + TanStack Query**: component UI and a declarative cache that keeps profiles, friends and leaderboard consistent.
+- **Tailwind CSS v4 + daisyUI**: Fast utility styling with zero config and ready-made UI components.
 - **Socket.IO**: rooms, automatic reconnection and a simple event API for matchmaking, live games and presence.
 - **PostgreSQL + Prisma**: the data is relational (users, games, moves, friendships, achievements) and needs constraints and transactions (a finished game atomically saves the result and updates both Elo). Prisma adds type-safe queries and versioned migrations.
 - **Pure game engine**: the rules live in a unit-tested `OthelloEngine`, shared by every mode (local, bot, online).
@@ -220,25 +234,21 @@ erDiagram
 
 ## Features List
 
-<!-- TODO: fill in the "Who" column. -->
-
 | Feature | Description | Who |
 |---------|-------------|-----|
-| Othello engine | Legal moves (8 directions), flips, automatic pass, end of game, scoring; unit-tested | `<…>` |
-| Game modes | Pass & Play, VS AI (as black or white), Bot vs Bot stream | `<…>` |
-| Online matchmaking | Queue with optional color choice, live game, reconnection after refresh, forfeit | `<…>` |
-| AI opponent | Minimax with alpha-beta pruning; 20 % random moves so it can be beaten | `<…>` |
-| Elo & leaderboard | Elo updated atomically after each online game; podium, top 25, own rank | `<…>` |
-| Achievements | 20 persistent achievements with progress and unlock dates | `<…>` |
-| Spectator mode | List of live / recent games, follow one game in real time | `<…>` |
-| Authentication | Email + password (argon2), Google / GitHub OAuth, JWT + refresh cookies, password reset by email | `<…>` |
-| Profile | Stats, match history, achievements; edit username, upload avatar | `<…>` |
-| Friends | Search, request / accept / refuse / remove, live online status | `<…>` |
-| Chat | Real-time chat rooms | `<…>` |
-| Monitoring | Prometheus, Grafana dashboards and alert rules, Discord alerts | `<…>` |
-| Legal & info pages | Privacy Policy, Terms of Service (footer), rules, about | `<…>` |
-
-Elo: starts at 350, K = 40 for the first 30 games then 20, floor at 187.
+| Othello engine | Legal moves (8 directions), flips, automatic pass, end of game, scoring, unit-tested | `bchallat maguerin` |
+| Game modes | Pass & Play, VS AI (as black or white), Bot vs Bot stream | `bchallat maguerin` |
+| Online matchmaking | Queue with optional color choice, live game, reconnection after refresh, forfeit | `bchallat tjacquel` |
+| AI opponent | Minimax with alpha-beta pruning (20 % random moves so it can be beaten) | `bchallat` |
+| Elo & leaderboard | Elo updated atomically after each online game, podium, top 25, own rank | `bchallat maguerin pbret` |
+| Achievements | 20 persistent achievements with progress and unlock dates | `maguerin pbret` |
+| Spectator mode | List of live / recent games, follow one game in real time | `tjacquel` |
+| Authentication | Email + password (argon2), Google / GitHub OAuth, JWT + refresh cookies, password reset by email | `maguerin pbret` |
+| Profile | Stats, match history, achievements, edit username, upload avatar | `maguerin pbret` |
+| Friends | Search, request / accept / refuse / remove, live online status | `maguerin pbret` |
+| Chat | Real-time chat rooms | `bchallat tjacquel` |
+| Monitoring | Prometheus, Grafana dashboards and alert rules, Discord alerts | `tjacquel` |
+| Legal & info pages | Privacy Policy, Terms of Service (footer), rules, about | `maguerin` |
 
 ---
 
@@ -267,45 +277,66 @@ The total exceeds 14 on purpose: only fully working modules count, so the extra 
 
 ### Why and how
 
-| # | Why | How | Who |
+| # | Why | How | Leader |
 |---|-----|-----|-----|
-| 1 | Structured code for a large multi-developer project | React + Vite frontend; NestJS backend with one module per domain, DTO validation, guards, interceptors | `<…>` |
-| 2 | An online board game needs instant two-way updates | Socket.IO gateways (game, chat, presence, spectator), rooms per game / user, clean handling of disconnections | `<…>` |
-| 3 | A social layer keeps players engaged | Chat rooms, public profiles, full friends flow (search, request, accept, refuse, remove) | `<…>` |
-| 4 | Type safety and safe migrations | Prisma with versioned migrations and transactions for game end + Elo | `<…>` |
-| 5 | Foundation of all social features | Profile edit, avatar upload (PNG/JPEG, 2 MB, default avatar), friends with online status, secure sessions, password reset | `<…>` |
-| 6 | Give meaning to online games | Wins / losses / draws, win rate, Elo, rank, recent matches with opponent, date, result and score | `<…>` |
-| 7 | Faster sign-up | Passport Google and GitHub strategies; lookup by provider id, then by email (account linking), otherwise creation | `<…>` |
-| 8 | Play any time without an opponent | Minimax + alpha-beta (positional weights + mobility), 20 % random moves to stay human-like and beatable | `<…>` |
-| 9 | The core of the product | Full rules enforced server-side, legal-move hints, animations, end-of-game modal, rules page | `<…>` |
-| 10 | Play against friends on other machines | Matchmaking queue, state pushed to both players after each move, game recovery after refresh | `<…>` |
-| 11 | Watch and learn from other games | `/spectator` namespace, `/watch` list (live and < 10 min old), `/watch/:gameId` live view | `<…>` |
-| 12 | Motivation to keep playing | 3 persistent systems: achievements (progress bars), leaderboard, Elo rank | `<…>` |
-| 13 | Observe the health of the stack | Backend `/metrics`, node / nginx / postgres exporters, provisioned Grafana dashboards and alert rules, Grafana behind the proxy with anonymous access disabled | `<…>` |
+| 1 | Structured code for a large multi-developer project | React + Vite frontend; NestJS backend with one module per domain, DTO validation, guards, interceptors | `bchallat` |
+| 2 | An online board game needs instant two-way updates | Socket.IO gateways (game, chat, presence, spectator), rooms per game / user, clean handling of disconnections | `bchallat` |
+| 3 | A social layer keeps players engaged | Chat rooms, public profiles, full friends flow (search, request, accept, refuse, remove) | `maguerin` |
+| 4 | Type safety and safe migrations | Prisma with versioned migrations and transactions for game end + Elo | `pbret` |
+| 5 | Foundation of all social features | Profile edit, avatar upload (PNG/JPEG, 2 MB, default avatar), friends with online status, secure sessions, password reset | `pbret` |
+| 6 | Give meaning to online games | Wins / losses / draws, win rate, Elo, rank, recent matches with opponent, date, result and score | `maguerin` |
+| 7 | Faster sign-up | Passport Google and GitHub strategies; lookup by provider id, then by email (account linking), otherwise creation | `pbret` |
+| 8 | Play any time without an opponent | Minimax + alpha-beta (positional weights + mobility), 20 % random moves to stay human-like and beatable | `bchallat` |
+| 9 | The core of the product | Full rules enforced server-side, legal-move hints, animations, end-of-game modal, rules page | `bchallat` |
+| 10 | Play against friends on other machines | Matchmaking queue, state pushed to both players after each move, game recovery after refresh | `maguerin` |
+| 11 | Watch and learn from other games | `/spectator` namespace, `/watch` list (live and < 10 min old), `/watch/:gameId` live view | `tjacquel` |
+| 12 | Motivation to keep playing | 3 persistent systems: achievements (progress bars), leaderboard, Elo rank | `maguerin` |
+| 13 | Observe the health of the stack | Backend `/metrics`, node / nginx / postgres exporters, provisioned Grafana dashboards and alert rules, Grafana behind the proxy with anonymous access disabled | `tjacquel` |
 
 ---
+### Individual Contributions
 
-## Individual Contributions
-
-<!-- TODO: be honest and specific, this is discussed during evaluation. -->
-
-### `bchallat`
-- **Implemented:** `<…>`
-- **Challenges & solutions:** `<…>`
-
-### `maguerin`
-- **Implemented:** `<…>`
-- **Challenges & solutions:** `<…>`
-
-### `pbret`
-- **Implemented:** `<…>`
-- **Challenges & solutions:** `<…>`
-
-### `tjacquel`
-- **Implemented:** `<…>`
-- **Challenges & solutions:** `<…>`
-
+**bchallat** — Tech Lead & AI / Core Engine Specialist
+- Responsibilities & Core Contributions:
+    - Led overall technical architecture and integration guidelines for NestJS and React.
+    - Developed the core Othello Engine (server-side rule enforcement, 8-direction flips, automatic passes, scoring) and local/bot game modes.
+    - Implemented the AI Opponent using Minimax with alpha-beta pruning (positional weighting, mobility, and 20% random move variance).
+    - Co-developed Online Matchmaking, real-time Chat rooms, and core Socket.IO event gateways.
+- Challenges & Solutions:
+    - *Challenge*: Balancing AI difficulty so it remains challenging without being unbeatable or consuming excessive CPU resources server-side.
+    - *Solution*: Implemented alpha-beta pruning optimized with positional matrix weights and introduced a controlled 20% random move heuristic.
 ---
+**maguerin** — Product Owner & UI/UX / Gamification Specialist
+- Responsibilities & Core Contributions:
+    - Defined product scope, user stories, legal/info pages, and overall UI/UX structure using Tailwind CSS v4 and daisyUI.
+    - Built frontend modules for Profile (stats, match history, avatar uploads), Friends system (search, requests, online status), and Remote Players UI.
+    - Developed the Gamification engine: managed 20 persistent Achievements with progress tracking, alongside Leaderboards and Podium views.
+    - Co-developed the shared Othello game engine logic and local game modes.
+- Challenges & Solutions:
+    - *Challenge*: Synchronizing complex real-time user state across multiple UI components (friends, leaderboard, active game profiles).
+    - *Solution*: Utilized TanStack Query for declarative client-side caching and automated reactivity upon state changes.
+
+**pbret** — Database Specialist & Auth / Security Lead
+- Responsibilities & Core Contributions:
+    - Designed and managed the relational database schema using PostgreSQL and Prisma ORM with versioned migrations.
+    - Implemented full Authentication flow: Argon2 password hashing, OAuth 2.0 (Google & GitHub), httpOnly JWT cookies, refresh tokens, and email password reset.
+    - Handled backend persistence for User Management, Friends, Match History, and Achievements.
+    - Engineered atomic database transactions for end-of-game flows (saving match records, updating Elo, and unlocking achievements).
+
+- Challenges & Solutions:
+    - *Challenge*: Handling multiple OAuth providers (Google/GitHub) without creating duplicate accounts when a user logs in with the same email address.
+    - *Solution*: Implemented a lookup logic by email to seamlessly link social logins to existing local accounts.
+
+**tjacquel** — Project Manager & DevOps / Real-Time Infrastructure Lead
+- Responsibilities & Core Contributions:
+    - Designed global system architecture, Docker containerization, and repository tools (GitHub Actions, Discord webhook alerts, project tracking).
+    - Facilitated daily team stand-ups and daily syncs to manage sprint progress and blockers.
+    - Developed Spectator Mode (/spectator gateway, /watch live list, and real-time game stream viewing).
+    - Built complete Monitoring infrastructure: Prometheus endpoints (/metrics), Postgres/Nginx exporters, provisioned Grafana dashboards, and automated alert rules.
+
+- Challenges & Solutions:
+    - *Challenge*: Exposing application metrics via Grafana behind an Nginx reverse proxy without exposing telemetry endpoints to the public.
+    - *Solution*: Enforced mandatory authentication on Grafana, restricted Prometheus ports to the internal Docker network, and securely routed dashboard traffic through Nginx.
 
 ## Security
 
@@ -323,7 +354,6 @@ The total exceeds 14 on purpose: only fully working modules count, so the extra 
 - Chat history is kept in memory (lost on backend restart).
 - Only **online** games are saved in the database; local, bot and bot-vs-bot games live in memory.
 - Only the latest stable **Google Chrome** is officially supported.
-- Legal pages come from templates and must be reviewed before any real deployment.
 
 ---
 
