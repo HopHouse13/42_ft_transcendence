@@ -5,8 +5,7 @@ import AppRouter from './routes/router.tsx';
 import { PresenceConnection } from './hooks/usePresence';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';import { ToastProvider } from './components/ui/ToastProvider.tsx';
- {/*DEBUG*/}
+import { ToastProvider } from './components/ui/ToastProvider.tsx';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +21,6 @@ const App = (): React.ReactElement =>(
 				</Layout>
 			</ToastProvider>
 		</BrowserRouter>
-		<ReactQueryDevtools /> {/*DEBUG*/}
 	</QueryClientProvider>
 );
 

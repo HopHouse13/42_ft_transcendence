@@ -1,13 +1,14 @@
 import { useAuthSession } from "./useAuthSession";
 import { queryKeys } from "../queries/queryKeys";
 import type { FriendLists } from "../types/friendTypes";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PresenceMap } from "./usePresence";
 
 export default function useFriendDisplay()
 {
 	const 	{ user }  = useAuthSession(); // recupere uniquement le user si session active (avec les cookies??)
-
+	const queryClient = useQueryClient();
+	const presenceKey = queryKeys.presence.onlineFriends( user?.id ?? '' );
 	// query represente le retour du hook 'useQuery'. Ce hook fait partie de la librairie Query qui gère la donnée au niveau du navigateur ( l'etat )
 	const	query = useQuery(
 		{
@@ -34,8 +35,9 @@ export default function useFriendDisplay()
 
 	const	presenceQuery = useQuery<PresenceMap>(
 		{
-			queryKey:	queryKeys.presence.onlineFriends( user?.id ?? '' ),
+			queryKey:	presenceKey,
 			enabled:	Boolean( user ),
+			queryFn: () => queryClient.getQueryData<PresenceMap>(presenceKey) ?? {},
 			initialData:	{},
 			staleTime:	Infinity
 		}
